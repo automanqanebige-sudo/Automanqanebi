@@ -1,58 +1,69 @@
 <!DOCTYPE html>
 <html lang="ka">
 <head>
-  <meta charset="UTF-8">
-  <title>Automanqanebi</title>
+<meta charset="UTF-8">
+<title>Automanqanebi</title>
 
-  <style>
-    body {
-      font-family: Arial;
-      background: #f5f5f5;
-      padding: 20px;
-    }
+<style>
+body {
+  font-family: Arial;
+  background: #f5f5f5;
+  padding: 20px;
+}
 
-    h1 {
-      text-align: center;
-    }
+h1 {
+  text-align: center;
+}
 
-    .box {
-      background: white;
-      padding: 20px;
-      border-radius: 10px;
-      max-width: 400px;
-      margin: auto;
-      box-shadow: 0 0 10px rgba(0,0,0,0.1);
-    }
+.box {
+  background: white;
+  padding: 20px;
+  border-radius: 10px;
+  max-width: 450px;
+  margin: auto;
+  box-shadow: 0 0 10px rgba(0,0,0,0.1);
+}
 
-    select, input, button {
-      width: 100%;
-      padding: 10px;
-      margin-top: 10px;
-    }
+select, input {
+  width: 100%;
+  padding: 10px;
+  margin-top: 10px;
+}
 
-    button {
-      background: green;
-      color: white;
-      border: none;
-      cursor: pointer;
-    }
+.result {
+  margin-top: 20px;
+}
 
-    .result {
-      margin-top: 20px;
-    }
+.card {
+  margin-top: 15px;
+  background: white;
+  padding: 10px;
+  border-radius: 8px;
+}
 
-    .card {
-      margin-top: 15px;
-      background: white;
-      padding: 10px;
-      border-radius: 8px;
-    }
+img {
+  width: 100%;
+  border-radius: 8px;
+}
 
-    img {
-      width: 100%;
-      border-radius: 8px;
-    }
-  </style>
+button {
+  margin-top: 5px;
+  padding: 8px;
+  width: 100%;
+  border: none;
+  cursor: pointer;
+}
+
+.fav {
+  background: orange;
+  color: white;
+}
+
+.whatsapp {
+  background: green;
+  color: white;
+}
+</style>
 </head>
 
 <body>
@@ -61,68 +72,100 @@
 
 <div class="box">
 
-  <input type="text" id="search" placeholder="მოძებნე ბრენდი ან მოდელი..." oninput="searchCar()" />
+<input type="text" id="search" placeholder="AI ძებნა (მაგ: იაფი BMW)" oninput="searchCar()" />
 
-  <label>ბრენდი:</label>
-  <select id="brand" onchange="searchCar()">
-    <option value="">ყველა</option>
-    <option value="BMW">BMW</option>
-    <option value="Mercedes">Mercedes</option>
-    <option value="Toyota">Toyota</option>
-  </select>
+<select id="brand" onchange="searchCar()">
+<option value="">ყველა ბრენდი</option>
+<option value="BMW">BMW</option>
+<option value="Mercedes">Mercedes</option>
+<option value="Toyota">Toyota</option>
+</select>
 
-  <label>მოდელი:</label>
-  <select id="model" onchange="searchCar()">
-    <option value="">ყველა</option>
-    <option value="X5">X5</option>
-    <option value="E-Class">E-Class</option>
-    <option value="Camry">Camry</option>
-  </select>
+<select id="year" onchange="searchCar()">
+<option value="">ყველა წელი</option>
+<option value="2020">2020</option>
+<option value="2018">2018</option>
+<option value="2015">2015</option>
+</select>
 
-  <div id="result" class="result"></div>
+<label>მაქს ფასი: <span id="priceValue">20000</span>$</label>
+<input type="range" min="5000" max="20000" value="20000" id="price" oninput="updatePrice()" />
+
+<div id="result" class="result"></div>
 
 </div>
 
 <script>
 const cars = [
-  { brand: "BMW", model: "X5", price: "$15000", img: "https://via.placeholder.com/300?text=BMW+X5" },
-  { brand: "Mercedes", model: "E-Class", price: "$13000", img: "https://via.placeholder.com/300?text=E-Class" },
-  { brand: "Toyota", model: "Camry", price: "$10000", img: "https://via.placeholder.com/300?text=Camry" }
+{ brand:"BMW", model:"X5", year:"2020", price:15000, img:"https://via.placeholder.com/300?text=BMW+X5" },
+{ brand:"Mercedes", model:"E-Class", year:"2018", price:13000, img:"https://via.placeholder.com/300?text=E-Class" },
+{ brand:"Toyota", model:"Camry", year:"2015", price:10000, img:"https://via.placeholder.com/300?text=Camry" }
 ];
 
-function searchCar() {
+function updatePrice(){
+  document.getElementById("priceValue").innerText = document.getElementById("price").value;
+  searchCar();
+}
+
+function searchCar(){
   const brand = document.getElementById("brand").value.toLowerCase();
-  const model = document.getElementById("model").value.toLowerCase();
+  const year = document.getElementById("year").value;
+  const maxPrice = document.getElementById("price").value;
   const search = document.getElementById("search").value.toLowerCase();
 
-  const resultDiv = document.getElementById("result");
-  resultDiv.innerHTML = "";
+  const result = document.getElementById("result");
+  result.innerHTML = "";
 
   const filtered = cars.filter(car => {
+
+    let aiCheck = true;
+
+    if(search.includes("იაფი")){
+      aiCheck = car.price < 12000;
+    }
+
     return (
       (!brand || car.brand.toLowerCase() === brand) &&
-      (!model || car.model.toLowerCase() === model) &&
+      (!year || car.year === year) &&
+      car.price <= maxPrice &&
+      aiCheck &&
       (!search || car.brand.toLowerCase().includes(search) || car.model.toLowerCase().includes(search))
     );
   });
 
-  if (filtered.length === 0) {
-    resultDiv.innerHTML = "❌ ვერ მოიძებნა";
+  if(filtered.length === 0){
+    result.innerHTML = "❌ ვერ მოიძებნა";
     return;
   }
 
   filtered.forEach(car => {
-    resultDiv.innerHTML += `
-      <div class="card">
-        <img src="${car.img}" />
-        <h3>${car.brand} ${car.model}</h3>
-        <p>ფასი: ${car.price}</p>
-      </div>
+    result.innerHTML += `
+    <div class="card">
+      <img src="${car.img}" />
+      <h3>${car.brand} ${car.model}</h3>
+      <p>წელი: ${car.year}</p>
+      <p>ფასი: $${car.price}</p>
+
+      <button class="fav" onclick="addFav('${car.model}')">❤️ ფავორიტი</button>
+
+      <button class="whatsapp" onclick="contact('${car.brand} ${car.model}')">
+        WhatsApp
+      </button>
+    </div>
     `;
   });
 }
 
-// თავიდანვე აჩვენოს ყველა
+function addFav(model){
+  localStorage.setItem("fav", model);
+  alert("დამატებულია ფავორიტებში ❤️");
+}
+
+function contact(name){
+  const msg = "მაინტერესებს: " + name;
+  window.open("https://wa.me/?text=" + encodeURIComponent(msg));
+}
+
 searchCar();
 </script>
 
