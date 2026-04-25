@@ -5,33 +5,46 @@
 <title>Automanqanebi</title>
 
 <style>
-// Import the functions you need from the SDKs you need
-import { initializeApp } from "firebase/app";
-import { getAnalytics } from "firebase/analytics";
-// TODO: Add SDKs for Firebase products that you want to use
-// https://firebase.google.com/docs/web/setup#available-libraries
+body {
+  font-family: Arial;
+  background:#f5f5f5;
+  padding:20px;
+}
 
-// Your web app's Firebase configuration
-// For Firebase JS SDK v7.20.0 and later, measurementId is optional
-const firebaseConfig = {
-  apiKey: "AIzaSyAsDUkGL5REavtyat_qquZXyexxB5isqzI",
-  authDomain: "aauuttoo-68218.firebaseapp.com",
-  projectId: "aauuttoo-68218",
-  storageBucket: "aauuttoo-68218.firebasestorage.app",
-  messagingSenderId: "79568096668",
-  appId: "1:79568096668:web:50f37ea5c22c4dc449cc59",
-  measurementId: "G-GQDWPPGNGZ"
-};
+.box {
+  background:white;
+  padding:20px;
+  border-radius:10px;
+  max-width:450px;
+  margin:auto;
+}
 
-// Initialize Firebase
-const app = initializeApp(firebaseConfig);
-const analytics = getAnalytics(app);
-body { font-family: Arial; background:#f5f5f5; padding:20px; }
-.box { background:white; padding:20px; border-radius:10px; max-width:450px; margin:auto; }
-input, select { width:100%; padding:10px; margin-top:10px; }
-button { margin-top:5px; padding:8px; width:100%; border:none; cursor:pointer; }
-.card { margin-top:15px; background:white; padding:10px; border-radius:8px; }
-img { width:100%; border-radius:8px; }
+input, select {
+  width:100%;
+  padding:10px;
+  margin-top:10px;
+}
+
+button {
+  margin-top:5px;
+  padding:8px;
+  width:100%;
+  border:none;
+  cursor:pointer;
+}
+
+.card {
+  margin-top:15px;
+  background:white;
+  padding:10px;
+  border-radius:8px;
+}
+
+img {
+  width:100%;
+  border-radius:8px;
+}
+
 .login { background:black; color:white; }
 .logout { background:red; color:white; }
 .fav { background:orange; color:white; }
@@ -60,38 +73,46 @@ img { width:100%; border-radius:8px; }
 
 </div>
 
-<!-- Firebase -->
-<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js"></script>
+<!-- Firebase CDN -->
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
 
 <script>
-// 🔴 ჩასვი შენი Firebase config აქ
+// ✅ შენი რეალური Firebase config
 const firebaseConfig = {
-  apiKey: "PASTE_HERE",
-  authDomain: "PASTE_HERE",
-  projectId: "PASTE_HERE",
+  apiKey: "AIzaSyAsDUkGL5REavtyat_qquZXyexxB5isqzI",
+  authDomain: "aauuttoo-68218.firebaseapp.com",
+  projectId: "aauuttoo-68218",
+  storageBucket: "aauuttoo-68218.firebasestorage.app",
+  messagingSenderId: "79568096668",
+  appId: "1:79568096668:web:50f37ea5c22c4dc449cc59"
 };
 
 firebase.initializeApp(firebaseConfig);
+
 const auth = firebase.auth();
 const db = firebase.firestore();
 
+// მანქანები
 const cars = [
 { brand:"BMW", model:"X5", price:15000 },
 { brand:"Mercedes", model:"E-Class", price:13000 },
 { brand:"Toyota", model:"Camry", price:10000 }
 ];
 
+// 🔐 Login
 function login(){
   const provider = new firebase.auth.GoogleAuthProvider();
   auth.signInWithPopup(provider);
 }
 
+// 🚪 Logout
 function logout(){
   auth.signOut();
 }
 
+// 🔍 ძებნა
 function searchCar(){
   const brand = document.getElementById("brand").value;
   const search = document.getElementById("search").value.toLowerCase();
@@ -104,6 +125,11 @@ function searchCar(){
     (!search || car.model.toLowerCase().includes(search))
   );
 
+  if(filtered.length === 0){
+    result.innerHTML = "❌ ვერ მოიძებნა";
+    return;
+  }
+
   filtered.forEach(car=>{
     result.innerHTML += `
       <div class="card">
@@ -115,8 +141,10 @@ function searchCar(){
   });
 }
 
+// ❤️ Firebase-ში შენახვა
 async function addFav(model){
   const user = auth.currentUser;
+
   if(!user){
     alert("ჯერ გაიარე login!");
     return;
