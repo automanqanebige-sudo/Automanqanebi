@@ -21,22 +21,35 @@
       border-radius: 10px;
       max-width: 400px;
       margin: auto;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
     }
 
-    select, button {
+    select, input, button {
       width: 100%;
       padding: 10px;
       margin-top: 10px;
     }
 
+    button {
+      background: green;
+      color: white;
+      border: none;
+      cursor: pointer;
+    }
+
     .result {
       margin-top: 20px;
+    }
+
+    .card {
+      margin-top: 15px;
+      background: white;
       padding: 10px;
-      background: #eee;
       border-radius: 8px;
     }
 
     img {
+      width: 100%;
       border-radius: 8px;
     }
   </style>
@@ -48,23 +61,23 @@
 
 <div class="box">
 
+  <input type="text" id="search" placeholder="მოძებნე ბრენდი ან მოდელი..." oninput="searchCar()" />
+
   <label>ბრენდი:</label>
-  <select id="brand">
-    <option value="">აირჩიე</option>
+  <select id="brand" onchange="searchCar()">
+    <option value="">ყველა</option>
     <option value="BMW">BMW</option>
     <option value="Mercedes">Mercedes</option>
     <option value="Toyota">Toyota</option>
   </select>
 
   <label>მოდელი:</label>
-  <select id="model">
-    <option value="">აირჩიე</option>
+  <select id="model" onchange="searchCar()">
+    <option value="">ყველა</option>
     <option value="X5">X5</option>
     <option value="E-Class">E-Class</option>
     <option value="Camry">Camry</option>
   </select>
-
-  <button onclick="searchCar()">ძებნა</button>
 
   <div id="result" class="result"></div>
 
@@ -78,15 +91,19 @@ const cars = [
 ];
 
 function searchCar() {
-  const brand = document.getElementById("brand").value;
-  const model = document.getElementById("model").value;
+  const brand = document.getElementById("brand").value.toLowerCase();
+  const model = document.getElementById("model").value.toLowerCase();
+  const search = document.getElementById("search").value.toLowerCase();
 
   const resultDiv = document.getElementById("result");
   resultDiv.innerHTML = "";
 
   const filtered = cars.filter(car => {
-    return (!brand || car.brand === brand) &&
-           (!model || car.model === model);
+    return (
+      (!brand || car.brand.toLowerCase() === brand) &&
+      (!model || car.model.toLowerCase() === model) &&
+      (!search || car.brand.toLowerCase().includes(search) || car.model.toLowerCase().includes(search))
+    );
   });
 
   if (filtered.length === 0) {
@@ -96,14 +113,17 @@ function searchCar() {
 
   filtered.forEach(car => {
     resultDiv.innerHTML += `
-      <div style="margin-top:15px; background:white; padding:10px; border-radius:8px;">
-        <img src="${car.img}" width="100%" />
+      <div class="card">
+        <img src="${car.img}" />
         <h3>${car.brand} ${car.model}</h3>
         <p>ფასი: ${car.price}</p>
       </div>
     `;
   });
 }
+
+// თავიდანვე აჩვენოს ყველა
+searchCar();
 </script>
 
 </body>
