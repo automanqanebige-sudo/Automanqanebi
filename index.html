@@ -5,6 +5,27 @@
 <title>Automanqanebi</title>
 
 <style>
+// Import the functions you need from the SDKs you need
+import { initializeApp } from "firebase/app";
+import { getAnalytics } from "firebase/analytics";
+// TODO: Add SDKs for Firebase products that you want to use
+// https://firebase.google.com/docs/web/setup#available-libraries
+
+// Your web app's Firebase configuration
+// For Firebase JS SDK v7.20.0 and later, measurementId is optional
+const firebaseConfig = {
+  apiKey: "AIzaSyAsDUkGL5REavtyat_qquZXyexxB5isqzI",
+  authDomain: "aauuttoo-68218.firebaseapp.com",
+  projectId: "aauuttoo-68218",
+  storageBucket: "aauuttoo-68218.firebasestorage.app",
+  messagingSenderId: "79568096668",
+  appId: "1:79568096668:web:50f37ea5c22c4dc449cc59",
+  measurementId: "G-GQDWPPGNGZ"
+};
+
+// Initialize Firebase
+const app = initializeApp(firebaseConfig);
+const analytics = getAnalytics(app);
 body { font-family: Arial; background:#f5f5f5; padding:20px; }
 .box { background:white; padding:20px; border-radius:10px; max-width:450px; margin:auto; }
 input, select { width:100%; padding:10px; margin-top:10px; }
