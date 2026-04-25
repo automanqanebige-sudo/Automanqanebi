@@ -67,19 +67,37 @@
 </div>
 
 <script>
+const cars = [
+  { brand: "BMW", model: "X5", price: "$15000", img: "https://via.placeholder.com/300?text=BMW+X5" },
+  { brand: "Mercedes", model: "E-Class", price: "$13000", img: "https://via.placeholder.com/300?text=E-Class" },
+  { brand: "Toyota", model: "Camry", price: "$10000", img: "https://via.placeholder.com/300?text=Camry" }
+];
+
 function searchCar() {
   const brand = document.getElementById("brand").value;
   const model = document.getElementById("model").value;
 
-  if (!brand || !model) {
-    document.getElementById("result").innerHTML = "⚠️ აირჩიე ბრენდი და მოდელი";
+  const resultDiv = document.getElementById("result");
+  resultDiv.innerHTML = "";
+
+  const filtered = cars.filter(car => {
+    return (!brand || car.brand === brand) &&
+           (!model || car.model === model);
+  });
+
+  if (filtered.length === 0) {
+    resultDiv.innerHTML = "❌ ვერ მოიძებნა";
     return;
   }
 
-  document.getElementById("result").innerHTML =
-    "შედეგი: " + brand + " " + model + " 🚗";
+  filtered.forEach(car => {
+    resultDiv.innerHTML += `
+      <div style="margin-top:15px; background:white; padding:10px; border-radius:8px;">
+        <img src="${car.img}" width="100%" />
+        <h3>${car.brand} ${car.model}</h3>
+        <p>ფასი: ${car.price}</p>
+      </div>
+    `;
+  });
 }
 </script>
-
-</body>
-</html>
