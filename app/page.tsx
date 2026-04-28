@@ -34,6 +34,8 @@ export default function Home() {
   >([]);
   const [cars, setCars] =
     useState<any[]>([]);
+  const [darkMode, setDarkMode] =
+    useState(true);
 
   useEffect(() => {
     const savedFavorites =
@@ -54,7 +56,27 @@ export default function Home() {
       ...defaultCars,
       ...savedCars,
     ]);
+
+    const savedTheme =
+      localStorage.getItem("darkMode");
+
+    if (savedTheme) {
+      setDarkMode(
+        JSON.parse(savedTheme)
+      );
+    }
   }, []);
+
+  const toggleTheme = () => {
+    const updated = !darkMode;
+
+    setDarkMode(updated);
+
+    localStorage.setItem(
+      "darkMode",
+      JSON.stringify(updated)
+    );
+  };
 
   const addToFavorites = (id: number) => {
     let updated = [...favorites];
@@ -101,10 +123,15 @@ export default function Home() {
   return (
     <div
       style={{
-        background: "#111",
+        background: darkMode
+          ? "#111"
+          : "#f5f5f5",
         minHeight: "100vh",
         padding: 20,
-        color: "white",
+        color: darkMode
+          ? "white"
+          : "black",
+        transition: "0.3s",
       }}
     >
       <div
@@ -113,19 +140,42 @@ export default function Home() {
           margin: "0 auto",
         }}
       >
-        <h1
+        <div
           style={{
+            display: "flex",
+            justifyContent:
+              "space-between",
+            alignItems: "center",
             marginBottom: 20,
           }}
         >
-          🚗 ავტომანქანები
-        </h1>
+          <h1>
+            🚗 ავტომანქანები
+          </h1>
+
+          <button
+            onClick={toggleTheme}
+            style={{
+              padding: 10,
+              borderRadius: 12,
+              border: "none",
+              background: darkMode
+                ? "#333"
+                : "#ddd",
+              cursor: "pointer",
+              fontSize: 18,
+            }}
+          >
+            {darkMode ? "☀️" : "🌙"}
+          </button>
+        </div>
 
         <div
           style={{
             display: "flex",
             gap: 10,
             marginBottom: 20,
+            flexWrap: "wrap",
           }}
         >
           <Link
@@ -202,10 +252,14 @@ export default function Home() {
           <div
             key={car.id}
             style={{
-              background: "#1e1e1e",
+              background: darkMode
+                ? "#1e1e1e"
+                : "white",
               borderRadius: 20,
               overflow: "hidden",
               marginBottom: 20,
+              boxShadow:
+                "0 0 10px rgba(0,0,0,0.2)",
             }}
           >
             <img
@@ -223,7 +277,9 @@ export default function Home() {
                 <h2
                   style={{
                     marginBottom: 10,
-                    cursor: "pointer",
+                    color: darkMode
+                      ? "white"
+                      : "black",
                   }}
                 >
                   {car.name}
@@ -232,7 +288,7 @@ export default function Home() {
 
               <p
                 style={{
-                  color: "#00ff99",
+                  color: "#00cc66",
                   fontSize: 22,
                   marginBottom: 20,
                 }}
