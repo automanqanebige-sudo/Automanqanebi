@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 
-const cars = [
+const defaultCars = [
   {
     id: 1,
     name: "BMW X5",
@@ -53,14 +53,29 @@ const cars = [
 
 export default function Home() {
   const [search, setSearch] = useState("");
-  const [favorites, setFavorites] = useState<number[]>([]);
+  const [favorites, setFavorites] = useState<
+    number[]
+  >([]);
+  const [cars, setCars] =
+    useState(defaultCars);
 
   useEffect(() => {
-    const saved =
+    const savedFavorites =
       localStorage.getItem("favorites");
 
-    if (saved) {
-      setFavorites(JSON.parse(saved));
+    if (savedFavorites) {
+      setFavorites(
+        JSON.parse(savedFavorites)
+      );
+    }
+
+    const userCars = JSON.parse(
+      localStorage.getItem("userCars") ||
+        "[]"
+    );
+
+    if (userCars.length > 0) {
+      setCars([...defaultCars, ...userCars]);
     }
   }, []);
 
@@ -113,15 +128,35 @@ export default function Home() {
               "space-between",
             alignItems: "center",
             marginBottom: 20,
+            gap: 10,
           }}
         >
-          <h1
-            style={{
-              fontSize: 32,
-            }}
-          >
-            🚗 AutoMarket
-          </h1>
+          <div>
+            <h1
+              style={{
+                fontSize: 32,
+                marginBottom: 10,
+              }}
+            >
+              🚗 AutoMarket
+            </h1>
+
+            <Link href="/add-car">
+              <button
+                style={{
+                  padding: "10px 16px",
+                  borderRadius: 12,
+                  border: "none",
+                  background: "#22c55e",
+                  color: "white",
+                  fontWeight: "bold",
+                  cursor: "pointer",
+                }}
+              >
+                ➕ დამატება
+              </button>
+            </Link>
+          </div>
 
           <Link href="/favorites">
             <button
@@ -157,7 +192,7 @@ export default function Home() {
           }}
         />
 
-        {filteredCars.map((car) => (
+        {filteredCars.map((car: any) => (
           <div
             key={car.id}
             style={{
@@ -200,29 +235,33 @@ export default function Home() {
                   flexWrap: "wrap",
                 }}
               >
-                <span
-                  style={{
-                    background: "#333",
-                    padding:
-                      "6px 12px",
-                    borderRadius: 10,
-                    fontSize: 14,
-                  }}
-                >
-                  📅 {car.year}
-                </span>
+                {car.year && (
+                  <span
+                    style={{
+                      background: "#333",
+                      padding:
+                        "6px 12px",
+                      borderRadius: 10,
+                      fontSize: 14,
+                    }}
+                  >
+                    📅 {car.year}
+                  </span>
+                )}
 
-                <span
-                  style={{
-                    background: "#333",
-                    padding:
-                      "6px 12px",
-                    borderRadius: 10,
-                    fontSize: 14,
-                  }}
-                >
-                  ⛽ {car.fuel}
-                </span>
+                {car.fuel && (
+                  <span
+                    style={{
+                      background: "#333",
+                      padding:
+                        "6px 12px",
+                      borderRadius: 10,
+                      fontSize: 14,
+                    }}
+                  >
+                    ⛽ {car.fuel}
+                  </span>
+                )}
               </div>
 
               <p
