@@ -22,7 +22,8 @@ const cars = [
 ];
 
 export default function FavoritesPage() {
-  const [favorites, setFavorites] = useState<number[]>([]);
+  const [favorites, setFavorites] =
+    useState<number[]>([]);
 
   useEffect(() => {
     const saved =
