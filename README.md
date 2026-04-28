@@ -1,1 +1,1 @@
-# Automanqanebi
+# Automanqanebi.ge
