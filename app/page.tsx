@@ -234,6 +234,8 @@ export default function Home() {
                   gap: 10,
                 }}
               >
+                {/* FAVORITE */}
+
                 <button
                   style={{
                     flex: 1,
@@ -250,6 +252,30 @@ export default function Home() {
                 >
                   ❤️ ფავორიტი
                 </button>
+
+                {/* EDIT */}
+
+                <Link
+                  href={`/edit-car/${car.id}`}
+                >
+                  <button
+                    style={{
+                      padding: 14,
+                      borderRadius: 12,
+                      border: "none",
+                      background:
+                        "#0066ff",
+                      color:
+                        "white",
+                      fontWeight:
+                        "bold",
+                    }}
+                  >
+                    ✏️
+                  </button>
+                </Link>
+
+                {/* DELETE */}
 
                 <button
                   onClick={() =>
