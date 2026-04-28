@@ -1,5 +1,7 @@
 "use client";
 
+import { useParams } from "next/navigation";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 
 const defaultCars = [
@@ -7,64 +9,95 @@ const defaultCars = [
     id: 1,
     name: "BMW X5",
     price: 15000,
-    image:
-      "https://images.unsplash.com/photo-1555215695-3004980ad54e",
+    year: 2020,
+    mileage: "85,000 KM",
+    engine: "3.0 Turbo",
+    phone: "+995599123456",
     description:
-      "ძალიან კომფორტული და სწრაფი BMW X5 იდეალურ მდგომარეობაში.",
+      "იდეალურ მდგომარეობაში. ახალი ჩამოყვანილი.",
+    images: [
+      "https://images.unsplash.com/photo-1555215695-3004980ad54e",
+      "https://images.unsplash.com/photo-1492144534655-ae79c964c9d7",
+      "https://images.unsplash.com/photo-1503376780353-7e6692767b70",
+    ],
   },
+
   {
     id: 2,
     name: "Mercedes E-Class",
     price: 13000,
-    image:
-      "https://images.unsplash.com/photo-1503376780353-7e6692767b70",
+    year: 2019,
+    mileage: "120,000 KM",
+    engine: "2.0",
+    phone: "+995599123456",
     description:
-      "Mercedes E-Class ეკონომიური და ელეგანტური ავტომობილი.",
+      "სუფთა მანქანა იდეალურ მდგომარეობაში.",
+    images: [
+      "https://images.unsplash.com/photo-1503376780353-7e6692767b70",
+      "https://images.unsplash.com/photo-1494976388531-d1058494cdd8",
+    ],
   },
+
   {
     id: 3,
     name: "Toyota Camry",
     price: 10000,
-    image:
-      "https://images.unsplash.com/photo-1549399542-7e3f8b79c341",
+    year: 2018,
+    mileage: "140,000 KM",
+    engine: "2.5",
+    phone: "+995599123456",
     description:
-      "Toyota Camry გამძლე და ოჯახისთვის იდეალური მანქანა.",
+      "ეკონომიური და გამძლე მანქანა.",
+    images: [
+      "https://images.unsplash.com/photo-1549399542-7e3f8b79c341",
+      "https://images.unsplash.com/photo-1492144534655-ae79c964c9d7",
+    ],
   },
 ];
 
-export default function CarPage({
-  params,
-}: {
-  params: { id: string };
-}) {
-  const savedCars = JSON.parse(
-    localStorage.getItem("userCars") ||
-      "[]"
-  );
+export default function CarDetails() {
+  const params = useParams();
 
-  const cars = [
-    ...defaultCars,
-    ...savedCars,
-  ];
+  const [car, setCar] = useState<any>(null);
 
-  const car = cars.find(
-    (c) => c.id === Number(params.id)
-  );
+  const [mainImage, setMainImage] =
+    useState("");
+
+  useEffect(() => {
+    const savedCars = JSON.parse(
+      localStorage.getItem("userCars") ||
+        "[]"
+    );
+
+    const allCars = [
+      ...defaultCars,
+      ...savedCars,
+    ];
+
+    const foundCar = allCars.find(
+      (c) => c.id === Number(params.id)
+    );
+
+    setCar(foundCar);
+
+    if (foundCar?.images?.length > 0) {
+      setMainImage(foundCar.images[0]);
+    } else if (foundCar?.image) {
+      setMainImage(foundCar.image);
+    }
+  }, [params.id]);
 
   if (!car) {
     return (
       <div
         style={{
-          background: "#111",
           color: "white",
+          padding: 30,
+          background: "#111",
           minHeight: "100vh",
-          display: "flex",
-          justifyContent: "center",
-          alignItems: "center",
-          fontSize: 30,
         }}
       >
-        მანქანა ვერ მოიძებნა ❌
+        მანქანა ვერ მოიძებნა
       </div>
     );
   }
@@ -74,79 +107,232 @@ export default function CarPage({
       style={{
         background: "#111",
         minHeight: "100vh",
-        padding: 20,
         color: "white",
+        padding: 20,
       }}
     >
       <div
         style={{
           maxWidth: 700,
           margin: "0 auto",
-          background: "#1e1e1e",
-          borderRadius: 24,
-          overflow: "hidden",
         }}
       >
-        <img
-          src={car.image}
-          alt={car.name}
+        <Link href="/">
+          <button
+            style={{
+              marginBottom: 20,
+              padding: 12,
+              borderRadius: 12,
+              border: "none",
+              background: "#222",
+              color: "white",
+            }}
+          >
+            ⬅️ უკან
+          </button>
+        </Link>
+
+        <div
           style={{
-            width: "100%",
-            height: 350,
-            objectFit: "cover",
+            background: "#1e1e1e",
+            borderRadius: 24,
+            overflow: "hidden",
           }}
-        />
-
-        <div style={{ padding: 25 }}>
-          <h1
+        >
+          <img
+            src={mainImage}
+            alt={car.name}
             style={{
-              fontSize: 38,
-              marginBottom: 20,
+              width: "100%",
+              height: 350,
+              objectFit: "cover",
+            }}
+          />
+
+          <div
+            style={{
+              display: "flex",
+              gap: 10,
+              padding: 10,
+              overflowX: "auto",
             }}
           >
-            {car.name}
-          </h1>
+            {(car.images || [car.image]).map(
+              (
+                img: string,
+                index: number
+              ) => (
+                <img
+                  key={index}
+                  src={img}
+                  onClick={() =>
+                    setMainImage(img)
+                  }
+                  style={{
+                    width: 90,
+                    height: 70,
+                    objectFit: "cover",
+                    borderRadius: 10,
+                    cursor: "pointer",
+                    border:
+                      mainImage === img
+                        ? "3px solid #00ff99"
+                        : "2px solid #333",
+                  }}
+                />
+              )
+            )}
+          </div>
 
-          <p
-            style={{
-              color: "#00ff99",
-              fontSize: 32,
-              fontWeight: "bold",
-              marginBottom: 20,
-            }}
-          >
-            ${car.price}
-          </p>
-
-          <p
-            style={{
-              fontSize: 18,
-              lineHeight: 1.7,
-              color: "#ccc",
-              marginBottom: 30,
-            }}
-          >
-            {car.description ||
-              "აღწერა არ არის დამატებული."}
-          </p>
-
-          <Link href="/">
-            <button
+          <div style={{ padding: 24 }}>
+            <h1
               style={{
-                width: "100%",
-                padding: 16,
-                borderRadius: 14,
-                border: "none",
-                background: "#0066ff",
-                color: "white",
-                fontSize: 18,
-                fontWeight: "bold",
-                cursor: "pointer",
+                fontSize: 34,
+                marginBottom: 10,
               }}
             >
-              ⬅️ უკან დაბრუნება
-            </button>
-          </Link>
+              {car.name}
+            </h1>
+
+            <h2
+              style={{
+                color: "#00ff99",
+                fontSize: 32,
+                marginBottom: 20,
+              }}
+            >
+              ${car.price}
+            </h2>
+
+            <div
+              style={{
+                display: "grid",
+                gridTemplateColumns:
+                  "1fr 1fr",
+                gap: 14,
+                marginBottom: 20,
+              }}
+            >
+              <div
+                style={{
+                  background: "#222",
+                  padding: 16,
+                  borderRadius: 14,
+                }}
+              >
+                📅 წელი
+                <br />
+                <b>{car.year}</b>
+              </div>
+
+              <div
+                style={{
+                  background: "#222",
+                  padding: 16,
+                  borderRadius: 14,
+                }}
+              >
+                🚘 გარბენი
+                <br />
+                <b>{car.mileage}</b>
+              </div>
+
+              <div
+                style={{
+                  background: "#222",
+                  padding: 16,
+                  borderRadius: 14,
+                }}
+              >
+                ⚙️ ძრავი
+                <br />
+                <b>{car.engine}</b>
+              </div>
+
+              <div
+                style={{
+                  background: "#222",
+                  padding: 16,
+                  borderRadius: 14,
+                }}
+              >
+                📞 ნომერი
+                <br />
+                <b>{car.phone}</b>
+              </div>
+            </div>
+
+            <div
+              style={{
+                background: "#222",
+                padding: 20,
+                borderRadius: 16,
+                marginBottom: 20,
+                lineHeight: 1.7,
+              }}
+            >
+              <h3
+                style={{
+                  marginBottom: 10,
+                }}
+              >
+                📝 აღწერა
+              </h3>
+
+              {car.description}
+            </div>
+
+            <div
+              style={{
+                display: "flex",
+                gap: 10,
+              }}
+            >
+              <a
+                href={`tel:${car.phone}`}
+                style={{
+                  flex: 1,
+                }}
+              >
+                <button
+                  style={{
+                    width: "100%",
+                    padding: 16,
+                    borderRadius: 14,
+                    border: "none",
+                    background: "#00aa55",
+                    color: "white",
+                    fontWeight: "bold",
+                    fontSize: 18,
+                  }}
+                >
+                  📞 დარეკვა
+                </button>
+              </a>
+
+              <a
+                href={`https://wa.me/${car.phone.replace(
+                  "+",
+                  ""
+                )}`}
+                target="_blank"
+              >
+                <button
+                  style={{
+                    padding: 16,
+                    borderRadius: 14,
+                    border: "none",
+                    background: "#25D366",
+                    color: "white",
+                    fontWeight: "bold",
+                    fontSize: 18,
+                  }}
+                >
+                  WhatsApp
+                </button>
+              </a>
+            </div>
+          </div>
         </div>
       </div>
     </div>
