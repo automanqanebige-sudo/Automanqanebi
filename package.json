@@ -2,18 +2,17 @@
   "name": "automanqanebi",
   "version": "1.0.0",
   "private": true,
+
   "scripts": {
     "dev": "next dev",
     "build": "next build",
     "start": "next start"
   },
+
   "dependencies": {
-  "firebase": "^11.0.0",
-  "next": "14.2.3",
-  "react": "18.2.0",
-  "react-dom": "18.2.0"
-  },
-  "engines": {
-    "node": "24.x"
+    "firebase": "^12.0.0",
+    "next": "14.2.3",
+    "react": "^18",
+    "react-dom": "^18"
   }
 }
