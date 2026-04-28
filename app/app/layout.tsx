@@ -1,3 +1,8 @@
+export const metadata = {
+  title: "Automanqanebi",
+  description: "მანქანების აპი",
+};
+
 export default function RootLayout({
   children,
 }: {
@@ -5,7 +10,15 @@ export default function RootLayout({
 }) {
   return (
     <html lang="ka">
-      <body>{children}</body>
+      <body
+        style={{
+          margin: 0,
+          padding: 0,
+          background: "#111",
+        }}
+      >
+        {children}
+      </body>
     </html>
   );
 }
