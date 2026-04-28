@@ -97,6 +97,7 @@ export default function Home() {
         padding: 20,
         color: "white",
         fontFamily: "sans-serif",
+        paddingBottom: 100,
       }}
     >
       <div
@@ -316,6 +317,7 @@ export default function Home() {
               style={{
                 color: "white",
                 fontSize: 24,
+                cursor: "pointer",
               }}
             >
               🏠
@@ -327,20 +329,24 @@ export default function Home() {
               style={{
                 color: "white",
                 fontSize: 24,
+                cursor: "pointer",
               }}
             >
               ❤️
             </span>
           </Link>
 
-          <span
-            style={{
-              color: "white",
-              fontSize: 24,
-            }}
-          >
-            👤
-          </span>
+          <Link href="/profile">
+            <span
+              style={{
+                color: "white",
+                fontSize: 24,
+                cursor: "pointer",
+              }}
+            >
+              👤
+            </span>
+          </Link>
         </div>
       </div>
     </div>
