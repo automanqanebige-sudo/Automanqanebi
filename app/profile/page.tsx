@@ -1,41 +1,50 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import {
+  useEffect,
+  useState,
+} from "react";
+
 import Link from "next/link";
 
+import { auth } from "@/lib/firebase";
+
+import {
+  onAuthStateChanged,
+  signOut,
+} from "firebase/auth";
+
 export default function ProfilePage() {
-  const [name, setName] = useState("");
-  const [phone, setPhone] =
-    useState("");
+  const [user, setUser] =
+    useState<any>(null);
+
+  const [cars, setCars] =
+    useState<any[]>([]);
 
   useEffect(() => {
-    const savedName =
-      localStorage.getItem("profileName");
+    const unsubscribe =
+      onAuthStateChanged(
+        auth,
+        (currentUser) => {
+          setUser(currentUser);
+        }
+      );
 
-    const savedPhone =
-      localStorage.getItem("profilePhone");
+    const savedCars = JSON.parse(
+      localStorage.getItem(
+        "userCars"
+      ) || "[]"
+    );
 
-    if (savedName) {
-      setName(savedName);
-    }
+    setCars(savedCars);
 
-    if (savedPhone) {
-      setPhone(savedPhone);
-    }
+    return () => unsubscribe();
   }, []);
 
-  const saveProfile = () => {
-    localStorage.setItem(
-      "profileName",
-      name
-    );
+  const logout = async () => {
+    await signOut(auth);
 
-    localStorage.setItem(
-      "profilePhone",
-      phone
-    );
-
-    alert("პროფილი შენახულია 👤");
+    alert("გამოხვედი ❤️");
   };
 
   return (
@@ -60,87 +69,153 @@ export default function ProfilePage() {
               borderRadius: 12,
               border: "none",
               marginBottom: 20,
-              background: "#333",
-              color: "white",
+              cursor: "pointer",
             }}
           >
             ⬅ უკან
           </button>
         </Link>
 
-        <h1
+        <div
           style={{
+            background: "#1e1e1e",
+            padding: 25,
+            borderRadius: 20,
             marginBottom: 20,
+            textAlign: "center",
           }}
         >
-          👤 პროფილი
-        </h1>
+          {user && (
+            <>
+              <img
+                src={user.photoURL}
+                alt="profile"
+                style={{
+                  width: 120,
+                  height: 120,
+                  borderRadius: "50%",
+                  marginBottom: 20,
+                  border:
+                    "4px solid orange",
+                }}
+              />
 
-        <input
-          placeholder="სახელი"
-          value={name}
-          onChange={(e) =>
-            setName(e.target.value)
-          }
-          style={{
-            width: "100%",
-            padding: 14,
-            marginBottom: 15,
-            borderRadius: 12,
-            border: "none",
-          }}
-        />
+              <h1
+                style={{
+                  marginBottom: 10,
+                }}
+              >
+                {user.displayName}
+              </h1>
 
-        <input
-          placeholder="ტელეფონი"
-          value={phone}
-          onChange={(e) =>
-            setPhone(e.target.value)
-          }
-          style={{
-            width: "100%",
-            padding: 14,
-            marginBottom: 20,
-            borderRadius: 12,
-            border: "none",
-          }}
-        />
+              <p
+                style={{
+                  color: "#aaa",
+                  marginBottom: 20,
+                }}
+              >
+                {user.email}
+              </p>
 
-        <button
-          onClick={saveProfile}
-          style={{
-            width: "100%",
-            padding: 16,
-            borderRadius: 12,
-            border: "none",
-            background: "#00aa55",
-            color: "white",
-            fontWeight: "bold",
-            fontSize: 16,
-          }}
-        >
-          💾 შენახვა
-        </button>
+              <div
+                style={{
+                  background:
+                    "linear-gradient(90deg, orange, red)",
+                  padding: 12,
+                  borderRadius: 12,
+                  fontWeight: "bold",
+                  marginBottom: 20,
+                }}
+              >
+                👑 VIP USER
+              </div>
+
+              <button
+                onClick={logout}
+                style={{
+                  width: "100%",
+                  padding: 14,
+                  borderRadius: 12,
+                  border: "none",
+                  background: "red",
+                  color: "white",
+                  fontWeight: "bold",
+                  cursor: "pointer",
+                }}
+              >
+                🚪 Logout
+              </button>
+            </>
+          )}
+        </div>
 
         <div
           style={{
-            marginTop: 30,
             background: "#1e1e1e",
             padding: 20,
             borderRadius: 20,
           }}
         >
-          <h2>📋 ინფორმაცია</h2>
+          <h2
+            style={{
+              marginBottom: 20,
+            }}
+          >
+            🚗 ჩემი მანქანები
+          </h2>
 
-          <p>
-            👤 სახელი:{" "}
-            {name || "არ არის"}
-          </p>
+          {cars.length === 0 ? (
+            <p>
+              მანქანები ჯერ არ
+              დაგიმატებია
+            </p>
+          ) : (
+            cars.map((car) => (
+              <div
+                key={car.id}
+                style={{
+                  background: "#111",
+                  borderRadius: 16,
+                  overflow: "hidden",
+                  marginBottom: 20,
+                }}
+              >
+                <img
+                  src={car.image}
+                  alt={car.name}
+                  style={{
+                    width: "100%",
+                    height: 200,
+                    objectFit: "cover",
+                  }}
+                />
 
-          <p>
-            📞 ტელეფონი:{" "}
-            {phone || "არ არის"}
-          </p>
+                <div
+                  style={{
+                    padding: 15,
+                  }}
+                >
+                  <h3
+                    style={{
+                      marginBottom: 10,
+                    }}
+                  >
+                    {car.name}
+                  </h3>
+
+                  <p
+                    style={{
+                      color:
+                        "#00ff99",
+                      fontSize: 20,
+                    }}
+                  >
+                    ${car.price}
+                  </p>
+                </div>
+              </div>
+            ))
+          )}
         </div>
       </div>
     </div>
