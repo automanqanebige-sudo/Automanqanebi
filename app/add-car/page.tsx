@@ -1,21 +1,29 @@
 "use client";
 
-import { useState } from "react";
+import {
+  useEffect,
+  useState,
+} from "react";
+
+import {
+  doc,
+  getDoc,
+  updateDoc,
+} from "firebase/firestore";
 
 import { db } from "@/lib/firebase";
 
 import {
-  collection,
-  addDoc,
-} from "firebase/firestore";
+  useParams,
+  useRouter,
+} from "next/navigation";
 
-import { carBrands } from "@/data/cars";
+export default function EditCar() {
+  const params = useParams();
 
-export default function AddCarPage() {
-  const [brand, setBrand] =
-    useState("");
+  const router = useRouter();
 
-  const [model, setModel] =
+  const [name, setName] =
     useState("");
 
   const [price, setPrice] =
@@ -24,50 +32,98 @@ export default function AddCarPage() {
   const [image, setImage] =
     useState("");
 
-  const selectedBrand =
-    carBrands.find(
-      (b) => b.brand === brand
-    );
+  const [loading, setLoading] =
+    useState(true);
 
-  const saveCar = async () => {
+  // წამოღება
+
+  const fetchCar = async () => {
+    try {
+      const docRef = doc(
+        db,
+        "cars",
+        params.id as string
+      );
+
+      const docSnap =
+        await getDoc(docRef);
+
+      if (docSnap.exists()) {
+        const data =
+          docSnap.data();
+
+        setName(data.name);
+
+        setPrice(data.price);
+
+        setImage(data.image);
+      }
+    } catch (error) {
+      console.log(error);
+    }
+
+    setLoading(false);
+  };
+
+  useEffect(() => {
+    fetchCar();
+  }, []);
+
+  // განახლება
+
+  const updateCar = async () => {
     if (
-      !brand ||
-      !model ||
+      !name ||
       !price ||
       !image
     ) {
       alert("შეავსე ყველა ველი");
+
       return;
     }
 
     try {
-      await addDoc(
-        collection(db, "cars"),
-        {
-          brand,
-          model,
-          name: `${brand} ${model}`,
-          price,
-          image,
-          logo: selectedBrand?.logo,
-          createdAt: Date.now(),
-        }
+      const docRef = doc(
+        db,
+        "cars",
+        params.id as string
       );
+
+      await updateDoc(docRef, {
+        name,
+        price,
+        image,
+      });
 
       alert(
-        "მანქანა დაემატა 🔥"
+        "განახლდა წარმატებით ✅"
       );
 
-      setBrand("");
-      setModel("");
-      setPrice("");
-      setImage("");
+      router.push("/");
     } catch (error) {
       console.log(error);
 
       alert("შეცდომა");
     }
   };
+
+  if (loading) {
+    return (
+      <div
+        style={{
+          background: "#111",
+          minHeight: "100vh",
+          color: "white",
+          display: "flex",
+          justifyContent:
+            "center",
+          alignItems: "center",
+        }}
+      >
+        იტვირთება...
+      </div>
+    );
+  }
 
   return (
     <div
@@ -89,71 +145,16 @@ export default function AddCarPage() {
             marginBottom: 20,
           }}
         >
-          ➕ მანქანის დამატება
+          ✏️ რედაქტირება
         </h1>
 
-        {/* BRAND */}
+        {/* NAME */}
 
-        <select
-          value={brand}
-          onChange={(e) => {
-            setBrand(
-              e.target.value
-            );
-
-            setModel("");
-          }}
-          style={{
-            width: "100%",
-            padding: 14,
-            borderRadius: 12,
-            marginBottom: 20,
-          }}
-        >
-          <option value="">
-            აირჩიე მარკა
-          </option>
-
-          {carBrands.map((car) => (
-            <option
-              key={car.brand}
-              value={car.brand}
-            >
-              {car.brand}
-            </option>
-          ))}
-        </select>
-
-        {/* LOGO */}
-
-        {selectedBrand && (
-          <div
-            style={{
-              marginBottom: 20,
-              textAlign: "center",
-            }}
-          >
-            <img
-              src={selectedBrand.logo}
-              alt={brand}
-              style={{
-                width: 80,
-                height: 80,
-                objectFit: "contain",
-                background: "white",
-                borderRadius: 20,
-                padding: 10,
-              }}
-            />
-          </div>
-        )}
-
-        {/* MODEL */}
-
-        <select
-          value={model}
+        <input
+          placeholder="მანქანის სახელი"
+          value={name}
           onChange={(e) =>
-            setModel(
+            setName(
               e.target.value
             )
           }
@@ -161,24 +162,10 @@ export default function AddCarPage() {
             width: "100%",
             padding: 14,
             borderRadius: 12,
+            border: "none",
             marginBottom: 20,
           }}
-        >
-          <option value="">
-            აირჩიე მოდელი
-          </option>
-
-          {selectedBrand?.models.map(
-            (m) => (
-              <option
-                key={m}
-                value={m}
-              >
-                {m}
-              </option>
-            )
-          )}
-        </select>
+        />
 
         {/* PRICE */}
 
@@ -202,7 +189,7 @@ export default function AddCarPage() {
         {/* IMAGE */}
 
         <input
-          placeholder="სურათის ლინკი"
+          placeholder="სურათის URL"
           value={image}
           onChange={(e) =>
             setImage(
@@ -218,22 +205,38 @@ export default function AddCarPage() {
           }}
         />
 
+        {/* PREVIEW */}
+
+        {image && (
+          <img
+            src={image}
+            alt="preview"
+            style={{
+              width: "100%",
+              height: 220,
+              objectFit: "cover",
+              borderRadius: 20,
+              marginBottom: 20,
+            }}
+          />
+        )}
+
         {/* BUTTON */}
 
         <button
-          onClick={saveCar}
+          onClick={updateCar}
           style={{
             width: "100%",
             padding: 16,
             borderRadius: 14,
             border: "none",
-            background: "#00aa55",
+            background: "#0066ff",
             color: "white",
             fontWeight: "bold",
             fontSize: 18,
           }}
         >
-          🚗 დამატება
+          💾 შენახვა
         </button>
       </div>
     </div>
