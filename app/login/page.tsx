@@ -1,31 +1,39 @@
 "use client";
 
-import { signInWithPopup, GoogleAuthProvider } from "firebase/auth";
+import {
+  signInWithPopup,
+  GoogleAuthProvider,
+} from "firebase/auth";
+
 import { auth } from "@/lib/firebase";
+
 import { useRouter } from "next/navigation";
 
 export default function LoginPage() {
   const router = useRouter();
 
-  const loginWithGoogle = async () => {
-    try {
-      const provider =
-        new GoogleAuthProvider();
+  const loginWithGoogle =
+    async () => {
+      try {
+        const provider =
+          new GoogleAuthProvider();
 
-      await signInWithPopup(
-        auth,
-        provider
-      );
+        await signInWithPopup(
+          auth,
+          provider
+        );
 
-      alert("წარმატებული შესვლა ❤️");
+        alert(
+          "წარმატებული შესვლა ❤️"
+        );
 
-      router.push("/");
-    } catch (error) {
-      console.log(error);
+        router.push("/");
+      } catch (error) {
+        console.log(error);
 
-      alert("შეცდომა ❌");
-    }
-  };
+        alert("შეცდომა ❌");
+      }
+    };
 
   return (
     <div
