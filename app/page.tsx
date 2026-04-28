@@ -246,21 +246,40 @@ export default function Home() {
                 </button>
 
                 {car.id > 3 && (
-                  <button
-                    onClick={() =>
-                      deleteCar(car.id)
-                    }
-                    style={{
-                      padding: 14,
-                      borderRadius: 12,
-                      border: "none",
-                      background: "red",
-                      color: "white",
-                      fontWeight: "bold",
-                    }}
-                  >
-                    🗑️
-                  </button>
+                  <>
+                    <Link
+                      href={`/edit-car/${car.id}`}
+                    >
+                      <button
+                        style={{
+                          padding: 14,
+                          borderRadius: 12,
+                          border: "none",
+                          background: "#0066ff",
+                          color: "white",
+                          fontWeight: "bold",
+                        }}
+                      >
+                        ✏️
+                      </button>
+                    </Link>
+
+                    <button
+                      onClick={() =>
+                        deleteCar(car.id)
+                      }
+                      style={{
+                        padding: 14,
+                        borderRadius: 12,
+                        border: "none",
+                        background: "red",
+                        color: "white",
+                        fontWeight: "bold",
+                      }}
+                    >
+                      🗑️
+                    </button>
+                  </>
                 )}
               </div>
             </div>
