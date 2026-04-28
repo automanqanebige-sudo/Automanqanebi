@@ -1,8 +1,3 @@
-export const metadata = {
-  title: "Automanqanebi",
-  description: "მანქანების აპი",
-};
-
 export default function RootLayout({
   children,
 }: {
