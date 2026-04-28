@@ -3,9 +3,65 @@
 import { useState } from "react";
 import Link from "next/link";
 
+const cars = [
+  {
+    id: 1,
+    name: "BMW M5",
+    price: 25000,
+    image:
+      "https://images.unsplash.com/photo-1555215695-3004980ad54e",
+  },
+
+  {
+    id: 2,
+    name: "Mercedes S-Class",
+    price: 32000,
+    image:
+      "https://images.unsplash.com/photo-1503376780353-7e6692767b70",
+  },
+
+  {
+    id: 3,
+    name: "Toyota Camry",
+    price: 14000,
+    image:
+      "https://images.unsplash.com/photo-1549399542-7e3f8b79c341",
+  },
+
+  {
+    id: 4,
+    name: "Range Rover",
+    price: 45000,
+    image:
+      "https://images.unsplash.com/photo-1494976388531-d1058494cdd8",
+  },
+];
+
 export default function Home() {
   const [menuOpen, setMenuOpen] =
     useState(false);
+
+  const [favorites, setFavorites] =
+    useState<number[]>([]);
+
+  const addToFavorites = (
+    id: number
+  ) => {
+    if (
+      favorites.includes(id)
+    ) {
+      return;
+    }
+
+    setFavorites([
+      ...favorites,
+      id,
+    ]);
+
+    alert(
+      "დაემატა ფავორიტებში ❤️"
+    );
+  };
 
   return (
     <div
@@ -27,7 +83,7 @@ export default function Home() {
       >
         <div
           style={{
-            maxWidth: 900,
+            maxWidth: 1200,
             margin: "0 auto",
             display: "flex",
             justifyContent:
@@ -63,10 +119,9 @@ export default function Home() {
                 style={{
                   margin: 0,
                   fontSize: 28,
-                  color: "#111",
                 }}
               >
-                AUTO
+                AUTOMANQANEBI
               </h1>
 
               <p
@@ -75,7 +130,7 @@ export default function Home() {
                   color: "#666",
                 }}
               >
-                ავტომანქანები
+                ავტომობილები
               </p>
             </div>
           </div>
@@ -93,8 +148,6 @@ export default function Home() {
                 padding:
                   "8px 14px",
                 borderRadius: 999,
-                display: "flex",
-                gap: 8,
                 fontSize: 20,
               }}
             >
@@ -127,7 +180,7 @@ export default function Home() {
         <div
           style={{
             background: "white",
-            maxWidth: 900,
+            maxWidth: 1200,
             margin:
               "20px auto",
             borderRadius: 24,
@@ -168,7 +221,7 @@ export default function Home() {
 
       <div
         style={{
-          maxWidth: 900,
+          maxWidth: 1200,
           margin:
             "30px auto",
           padding: 20,
@@ -181,8 +234,6 @@ export default function Home() {
             borderRadius: 40,
             padding: 35,
             color: "white",
-            boxShadow:
-              "0 20px 50px rgba(0,0,0,0.2)",
           }}
         >
           <div
@@ -201,6 +252,7 @@ export default function Home() {
                   display: "flex",
                   gap: 10,
                   marginBottom: 20,
+                  flexWrap: "wrap",
                 }}
               >
                 <div
@@ -231,8 +283,8 @@ export default function Home() {
               <h1
                 style={{
                   fontSize: 60,
-                  marginBottom: 20,
                   lineHeight: 1,
+                  marginBottom: 20,
                 }}
               >
                 AUTOMANQANEBI.GE
@@ -241,7 +293,6 @@ export default function Home() {
               <p
                 style={{
                   fontSize: 24,
-                  opacity: 0.9,
                   maxWidth: 500,
                 }}
               >
@@ -272,56 +323,6 @@ export default function Home() {
               </button>
             </Link>
           </div>
-
-          {/* STATS */}
-
-          <div
-            style={{
-              display: "flex",
-              gap: 30,
-              marginTop: 40,
-              flexWrap: "wrap",
-            }}
-          >
-            <div>
-              <h2
-                style={{
-                  fontSize: 42,
-                  margin: 0,
-                }}
-              >
-                12+
-              </h2>
-
-              <p>განცხადება</p>
-            </div>
-
-            <div>
-              <h2
-                style={{
-                  fontSize: 42,
-                  margin: 0,
-                }}
-              >
-                24/7
-              </h2>
-
-              <p>ხელმისაწვდომი</p>
-            </div>
-
-            <div>
-              <h2
-                style={{
-                  fontSize: 42,
-                  margin: 0,
-                }}
-              >
-                უფასო
-              </h2>
-
-              <p>განთავსება</p>
-            </div>
-          </div>
         </div>
 
         {/* SEARCH */}
@@ -344,7 +345,7 @@ export default function Home() {
             }}
           >
             <input
-              placeholder="🔍 ძებნა..."
+              placeholder="🔍 მოძებნე მანქანა..."
               style={{
                 flex: 1,
                 minWidth: 200,
@@ -373,6 +374,120 @@ export default function Home() {
               ძებნა
             </button>
           </div>
+        </div>
+
+        {/* CARS */}
+
+        <div
+          style={{
+            marginTop: 40,
+            display: "grid",
+            gridTemplateColumns:
+              "repeat(auto-fit,minmax(280px,1fr))",
+            gap: 25,
+          }}
+        >
+          {cars.map((car) => (
+            <div
+              key={car.id}
+              style={{
+                background: "white",
+                borderRadius: 30,
+                overflow: "hidden",
+                boxShadow:
+                  "0 10px 30px rgba(0,0,0,0.1)",
+              }}
+            >
+              <img
+                src={car.image}
+                alt={car.name}
+                style={{
+                  width: "100%",
+                  height: 240,
+                  objectFit: "cover",
+                }}
+              />
+
+              <div
+                style={{
+                  padding: 25,
+                }}
+              >
+                <h2
+                  style={{
+                    marginBottom: 15,
+                    fontSize: 30,
+                  }}
+                >
+                  {car.name}
+                </h2>
+
+                <p
+                  style={{
+                    color: "#00aa55",
+                    fontSize: 32,
+                    fontWeight:
+                      "bold",
+                    marginBottom: 20,
+                  }}
+                >
+                  ${car.price}
+                </p>
+
+                <div
+                  style={{
+                    display: "flex",
+                    gap: 10,
+                  }}
+                >
+                  <button
+                    onClick={() =>
+                      addToFavorites(
+                        car.id
+                      )
+                    }
+                    style={{
+                      flex: 1,
+                      padding: 16,
+                      borderRadius: 18,
+                      border: "none",
+                      background:
+                        "orange",
+                      color: "white",
+                      fontWeight:
+                        "bold",
+                      fontSize: 18,
+                      cursor: "pointer",
+                    }}
+                  >
+                    ❤️ ფავორიტი
+                  </button>
+
+                  <Link
+                    href={`/car/${car.id}`}
+                  >
+                    <button
+                      style={{
+                        padding:
+                          "16px 20px",
+                        borderRadius: 18,
+                        border: "none",
+                        background:
+                          "#0066ff",
+                        color: "white",
+                        fontWeight:
+                          "bold",
+                        cursor:
+                          "pointer",
+                      }}
+                    >
+                      👁️
+                    </button>
+                  </Link>
+                </div>
+              </div>
+            </div>
+          ))}
         </div>
       </div>
     </div>
