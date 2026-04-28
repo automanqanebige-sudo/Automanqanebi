@@ -33,7 +33,7 @@ export default function Home() {
     number[]
   >([]);
   const [cars, setCars] =
-    useState<any[]>(defaultCars);
+    useState<any[]>([]);
 
   useEffect(() => {
     const savedFavorites =
@@ -50,12 +50,10 @@ export default function Home() {
         "[]"
     );
 
-    if (savedCars.length > 0) {
-      setCars([
-        ...defaultCars,
-        ...savedCars,
-      ]);
-    }
+    setCars([
+      ...defaultCars,
+      ...savedCars,
+    ]);
   }, []);
 
   const addToFavorites = (id: number) => {
@@ -73,6 +71,25 @@ export default function Home() {
     );
 
     alert("დაემატა ფავორიტებში ❤️");
+  };
+
+  const deleteCar = (id: number) => {
+    const updatedCars = cars.filter(
+      (car) => car.id !== id
+    );
+
+    setCars(updatedCars);
+
+    const userCars = updatedCars.filter(
+      (car) => car.id > 3
+    );
+
+    localStorage.setItem(
+      "userCars",
+      JSON.stringify(userCars)
+    );
+
+    alert("მანქანა წაიშალა 🗑️");
   };
 
   const filteredCars = cars.filter((car) =>
@@ -205,22 +222,47 @@ export default function Home() {
                 ${car.price}
               </p>
 
-              <button
-                onClick={() =>
-                  addToFavorites(car.id)
-                }
+              <div
                 style={{
-                  width: "100%",
-                  padding: 14,
-                  borderRadius: 12,
-                  border: "none",
-                  background: "orange",
-                  color: "white",
-                  fontWeight: "bold",
+                  display: "flex",
+                  gap: 10,
                 }}
               >
-                ❤️ ფავორიტი
-              </button>
+                <button
+                  onClick={() =>
+                    addToFavorites(car.id)
+                  }
+                  style={{
+                    flex: 1,
+                    padding: 14,
+                    borderRadius: 12,
+                    border: "none",
+                    background: "orange",
+                    color: "white",
+                    fontWeight: "bold",
+                  }}
+                >
+                  ❤️ ფავორიტი
+                </button>
+
+                {car.id > 3 && (
+                  <button
+                    onClick={() =>
+                      deleteCar(car.id)
+                    }
+                    style={{
+                      padding: 14,
+                      borderRadius: 12,
+                      border: "none",
+                      background: "red",
+                      color: "white",
+                      fontWeight: "bold",
+                    }}
+                  >
+                    🗑️
+                  </button>
+                )}
+              </div>
             </div>
           </div>
         ))}
