@@ -2,12 +2,12 @@ import { initializeApp } from "firebase/app";
 import { getAuth } from "firebase/auth";
 
 const firebaseConfig = {
-  apiKey: "AIzaSyBbN4ROdD_TAmmd4BmmzW6OLf8B3sv8S2M",
-  authDomain: "aauuttooo-9c5e6.firebaseapp.com",
-  projectId: "aauuttooo-9c5e6",
-  storageBucket: "aauuttooo-9c5e6.firebasestorage.app",
-  messagingSenderId: "212304817546",
-  appId: "1:212304817546:web:7fecc147ca2cc43639ec73",
+  apiKey: "შენი apiKey",
+  authDomain: "შენი domain",
+  projectId: "შენი projectId",
+  storageBucket: "შენი bucket",
+  messagingSenderId: "შენი senderId",
+  appId: "შენი appId",
 };
 
 const app = initializeApp(firebaseConfig);
