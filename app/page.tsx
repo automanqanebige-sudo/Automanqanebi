@@ -1,16 +1,7 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
-
-import {
-  createUserWithEmailAndPassword,
-  signInWithEmailAndPassword,
-  signOut,
-  onAuthStateChanged,
-} from "firebase/auth";
-
-import { auth } from "../lib/firebase";
 
 const cars = [
   {
@@ -40,32 +31,20 @@ export default function Home() {
   const [search, setSearch] = useState("");
   const [favorites, setFavorites] = useState<number[]>([]);
 
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-
-  const [user, setUser] = useState<any>(null);
-
   useEffect(() => {
-    const saved = localStorage.getItem("favorites");
+    const saved =
+      localStorage.getItem("favorites");
 
     if (saved) {
       setFavorites(JSON.parse(saved));
     }
-
-    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
-      setUser(currentUser);
-    });
-
-    return () => unsubscribe();
   }, []);
 
-  const toggleFavorite = (id: number) => {
-    let updated: number[] = [];
+  const addToFavorites = (id: number) => {
+    let updated = [...favorites];
 
-    if (favorites.includes(id)) {
-      updated = favorites.filter((f) => f !== id);
-    } else {
-      updated = [...favorites, id];
+    if (!updated.includes(id)) {
+      updated.push(id);
     }
 
     setFavorites(updated);
@@ -74,42 +53,14 @@ export default function Home() {
       "favorites",
       JSON.stringify(updated)
     );
-  };
 
-  const register = async () => {
-    try {
-      await createUserWithEmailAndPassword(
-        auth,
-        email,
-        password
-      );
-
-      alert("რეგისტრაცია წარმატებულია");
-    } catch (error: any) {
-      alert(error.message);
-    }
-  };
-
-  const login = async () => {
-    try {
-      await signInWithEmailAndPassword(
-        auth,
-        email,
-        password
-      );
-
-      alert("შესვლა წარმატებულია");
-    } catch (error: any) {
-      alert(error.message);
-    }
-  };
-
-  const logout = async () => {
-    await signOut(auth);
+    alert("დაემატა ფავორიტებში ❤️");
   };
 
   const filteredCars = cars.filter((car) =>
-    car.name.toLowerCase().includes(search.toLowerCase())
+    car.name
+      .toLowerCase()
+      .includes(search.toLowerCase())
   );
 
   return (
@@ -117,178 +68,120 @@ export default function Home() {
       style={{
         background: "#111",
         minHeight: "100vh",
-        color: "white",
         padding: 20,
-        fontFamily: "sans-serif",
+        color: "white",
       }}
     >
-      <h1
+      <div
         style={{
-          textAlign: "center",
-          marginBottom: 30,
+          maxWidth: 500,
+          margin: "0 auto",
         }}
       >
-        🚗 ავტომანქანები
-      </h1>
-
-      {!user ? (
-        <div
-          style={{
-            background: "#1e1e1e",
-            padding: 20,
-            borderRadius: 16,
-            marginBottom: 30,
-          }}
-        >
-          <input
-            placeholder="Email"
-            value={email}
-            onChange={(e) =>
-              setEmail(e.target.value)
-            }
-            style={inputStyle}
-          />
-
-          <input
-            type="password"
-            placeholder="Password"
-            value={password}
-            onChange={(e) =>
-              setPassword(e.target.value)
-            }
-            style={inputStyle}
-          />
-
-          <button
-            onClick={register}
-            style={buttonStyle}
-          >
-            რეგისტრაცია
-          </button>
-
-          <button
-            onClick={login}
-            style={{
-              ...buttonStyle,
-              background: "#2563eb",
-            }}
-          >
-            შესვლა
-          </button>
-        </div>
-      ) : (
-        <div
+        <h1
           style={{
             marginBottom: 20,
           }}
         >
-          <p>
-            👤 {user.email}
-          </p>
+          🚗 ავტომანქანები
+        </h1>
 
+        <Link href="/favorites">
           <button
-            onClick={logout}
-            style={{
-              ...buttonStyle,
-              background: "red",
-            }}
-          >
-            გამოსვლა
-          </button>
-        </div>
-      )}
-
-      <Link href="/favorites">
-        <button
-          style={{
-            ...buttonStyle,
-            background: "#e91e63",
-            marginBottom: 20,
-          }}
-        >
-          ❤️ ფავორიტები
-        </button>
-      </Link>
-
-      <input
-        placeholder="ძებნა..."
-        value={search}
-        onChange={(e) =>
-          setSearch(e.target.value)
-        }
-        style={inputStyle}
-      />
-
-      {filteredCars.map((car) => (
-        <div
-          key={car.id}
-          style={{
-            background: "#1e1e1e",
-            borderRadius: 20,
-            overflow: "hidden",
-            marginBottom: 25,
-          }}
-        >
-          <img
-            src={car.image}
-            alt={car.name}
             style={{
               width: "100%",
-              height: 220,
-              objectFit: "cover",
+              padding: 14,
+              borderRadius: 12,
+              border: "none",
+              background: "#ff0055",
+              color: "white",
+              fontWeight: "bold",
+              marginBottom: 20,
+              cursor: "pointer",
             }}
-          />
+          >
+            ❤️ ფავორიტები
+          </button>
+        </Link>
 
-          <div style={{ padding: 20 }}>
-            <h2>{car.name}</h2>
+        <input
+          placeholder="ძებნა..."
+          value={search}
+          onChange={(e) =>
+            setSearch(e.target.value)
+          }
+          style={{
+            width: "100%",
+            padding: 12,
+            borderRadius: 12,
+            border: "none",
+            marginBottom: 20,
+          }}
+        />
 
-            <p
+        {filteredCars.map((car) => (
+          <div
+            key={car.id}
+            style={{
+              background: "#1e1e1e",
+              borderRadius: 20,
+              overflow: "hidden",
+              marginBottom: 20,
+            }}
+          >
+            <img
+              src={car.image}
+              alt={car.name}
               style={{
-                color: "#00ff99",
-                fontSize: 20,
+                width: "100%",
+                height: 220,
+                objectFit: "cover",
               }}
-            >
-              ${car.price}
-            </p>
+            />
 
-            <button
-              onClick={() =>
-                toggleFavorite(car.id)
-              }
-              style={{
-                ...buttonStyle,
-                background: favorites.includes(car.id)
-                  ? "red"
-                  : "#ff9800",
-              }}
-            >
-              {favorites.includes(car.id)
-                ? "💔 წაშლა"
-                : "❤️ ფავორიტი"}
-            </button>
+            <div style={{ padding: 20 }}>
+              <Link href={`/car/${car.id}`}>
+                <h2
+                  style={{
+                    cursor: "pointer",
+                    marginBottom: 10,
+                  }}
+                >
+                  {car.name}
+                </h2>
+              </Link>
+
+              <p
+                style={{
+                  color: "#00ff99",
+                  fontSize: 20,
+                  marginBottom: 20,
+                }}
+              >
+                ${car.price}
+              </p>
+
+              <button
+                onClick={() =>
+                  addToFavorites(car.id)
+                }
+                style={{
+                  width: "100%",
+                  padding: 14,
+                  borderRadius: 12,
+                  border: "none",
+                  background: "orange",
+                  color: "white",
+                  fontWeight: "bold",
+                  cursor: "pointer",
+                }}
+              >
+                ❤️ ფავორიტი
+              </button>
+            </div>
           </div>
-        </div>
-      ))}
+        ))}
+      </div>
     </div>
   );
 }
-
-const inputStyle = {
-  width: "100%",
-  padding: 14,
-  borderRadius: 12,
-  border: "none",
-  marginBottom: 15,
-};
-
-const buttonStyle = {
-  width: "100%",
-  padding: 14,
-  borderRadius: 12,
-  border: "none",
-  color: "white",
-  fontWeight: "bold" as const,
-  marginBottom: 12,
-  cursor: "pointer",
-  background: "#ff9800",
-};
