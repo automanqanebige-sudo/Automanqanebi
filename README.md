@@ -1,1 +1,1 @@
-automanqanebi.ge
+automanqanebige-sudo
