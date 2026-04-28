@@ -78,13 +78,7 @@ export default function Home() {
           margin: "0 auto",
         }}
       >
-        <h1
-          style={{
-            marginBottom: 20,
-          }}
-        >
-          🚗 ავტომანქანები
-        </h1>
+        <h1>🚗 ავტომანქანები</h1>
 
         <Link href="/favorites">
           <button
@@ -95,9 +89,7 @@ export default function Home() {
               border: "none",
               background: "#ff0055",
               color: "white",
-              fontWeight: "bold",
               marginBottom: 20,
-              cursor: "pointer",
             }}
           >
             ❤️ ფავორიტები
@@ -141,21 +133,13 @@ export default function Home() {
 
             <div style={{ padding: 20 }}>
               <Link href={`/car/${car.id}`}>
-                <h2
-                  style={{
-                    cursor: "pointer",
-                    marginBottom: 10,
-                  }}
-                >
-                  {car.name}
-                </h2>
+                <h2>{car.name}</h2>
               </Link>
 
               <p
                 style={{
                   color: "#00ff99",
                   fontSize: 20,
-                  marginBottom: 20,
                 }}
               >
                 ${car.price}
@@ -172,8 +156,6 @@ export default function Home() {
                   border: "none",
                   background: "orange",
                   color: "white",
-                  fontWeight: "bold",
-                  cursor: "pointer",
                 }}
               >
                 ❤️ ფავორიტი
