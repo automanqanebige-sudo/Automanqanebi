@@ -9,8 +9,13 @@ import {
   addDoc,
 } from "firebase/firestore";
 
-export default function AddCar() {
-  const [name, setName] =
+import { carBrands } from "@/data/cars";
+
+export default function AddCarPage() {
+  const [brand, setBrand] =
+    useState("");
+
+  const [model, setModel] =
     useState("");
 
   const [price, setPrice] =
@@ -19,9 +24,15 @@ export default function AddCar() {
   const [image, setImage] =
     useState("");
 
+  const selectedBrand =
+    carBrands.find(
+      (b) => b.brand === brand
+    );
+
   const saveCar = async () => {
     if (
-      !name ||
+      !brand ||
+      !model ||
       !price ||
       !image
     ) {
@@ -33,18 +44,22 @@ export default function AddCar() {
       await addDoc(
         collection(db, "cars"),
         {
-          name,
+          brand,
+          model,
+          name: `${brand} ${model}`,
           price,
           image,
+          logo: selectedBrand?.logo,
           createdAt: Date.now(),
         }
       );
 
       alert(
-        "მანქანა დაემატა Firebase-ში 🔥"
+        "მანქანა დაემატა 🔥"
       );
 
-      setName("");
+      setBrand("");
+      setModel("");
       setPrice("");
       setImage("");
     } catch (error) {
@@ -77,57 +92,140 @@ export default function AddCar() {
           ➕ მანქანის დამატება
         </h1>
 
-        <input
-          placeholder="მანქანის სახელი"
-          value={name}
+        {/* BRAND */}
+
+        <select
+          value={brand}
+          onChange={(e) => {
+            setBrand(
+              e.target.value
+            );
+
+            setModel("");
+          }}
+          style={{
+            width: "100%",
+            padding: 14,
+            borderRadius: 12,
+            marginBottom: 20,
+          }}
+        >
+          <option value="">
+            აირჩიე მარკა
+          </option>
+
+          {carBrands.map((car) => (
+            <option
+              key={car.brand}
+              value={car.brand}
+            >
+              {car.brand}
+            </option>
+          ))}
+        </select>
+
+        {/* LOGO */}
+
+        {selectedBrand && (
+          <div
+            style={{
+              marginBottom: 20,
+              textAlign: "center",
+            }}
+          >
+            <img
+              src={selectedBrand.logo}
+              alt={brand}
+              style={{
+                width: 80,
+                height: 80,
+                objectFit: "contain",
+                background: "white",
+                borderRadius: 20,
+                padding: 10,
+              }}
+            />
+          </div>
+        )}
+
+        {/* MODEL */}
+
+        <select
+          value={model}
           onChange={(e) =>
-            setName(e.target.value)
+            setModel(
+              e.target.value
+            )
           }
           style={{
             width: "100%",
             padding: 14,
-            marginBottom: 15,
             borderRadius: 12,
-            border: "none",
+            marginBottom: 20,
           }}
-        />
+        >
+          <option value="">
+            აირჩიე მოდელი
+          </option>
+
+          {selectedBrand?.models.map(
+            (m) => (
+              <option
+                key={m}
+                value={m}
+              >
+                {m}
+              </option>
+            )
+          )}
+        </select>
+
+        {/* PRICE */}
 
         <input
           placeholder="ფასი"
           value={price}
           onChange={(e) =>
-            setPrice(e.target.value)
+            setPrice(
+              e.target.value
+            )
           }
           style={{
             width: "100%",
             padding: 14,
-            marginBottom: 15,
             borderRadius: 12,
             border: "none",
+            marginBottom: 20,
           }}
         />
 
+        {/* IMAGE */}
+
         <input
-          placeholder="სურათის URL"
+          placeholder="სურათის ლინკი"
           value={image}
           onChange={(e) =>
-            setImage(e.target.value)
+            setImage(
+              e.target.value
+            )
           }
           style={{
             width: "100%",
             padding: 14,
-            marginBottom: 20,
             borderRadius: 12,
             border: "none",
+            marginBottom: 20,
           }}
         />
+
+        {/* BUTTON */}
 
         <button
           onClick={saveCar}
           style={{
             width: "100%",
             padding: 16,
-            borderRadius: 12,
+            borderRadius: 14,
             border: "none",
             background: "#00aa55",
             color: "white",
