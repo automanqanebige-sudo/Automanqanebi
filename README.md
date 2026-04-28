@@ -1,1 +1,1 @@
-# Automanqanebi.ge
+npm install firebase
