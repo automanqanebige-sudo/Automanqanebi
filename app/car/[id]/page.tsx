@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 
-const cars = [
+const defaultCars = [
   {
     id: 1,
     name: "BMW X5",
@@ -10,7 +10,7 @@ const cars = [
     image:
       "https://images.unsplash.com/photo-1555215695-3004980ad54e",
     description:
-      "BMW X5 იდეალურ მდგომარეობაში.",
+      "ძალიან კომფორტული და სწრაფი BMW X5 იდეალურ მდგომარეობაში.",
   },
   {
     id: 2,
@@ -19,7 +19,7 @@ const cars = [
     image:
       "https://images.unsplash.com/photo-1503376780353-7e6692767b70",
     description:
-      "Mercedes E-Class ძალიან კომფორტული.",
+      "Mercedes E-Class ეკონომიური და ელეგანტური ავტომობილი.",
   },
   {
     id: 3,
@@ -28,7 +28,7 @@ const cars = [
     image:
       "https://images.unsplash.com/photo-1549399542-7e3f8b79c341",
     description:
-      "Toyota Camry ეკონომიური მანქანა.",
+      "Toyota Camry გამძლე და ოჯახისთვის იდეალური მანქანა.",
   },
 ];
 
@@ -37,6 +37,16 @@ export default function CarPage({
 }: {
   params: { id: string };
 }) {
+  const savedCars = JSON.parse(
+    localStorage.getItem("userCars") ||
+      "[]"
+  );
+
+  const cars = [
+    ...defaultCars,
+    ...savedCars,
+  ];
+
   const car = cars.find(
     (c) => c.id === Number(params.id)
   );
@@ -48,10 +58,13 @@ export default function CarPage({
           background: "#111",
           color: "white",
           minHeight: "100vh",
-          padding: 20,
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "center",
+          fontSize: 30,
         }}
       >
-        <h1>მანქანა ვერ მოიძებნა</h1>
+        მანქანა ვერ მოიძებნა ❌
       </div>
     );
   }
@@ -61,92 +74,79 @@ export default function CarPage({
       style={{
         background: "#111",
         minHeight: "100vh",
-        color: "white",
         padding: 20,
+        color: "white",
       }}
     >
       <div
         style={{
           maxWidth: 700,
           margin: "0 auto",
+          background: "#1e1e1e",
+          borderRadius: 24,
+          overflow: "hidden",
         }}
       >
-        <Link href="/">
-          <button
+        <img
+          src={car.image}
+          alt={car.name}
+          style={{
+            width: "100%",
+            height: 350,
+            objectFit: "cover",
+          }}
+        />
+
+        <div style={{ padding: 25 }}>
+          <h1
             style={{
-              padding: 12,
-              borderRadius: 12,
-              border: "none",
+              fontSize: 38,
               marginBottom: 20,
-              background: "#333",
-              color: "white",
             }}
           >
-            ⬅ უკან
-          </button>
-        </Link>
+            {car.name}
+          </h1>
 
-        <div
-          style={{
-            background: "#1e1e1e",
-            borderRadius: 20,
-            overflow: "hidden",
-          }}
-        >
-          <img
-            src={car.image}
-            alt={car.name}
+          <p
             style={{
-              width: "100%",
-              height: 320,
-              objectFit: "cover",
+              color: "#00ff99",
+              fontSize: 32,
+              fontWeight: "bold",
+              marginBottom: 20,
             }}
-          />
+          >
+            ${car.price}
+          </p>
 
-          <div style={{ padding: 20 }}>
-            <h1
-              style={{
-                marginBottom: 10,
-              }}
-            >
-              {car.name}
-            </h1>
+          <p
+            style={{
+              fontSize: 18,
+              lineHeight: 1.7,
+              color: "#ccc",
+              marginBottom: 30,
+            }}
+          >
+            {car.description ||
+              "აღწერა არ არის დამატებული."}
+          </p>
 
-            <p
-              style={{
-                color: "#00ff99",
-                fontSize: 28,
-                marginBottom: 20,
-              }}
-            >
-              ${car.price}
-            </p>
-
-            <p
-              style={{
-                color: "#ccc",
-                lineHeight: 1.6,
-                marginBottom: 30,
-              }}
-            >
-              {car.description}
-            </p>
-
+          <Link href="/">
             <button
               style={{
                 width: "100%",
                 padding: 16,
-                borderRadius: 12,
+                borderRadius: 14,
                 border: "none",
-                background: "#00aa55",
+                background: "#0066ff",
                 color: "white",
                 fontSize: 18,
                 fontWeight: "bold",
+                cursor: "pointer",
               }}
             >
-              📞 დარეკვა
+              ⬅️ უკან დაბრუნება
             </button>
-          </div>
+          </Link>
         </div>
       </div>
     </div>
