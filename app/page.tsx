@@ -10,8 +10,6 @@ const defaultCars = [
     price: 15000,
     image:
       "https://source.unsplash.com/featured/?bmw",
-    year: 2022,
-    fuel: "Petrol",
   },
   {
     id: 2,
@@ -19,8 +17,6 @@ const defaultCars = [
     price: 13000,
     image:
       "https://source.unsplash.com/featured/?mercedes",
-    year: 2021,
-    fuel: "Diesel",
   },
   {
     id: 3,
@@ -28,26 +24,6 @@ const defaultCars = [
     price: 10000,
     image:
       "https://source.unsplash.com/featured/?toyota",
-    year: 2020,
-    fuel: "Hybrid",
-  },
-  {
-    id: 4,
-    name: "Audi A6",
-    price: 17000,
-    image:
-      "https://source.unsplash.com/featured/?audi",
-    year: 2023,
-    fuel: "Petrol",
-  },
-  {
-    id: 5,
-    name: "Porsche Cayenne",
-    price: 25000,
-    image:
-      "https://source.unsplash.com/featured/?porsche",
-    year: 2024,
-    fuel: "Hybrid",
   },
 ];
 
@@ -82,11 +58,7 @@ export default function Home() {
   const addToFavorites = (id: number) => {
     let updated = [...favorites];
 
-    if (updated.includes(id)) {
-      updated = updated.filter(
-        (item) => item !== id
-      );
-    } else {
+    if (!updated.includes(id)) {
       updated.push(id);
     }
 
@@ -107,88 +79,82 @@ export default function Home() {
   return (
     <div
       style={{
-        background: "#0f0f0f",
+        background: "#111",
         minHeight: "100vh",
         padding: 20,
         color: "white",
-        fontFamily: "sans-serif",
-        paddingBottom: 100,
       }}
     >
       <div
         style={{
-          maxWidth: 550,
+          maxWidth: 500,
           margin: "0 auto",
         }}
       >
+        <h1
+          style={{
+            marginBottom: 20,
+          }}
+        >
+          🚗 ავტომანქანები
+        </h1>
+
         <div
           style={{
             display: "flex",
-            justifyContent:
-              "space-between",
-            alignItems: "center",
-            marginBottom: 20,
             gap: 10,
+            marginBottom: 20,
           }}
         >
-          <div>
-            <h1
-              style={{
-                fontSize: 32,
-                marginBottom: 10,
-              }}
-            >
-              🚗 AutoMarket
-            </h1>
-
-            <Link href="/add-car">
-              <button
-                style={{
-                  padding: "10px 16px",
-                  borderRadius: 12,
-                  border: "none",
-                  background: "#22c55e",
-                  color: "white",
-                  fontWeight: "bold",
-                  cursor: "pointer",
-                }}
-              >
-                ➕ დამატება
-              </button>
-            </Link>
-          </div>
-
-          <Link href="/favorites">
+          <Link
+            href="/favorites"
+            style={{ flex: 1 }}
+          >
             <button
               style={{
-                padding: "10px 16px",
+                width: "100%",
+                padding: 14,
                 borderRadius: 12,
                 border: "none",
                 background: "#ff0055",
                 color: "white",
-                fontWeight: "bold",
-                cursor: "pointer",
               }}
             >
-              ❤️ {favorites.length}
+              ❤️ ფავორიტები
+            </button>
+          </Link>
+
+          <Link
+            href="/add-car"
+            style={{ flex: 1 }}
+          >
+            <button
+              style={{
+                width: "100%",
+                padding: 14,
+                borderRadius: 12,
+                border: "none",
+                background: "#00aa55",
+                color: "white",
+              }}
+            >
+              ➕ დამატება
             </button>
           </Link>
         </div>
 
         <input
-          placeholder="🔍 მოძებნე მანქანა..."
+          placeholder="ძებნა..."
           value={search}
           onChange={(e) =>
             setSearch(e.target.value)
           }
           style={{
             width: "100%",
-            padding: 16,
-            borderRadius: 16,
+            padding: 12,
+            borderRadius: 12,
             border: "none",
-            marginBottom: 25,
-            fontSize: 16,
-            outline: "none",
+            marginBottom: 20,
           }}
         />
 
@@ -196,12 +162,10 @@ export default function Home() {
           <div
             key={car.id}
             style={{
-              background: "#1a1a1a",
-              borderRadius: 24,
+              background: "#1e1e1e",
+              borderRadius: 20,
               overflow: "hidden",
-              marginBottom: 25,
-              boxShadow:
-                "0 0 20px rgba(0,0,0,0.4)",
+              marginBottom: 20,
             }}
           >
             <img
@@ -209,184 +173,41 @@ export default function Home() {
               alt={car.name}
               style={{
                 width: "100%",
-                height: 240,
+                height: 220,
                 objectFit: "cover",
               }}
             />
 
             <div style={{ padding: 20 }}>
-              <Link href={`/car/${car.id}`}>
-                <h2
-                  style={{
-                    fontSize: 24,
-                    marginBottom: 10,
-                    cursor: "pointer",
-                  }}
-                >
-                  {car.name}
-                </h2>
-              </Link>
-
-              <div
-                style={{
-                  display: "flex",
-                  gap: 10,
-                  marginBottom: 15,
-                  flexWrap: "wrap",
-                }}
-              >
-                {car.year && (
-                  <span
-                    style={{
-                      background: "#333",
-                      padding:
-                        "6px 12px",
-                      borderRadius: 10,
-                      fontSize: 14,
-                    }}
-                  >
-                    📅 {car.year}
-                  </span>
-                )}
-
-                {car.fuel && (
-                  <span
-                    style={{
-                      background: "#333",
-                      padding:
-                        "6px 12px",
-                      borderRadius: 10,
-                      fontSize: 14,
-                    }}
-                  >
-                    ⛽ {car.fuel}
-                  </span>
-                )}
-              </div>
+              <h2>{car.name}</h2>
 
               <p
                 style={{
                   color: "#00ff99",
-                  fontSize: 26,
-                  fontWeight: "bold",
-                  marginBottom: 20,
+                  fontSize: 20,
                 }}
               >
                 ${car.price}
               </p>
 
-              <div
+              <button
+                onClick={() =>
+                  addToFavorites(car.id)
+                }
                 style={{
-                  display: "flex",
-                  gap: 10,
+                  width: "100%",
+                  padding: 14,
+                  borderRadius: 12,
+                  border: "none",
+                  background: "orange",
+                  color: "white",
                 }}
               >
-                <button
-                  onClick={() =>
-                    addToFavorites(car.id)
-                  }
-                  style={{
-                    flex: 1,
-                    padding: 14,
-                    borderRadius: 14,
-                    border: "none",
-                    background:
-                      favorites.includes(
-                        car.id
-                      )
-                        ? "#ff0055"
-                        : "#ff9900",
-                    color: "white",
-                    fontWeight: "bold",
-                    cursor: "pointer",
-                    fontSize: 15,
-                  }}
-                >
-                  {favorites.includes(car.id)
-                    ? "💔 წაშლა"
-                    : "❤️ ფავორიტი"}
-                </button>
-
-                <Link
-                  href={`/car/${car.id}`}
-                  style={{
-                    flex: 1,
-                  }}
-                >
-                  <button
-                    style={{
-                      width: "100%",
-                      padding: 14,
-                      borderRadius: 14,
-                      border: "none",
-                      background:
-                        "#2563eb",
-                      color: "white",
-                      fontWeight: "bold",
-                      cursor: "pointer",
-                      fontSize: 15,
-                    }}
-                  >
-                    🚘 დეტალები
-                  </button>
-                </Link>
-              </div>
+                ❤️ ფავორიტი
+              </button>
             </div>
           </div>
         ))}
-
-        <div
-          style={{
-            position: "fixed",
-            bottom: 20,
-            left: 20,
-            right: 20,
-            background: "#1a1a1a",
-            borderRadius: 20,
-            padding: 16,
-            display: "flex",
-            justifyContent:
-              "space-around",
-            maxWidth: 550,
-            margin: "0 auto",
-          }}
-        >
-          <Link href="/">
-            <span
-              style={{
-                color: "white",
-                fontSize: 24,
-                cursor: "pointer",
-              }}
-            >
-              🏠
-            </span>
-          </Link>
-
-          <Link href="/favorites">
-            <span
-              style={{
-                color: "white",
-                fontSize: 24,
-                cursor: "pointer",
-              }}
-            >
-              ❤️
-            </span>
-          </Link>
-
-          <Link href="/profile">
-            <span
-              style={{
-                color: "white",
-                fontSize: 24,
-                cursor: "pointer",
-              }}
-            >
-              👤
-            </span>
-          </Link>
-        </div>
       </div>
     </div>
   );
