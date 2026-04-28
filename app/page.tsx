@@ -1,8 +1,8 @@
 "use client";
 
 import {
-  useState,
   useEffect,
+  useState,
 } from "react";
 
 import Link from "next/link";
@@ -12,114 +12,75 @@ import { db } from "@/lib/firebase";
 import {
   collection,
   getDocs,
+  deleteDoc,
+  doc,
 } from "firebase/firestore";
 
-const defaultCars = [
-  {
-    id: 1,
-    name: "BMW X5",
-    price: 15000,
-    image:
-      "https://images.unsplash.com/photo-1555215695-3004980ad54e",
-  },
-
-  {
-    id: 2,
-    name: "Mercedes E-Class",
-    price: 13000,
-    image:
-      "https://images.unsplash.com/photo-1503376780353-7e6692767b70",
-  },
-
-  {
-    id: 3,
-    name: "Toyota Camry",
-    price: 10000,
-    image:
-      "https://images.unsplash.com/photo-1549399542-7e3f8b79c341",
-  },
-];
-
 export default function Home() {
-  const [search, setSearch] =
-    useState("");
-
-  const [favorites, setFavorites] =
-    useState<number[]>([]);
-
   const [cars, setCars] =
-    useState<any[]>(defaultCars);
+    useState<any[]>([]);
 
-  useEffect(() => {
-    const savedFavorites =
-      localStorage.getItem(
-        "favorites"
-      );
+  const [loading, setLoading] =
+    useState(true);
 
-    if (savedFavorites) {
-      setFavorites(
-        JSON.parse(savedFavorites)
-      );
-    }
+  // წამოღება Firebase-დან
 
-    loadCars();
-  }, []);
-
-  const loadCars = async () => {
+  const fetchCars = async () => {
     try {
       const querySnapshot =
         await getDocs(
           collection(db, "cars")
         );
 
-      const firebaseCars =
-        querySnapshot.docs.map(
-          (doc) => ({
-            id: doc.id,
-            ...doc.data(),
-          })
-        );
+      const carsData: any[] = [];
 
-      setCars([
-        ...defaultCars,
-        ...firebaseCars,
-      ]);
+      querySnapshot.forEach((doc) => {
+        carsData.push({
+          id: doc.id,
+          ...doc.data(),
+        });
+      });
+
+      setCars(carsData);
     } catch (error) {
       console.log(error);
     }
+
+    setLoading(false);
   };
 
-  const addToFavorites = (
-    id: number | string
+  useEffect(() => {
+    fetchCars();
+  }, []);
+
+  // წაშლა
+
+  const deleteCar = async (
+    id: string
   ) => {
-    let updated = [...favorites];
+    const confirmDelete =
+      confirm(
+        "წავშალო მანქანა?"
+      );
 
-    if (
-      !updated.includes(id as number)
-    ) {
-      updated.push(id as number);
+    if (!confirmDelete) return;
+
+    try {
+      await deleteDoc(
+        doc(db, "cars", id)
+      );
+
+      alert(
+        "მანქანა წაიშალა 🗑️"
+      );
+
+      fetchCars();
+    } catch (error) {
+      console.log(error);
+
+      alert("შეცდომა");
     }
-
-    setFavorites(updated);
-
-    localStorage.setItem(
-      "favorites",
-      JSON.stringify(updated)
-    );
-
-    alert(
-      "დაემატა ფავორიტებში ❤️"
-    );
   };
-
-  const filteredCars = cars.filter(
-    (car) =>
-      car.name
-        .toLowerCase()
-        .includes(
-          search.toLowerCase()
-        )
-  );
 
   return (
     <div
@@ -136,54 +97,33 @@ export default function Home() {
           margin: "0 auto",
         }}
       >
-        <h1
-          style={{
-            marginBottom: 20,
-            fontSize: 40,
-          }}
-        >
-          🚗 ავტომანქანები
-        </h1>
+        {/* TOP */}
 
         <div
           style={{
             display: "flex",
-            gap: 10,
+            justifyContent:
+              "space-between",
+            alignItems: "center",
             marginBottom: 20,
           }}
         >
-          <Link
-            href="/favorites"
-            style={{ flex: 1 }}
-          >
-            <button
-              style={{
-                width: "100%",
-                padding: 14,
-                borderRadius: 12,
-                border: "none",
-                background: "#ff0055",
-                color: "white",
-                fontWeight: "bold",
-              }}
-            >
-              ❤️ ფავორიტები
-            </button>
-          </Link>
+          <h1>
+            🚗 ავტომანქანები
+          </h1>
 
-          <Link
-            href="/add-car"
-            style={{ flex: 1 }}
-          >
+          <Link href="/add-car">
             <button
               style={{
-                width: "100%",
-                padding: 14,
+                padding:
+                  "12px 18px",
                 borderRadius: 12,
                 border: "none",
-                background: "#00aa55",
+                background:
+                  "#00aa55",
                 color: "white",
-                fontWeight: "bold",
+                fontWeight:
+                  "bold",
               }}
             >
               ➕ დამატება
@@ -191,38 +131,45 @@ export default function Home() {
           </Link>
         </div>
 
-        <input
-          placeholder="ძებნა..."
-          value={search}
-          onChange={(e) =>
-            setSearch(e.target.value)
-          }
-          style={{
-            width: "100%",
-            padding: 14,
-            borderRadius: 12,
-            border: "none",
-            marginBottom: 20,
-          }}
-        />
+        {/* LOADING */}
 
-        {filteredCars.map((car) => (
+        {loading && (
+          <p>იტვირთება...</p>
+        )}
+
+        {/* EMPTY */}
+
+        {!loading &&
+          cars.length === 0 && (
+            <p>
+              მანქანები არ არის
+            </p>
+          )}
+
+        {/* CARS */}
+
+        {cars.map((car) => (
           <div
             key={car.id}
             style={{
-              background: "#1e1e1e",
+              background:
+                "#1e1e1e",
               borderRadius: 20,
-              overflow: "hidden",
+              overflow:
+                "hidden",
               marginBottom: 20,
             }}
           >
+            {/* IMAGE */}
+
             <img
               src={car.image}
               alt={car.name}
               style={{
                 width: "100%",
                 height: 220,
-                objectFit: "cover",
+                objectFit:
+                  "cover",
               }}
             />
 
@@ -231,44 +178,100 @@ export default function Home() {
                 padding: 20,
               }}
             >
-              <h2
+              {/* BRAND */}
+
+              <div
                 style={{
+                  display: "flex",
+                  alignItems:
+                    "center",
+                  gap: 10,
                   marginBottom: 10,
-                  fontSize: 34,
                 }}
               >
-                {car.name}
-              </h2>
+                {car.logo && (
+                  <img
+                    src={car.logo}
+                    alt="logo"
+                    style={{
+                      width: 40,
+                      height: 40,
+                      objectFit:
+                        "contain",
+                      background:
+                        "white",
+                      borderRadius: 10,
+                      padding: 5,
+                    }}
+                  />
+                )}
+
+                <h2>
+                  {car.name}
+                </h2>
+              </div>
+
+              {/* PRICE */}
 
               <p
                 style={{
-                  color: "#00ff99",
-                  fontSize: 28,
+                  color:
+                    "#00ff99",
+                  fontSize: 24,
+                  fontWeight:
+                    "bold",
                   marginBottom: 20,
                 }}
               >
                 ${car.price}
               </p>
 
-              <button
-                onClick={() =>
-                  addToFavorites(
-                    car.id
-                  )
-                }
+              {/* BUTTONS */}
+
+              <div
                 style={{
-                  width: "100%",
-                  padding: 14,
-                  borderRadius: 12,
-                  border: "none",
-                  background: "orange",
-                  color: "white",
-                  fontWeight: "bold",
-                  fontSize: 18,
+                  display: "flex",
+                  gap: 10,
                 }}
               >
-                ❤️ ფავორიტი
-              </button>
+                <button
+                  style={{
+                    flex: 1,
+                    padding: 14,
+                    borderRadius: 12,
+                    border: "none",
+                    background:
+                      "orange",
+                    color:
+                      "white",
+                    fontWeight:
+                      "bold",
+                  }}
+                >
+                  ❤️ ფავორიტი
+                </button>
+
+                <button
+                  onClick={() =>
+                    deleteCar(
+                      car.id
+                    )
+                  }
+                  style={{
+                    padding: 14,
+                    borderRadius: 12,
+                    border: "none",
+                    background:
+                      "red",
+                    color:
+                      "white",
+                    fontWeight:
+                      "bold",
+                  }}
+                >
+                  🗑️
+                </button>
+              </div>
             </div>
           </div>
         ))}
