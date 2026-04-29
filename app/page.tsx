@@ -1,307 +1,50 @@
-"use client";
+// app/page.tsx
+import CarCard from '@/components/CarCard';
 
-import {
-  useEffect,
-  useState,
-} from "react";
-
-import Link from "next/link";
-
-import { db } from "@/lib/firebase";
-
-import {
-  collection,
-  getDocs,
-  deleteDoc,
-  doc,
-} from "firebase/firestore";
+const cars = [
+  { id: 1, name: "BMW M5", price: "25000", image: "/bmw.jpg" }, // სურათები ჩააგდე public ფოლდერში
+  { id: 2, name: "Mercedes S-Class", price: "32000", image: "/merc.jpg" },
+  { id: 3, name: "Toyota Camry", price: "14000", image: "/toyota.jpg" },
+  { id: 4, name: "Range Rover", price: "45000", image: "/rr.jpg" },
+];
 
 export default function Home() {
-  const [cars, setCars] =
-    useState<any[]>([]);
-
-  const [loading, setLoading] =
-    useState(true);
-
-  // წამოღება Firebase-დან
-
-  const fetchCars = async () => {
-    try {
-      const querySnapshot =
-        await getDocs(
-          collection(db, "cars")
-        );
-
-      const carsData: any[] = [];
-
-      querySnapshot.forEach((doc) => {
-        carsData.push({
-          id: doc.id,
-          ...doc.data(),
-        });
-      });
-
-      setCars(carsData);
-    } catch (error) {
-      console.log(error);
-    }
-
-    setLoading(false);
-  };
-
-  useEffect(() => {
-    fetchCars();
-  }, []);
-
-  // წაშლა
-
-  const deleteCar = async (
-    id: string
-  ) => {
-    const confirmDelete =
-      confirm(
-        "წავშალო მანქანა?"
-      );
-
-    if (!confirmDelete) return;
-
-    try {
-      await deleteDoc(
-        doc(db, "cars", id)
-      );
-
-      alert(
-        "მანქანა წაიშალა 🗑️"
-      );
-
-      fetchCars();
-    } catch (error) {
-      console.log(error);
-
-      alert("შეცდომა");
-    }
-  };
-
   return (
-    <div
-      style={{
-        background: "#111",
-        minHeight: "100vh",
-        padding: 20,
-        color: "white",
-      }}
-    >
-      <div
-        style={{
-          maxWidth: 500,
-          margin: "0 auto",
-        }}
-      >
-        {/* TOP */}
+    <main className="min-h-screen bg-gray-50 pb-20">
+      {/* Hero სექცია (ის მწვანე ბანერი რაც გაქვს) */}
+      <div className="bg-green-600 p-8 rounded-b-[40px] text-white text-center mb-6">
+        <h1 className="text-3xl font-bold mb-2">AUTOMANQANEBI</h1>
+        <p className="opacity-90">იყიდე, გაყიდე, იქირავე — მარტივად</p>
+        <button className="mt-4 bg-white text-green-600 px-6 py-2 rounded-full font-bold flex items-center gap-2 mx-auto">
+          + დამატება
+        </button>
+      </div>
 
-        <div
-          style={{
-            display: "flex",
-            justifyContent:
-              "space-between",
-            alignItems: "center",
-            marginBottom: 20,
-          }}
-        >
-          <h1>
-            🚗 ავტომანქანები
-          </h1>
-
-          <Link href="/add-car">
-            <button
-              style={{
-                padding:
-                  "12px 18px",
-                borderRadius: 12,
-                border: "none",
-                background:
-                  "#00aa55",
-                color: "white",
-                fontWeight:
-                  "bold",
-              }}
-            >
-              ➕ დამატება
-            </button>
-          </Link>
+      {/* ძებნის ველი */}
+      <div className="px-4 mb-8">
+        <div className="relative max-w-md mx-auto">
+          <input 
+            type="text" 
+            placeholder="მოძებნე მანქანა..." 
+            className="w-full p-4 rounded-2xl border-none shadow-sm focus:ring-2 focus:ring-green-500 outline-none"
+          />
+          <button className="absolute right-2 top-2 bg-green-500 text-white px-4 py-2 rounded-xl">
+            ძებნა
+          </button>
         </div>
+      </div>
 
-        {/* LOADING */}
-
-        {loading && (
-          <p>იტვირთება...</p>
-        )}
-
-        {/* EMPTY */}
-
-        {!loading &&
-          cars.length === 0 && (
-            <p>
-              მანქანები არ არის
-            </p>
-          )}
-
-        {/* CARS */}
-
+      {/* მანქანების Grid */}
+      <div className="px-4 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 max-w-7xl mx-auto">
         {cars.map((car) => (
-          <div
+          <CarCard 
             key={car.id}
-            style={{
-              background:
-                "#1e1e1e",
-              borderRadius: 20,
-              overflow:
-                "hidden",
-              marginBottom: 20,
-            }}
-          >
-            {/* IMAGE */}
-
-            <img
-              src={car.image}
-              alt={car.name}
-              style={{
-                width: "100%",
-                height: 220,
-                objectFit:
-                  "cover",
-              }}
-            />
-
-            <div
-              style={{
-                padding: 20,
-              }}
-            >
-              {/* BRAND */}
-
-              <div
-                style={{
-                  display: "flex",
-                  alignItems:
-                    "center",
-                  gap: 10,
-                  marginBottom: 10,
-                }}
-              >
-                {car.logo && (
-                  <img
-                    src={car.logo}
-                    alt="logo"
-                    style={{
-                      width: 40,
-                      height: 40,
-                      objectFit:
-                        "contain",
-                      background:
-                        "white",
-                      borderRadius: 10,
-                      padding: 5,
-                    }}
-                  />
-                )}
-
-                <h2>
-                  {car.name}
-                </h2>
-              </div>
-
-              {/* PRICE */}
-
-              <p
-                style={{
-                  color:
-                    "#00ff99",
-                  fontSize: 24,
-                  fontWeight:
-                    "bold",
-                  marginBottom: 20,
-                }}
-              >
-                ${car.price}
-              </p>
-
-              {/* BUTTONS */}
-
-              <div
-                style={{
-                  display: "flex",
-                  gap: 10,
-                }}
-              >
-                {/* FAVORITE */}
-
-                <button
-                  style={{
-                    flex: 1,
-                    padding: 14,
-                    borderRadius: 12,
-                    border: "none",
-                    background:
-                      "orange",
-                    color:
-                      "white",
-                    fontWeight:
-                      "bold",
-                  }}
-                >
-                  ❤️ ფავორიტი
-                </button>
-
-                {/* EDIT */}
-
-                <Link
-                  href={`/edit-car/${car.id}`}
-                >
-                  <button
-                    style={{
-                      padding: 14,
-                      borderRadius: 12,
-                      border: "none",
-                      background:
-                        "#0066ff",
-                      color:
-                        "white",
-                      fontWeight:
-                        "bold",
-                    }}
-                  >
-                    ✏️
-                  </button>
-                </Link>
-
-                {/* DELETE */}
-
-                <button
-                  onClick={() =>
-                    deleteCar(
-                      car.id
-                    )
-                  }
-                  style={{
-                    padding: 14,
-                    borderRadius: 12,
-                    border: "none",
-                    background:
-                      "red",
-                    color:
-                      "white",
-                    fontWeight:
-                      "bold",
-                  }}
-                >
-                  🗑️
-                </button>
-              </div>
-            </div>
-          </div>
+            name={car.name}
+            price={car.price}
+            image={car.image}
+          />
         ))}
       </div>
-    </div>
+    </main>
   );
 }
