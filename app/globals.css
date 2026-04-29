@@ -1,0 +1,26 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --foreground-rgb: 0, 0, 0;
+  --background-start-rgb: 214, 219, 220;
+  --background-end-rgb: 255, 255, 255;
+}
+
+body {
+  color: rgb(var(--foreground-rgb));
+  background: #f8fafc; /* რბილი ნაცრისფერი ფონი პრემიუმ იერისთვის */
+  font-family: 'Inter', sans-serif; /* თუ გაქვს, უკეთესია */
+}
+
+/* დამატებითი პატარა ეფექტი ლამაზი სქროლვისთვის */
+html {
+  scroll-behavior: smooth;
+}
+
+/* ღილაკებზე დაჭერის ეფექტი (Optional) */
+button:active {
+  transform: scale(0.98);
+  transition: transform 0.1s;
+}
