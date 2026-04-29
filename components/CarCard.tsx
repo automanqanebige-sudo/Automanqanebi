@@ -1,7 +1,5 @@
-"use client"; // აუცილებელია ინტერაქტიული ელემენტებისთვის
-
-import { Heart, Eye } from 'lucide-react';
-import Image from 'next/image';
+"use client";
+import { Heart, ArrowRight } from 'lucide-react';
 
 interface CarProps {
   name: string;
@@ -11,42 +9,34 @@ interface CarProps {
 
 export default function CarCard({ name, price, image }: CarProps) {
   return (
-    <div className="group bg-white rounded-2xl shadow-sm hover:shadow-xl transition-all duration-300 overflow-hidden border border-gray-100 flex flex-col">
-      
-      {/* სურათის სექცია */}
-      <div className="relative h-48 w-full bg-gray-100 overflow-hidden">
+    <div className="group cursor-pointer">
+      {/* სურათის კონტეინერი - მომრგვალებული და რბილი ჩრდილით */}
+      <div className="relative aspect-[16/10] w-full overflow-hidden rounded-2xl bg-gray-100 shadow-sm">
         <img 
-          src={image || "https://images.unsplash.com/photo-1552519507-da3b142c6e3d?q=80&w=1000"} 
+          src={image} 
           alt={name}
-          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+          className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-110"
         />
-        {/* პატარა "New" ბეიჯი ეფექტისთვის */}
-        <div className="absolute top-3 left-3 bg-green-500 text-white text-xs font-bold px-2 py-1 rounded-lg">
-          ახალი
-        </div>
+        <button className="absolute right-3 top-3 rounded-full bg-white/80 p-2 text-gray-900 backdrop-blur-sm transition-colors hover:bg-white hover:text-red-500">
+          <Heart size={18} />
+        </button>
       </div>
 
-      {/* ინფორმაციის სექცია */}
-      <div className="p-4 flex flex-col flex-grow">
-        <div className="flex justify-between items-start mb-2">
-          <h3 className="text-lg font-bold text-gray-800 line-clamp-1">{name}</h3>
+      {/* ინფორმაცია - მეტი სივრცე და დახვეწილი ფონტები */}
+      <div className="mt-4 px-1">
+        <div className="flex items-center justify-between">
+          <h3 className="text-sm font-medium text-gray-500 uppercase tracking-wider">Premium Listing</h3>
+          <span className="text-lg font-bold text-gray-900">${Number(price).toLocaleString()}</span>
         </div>
+        <h2 className="mt-1 text-xl font-semibold text-gray-800 group-hover:text-blue-600 transition-colors">
+          {name}
+        </h2>
         
-        <div className="flex items-baseline gap-1 mb-4">
-          <span className="text-2xl font-black text-green-600">${Number(price).toLocaleString()}</span>
-          <span className="text-gray-400 text-sm">/ სულ</span>
-        </div>
-
-        {/* ღილაკები */}
-        <div className="flex gap-2 mt-auto">
-          <button className="flex-[3] bg-orange-400 hover:bg-orange-500 text-white font-semibold py-2.5 rounded-xl flex items-center justify-center gap-2 transition-colors active:scale-95">
-            <Heart size={18} className="group-hover:fill-white transition-all" />
-            <span>ფავორიტი</span>
-          </button>
-          
-          <button className="flex-[1] bg-gray-100 hover:bg-blue-600 hover:text-white text-gray-600 py-2.5 rounded-xl flex items-center justify-center transition-all active:scale-95">
-            <Eye size={20} />
-          </button>
+        <div className="mt-4 flex items-center justify-between border-t border-gray-100 pt-4">
+          <span className="text-sm text-gray-500 font-medium">ავტომატიკა • 2.5L</span>
+          <div className="flex items-center gap-1 text-sm font-bold text-blue-600">
+            დეტალები <ArrowRight size={16} />
+          </div>
         </div>
       </div>
     </div>
