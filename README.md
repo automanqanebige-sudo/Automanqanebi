@@ -1,1 +1,1 @@
-automanqanebige-sudo
+automanqanebi
