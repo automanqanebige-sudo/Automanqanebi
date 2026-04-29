@@ -5,6 +5,8 @@ import {
   useState,
 } from "react";
 
+import Link from "next/link";
+
 import {
   collection,
   getDocs,
@@ -21,7 +23,7 @@ export default function AdminPage() {
   const [loading, setLoading] =
     useState(true);
 
-  // წამოღება Firebase-დან
+  // მანქანების წამოღება
 
   const fetchCars = async () => {
     try {
@@ -69,7 +71,7 @@ export default function AdminPage() {
       );
 
       alert(
-        "წაიშალა 🗑️"
+        "მანქანა წაიშალა 🗑️"
       );
 
       fetchCars();
@@ -83,102 +85,211 @@ export default function AdminPage() {
   return (
     <div
       style={{
-        background: "#111",
+        display: "flex",
         minHeight: "100vh",
+        background: "#111",
         color: "white",
-        padding: 20,
       }}
     >
+      {/* SIDEBAR */}
+
       <div
         style={{
-          maxWidth: 900,
-          margin: "0 auto",
+          width: 250,
+          background: "#1a1a1a",
+          padding: 20,
+          borderRight:
+            "1px solid #333",
         }}
       >
-        <h1
+        <h2
           style={{
             marginBottom: 30,
           }}
         >
-          🛠️ Admin Panel
-        </h1>
+          🛠️ ADMIN
+        </h2>
+
+        <div
+          style={{
+            display: "flex",
+            flexDirection:
+              "column",
+            gap: 15,
+          }}
+        >
+          <Link href="/">
+            <button
+              style={menuButton}
+            >
+              🏠 მთავარი
+            </button>
+          </Link>
+
+          <Link href="/add-car">
+            <button
+              style={menuButton}
+            >
+              ➕ დამატება
+            </button>
+          </Link>
+
+          <button
+            style={menuButton}
+          >
+            🚗 მანქანები
+          </button>
+        </div>
+      </div>
+
+      {/* CONTENT */}
+
+      <div
+        style={{
+          flex: 1,
+          padding: 30,
+        }}
+      >
+        {/* TOP */}
+
+        <div
+          style={{
+            display: "flex",
+            justifyContent:
+              "space-between",
+            alignItems: "center",
+            marginBottom: 30,
+          }}
+        >
+          <h1>
+            Dashboard
+          </h1>
+
+          <div
+            style={{
+              background:
+                "#1e1e1e",
+              padding:
+                "10px 20px",
+              borderRadius: 12,
+            }}
+          >
+            🚗 მანქანები:
+            {" "}
+            {cars.length}
+          </div>
+        </div>
+
+        {/* LOADING */}
 
         {loading && (
           <p>იტვირთება...</p>
         )}
 
-        {cars.map((car) => (
-          <div
-            key={car.id}
-            style={{
-              background:
-                "#1e1e1e",
-              borderRadius: 20,
-              overflow:
-                "hidden",
-              marginBottom: 20,
-            }}
-          >
-            <img
-              src={car.image}
-              alt={car.name}
-              style={{
-                width: "100%",
-                height: 250,
-                objectFit:
-                  "cover",
-              }}
-            />
+        {/* EMPTY */}
 
+        {!loading &&
+          cars.length === 0 && (
+            <p>
+              მანქანები არ არის
+            </p>
+          )}
+
+        {/* CARDS */}
+
+        <div
+          style={{
+            display: "grid",
+            gridTemplateColumns:
+              "repeat(auto-fit, minmax(280px, 1fr))",
+            gap: 20,
+          }}
+        >
+          {cars.map((car) => (
             <div
+              key={car.id}
               style={{
-                padding: 20,
+                background:
+                  "#1e1e1e",
+                borderRadius: 20,
+                overflow:
+                  "hidden",
               }}
             >
-              <h2>
-                {car.name}
-              </h2>
-
-              <p
+              <img
+                src={car.image}
+                alt={car.name}
                 style={{
-                  color:
-                    "#00ff99",
-                  fontSize: 22,
-                  fontWeight:
-                    "bold",
+                  width: "100%",
+                  height: 200,
+                  objectFit:
+                    "cover",
+                }}
+              />
+
+              <div
+                style={{
+                  padding: 20,
                 }}
               >
-                ${car.price}
-              </p>
+                <h2>
+                  {car.name}
+                </h2>
 
-              <button
-                onClick={() =>
-                  deleteCar(
-                    car.id
-                  )
-                }
-                style={{
-                  marginTop: 15,
-                  padding:
-                    "12px 18px",
-                  borderRadius: 12,
-                  border: "none",
-                  background:
-                    "red",
-                  color:
-                    "white",
-                  fontWeight:
-                    "bold",
-                  cursor:
-                    "pointer",
-                }}
-              >
-                🗑️ წაშლა
-              </button>
+                <p
+                  style={{
+                    color:
+                      "#00ff99",
+                    fontWeight:
+                      "bold",
+                    fontSize: 22,
+                  }}
+                >
+                  ${car.price}
+                </p>
+
+                <button
+                  onClick={() =>
+                    deleteCar(
+                      car.id
+                    )
+                  }
+                  style={{
+                    marginTop: 15,
+                    width: "100%",
+                    padding: 12,
+                    borderRadius: 12,
+                    border: "none",
+                    background:
+                      "red",
+                    color:
+                      "white",
+                    fontWeight:
+                      "bold",
+                    cursor:
+                      "pointer",
+                  }}
+                >
+                  🗑️ წაშლა
+                </button>
+              </div>
             </div>
-          </div>
-        ))}
+          ))}
+        </div>
       </div>
     </div>
   );
 }
+
+// BUTTON STYLE
+
+const menuButton = {
+  width: "100%",
+  padding: 14,
+  borderRadius: 12,
+  border: "none",
+  background: "#2a2a2a",
+  color: "white",
+  fontWeight: "bold",
+  cursor: "pointer",
+};
