@@ -1,244 +1,147 @@
 "use client";
 
-import {
-  useEffect,
-  useState,
-} from "react";
+import { useState } from "react";
+import { db, auth } from "../../lib/firebase";
+import { collection, addDoc } from "firebase/firestore";
+import { useRouter } from "next/navigation";
 
-import {
-  doc,
-  getDoc,
-  updateDoc,
-} from "firebase/firestore";
-
-import { db } from "@/lib/firebase";
-
-import {
-  useParams,
-  useRouter,
-} from "next/navigation";
-
-export default function EditCar() {
-  const params = useParams();
-
+export default function AddCarPage() {
+  const [brand, setBrand] = useState("");
+  const [model, setModel] = useState("");
+  const [price, setPrice] = useState("");
+  const [year, setYear] = useState("");
+  const [image, setImage] = useState("");
+  const [description, setDescription] = useState("");
+  const [loadingAI, setLoadingAI] = useState(false);
   const router = useRouter();
 
-  const [name, setName] =
-    useState("");
-
-  const [price, setPrice] =
-    useState("");
-
-  const [image, setImage] =
-    useState("");
-
-  const [loading, setLoading] =
-    useState(true);
-
-  // წამოღება
-
-  const fetchCar = async () => {
-    try {
-      const docRef = doc(
-        db,
-        "cars",
-        params.id as string
-      );
-
-      const docSnap =
-        await getDoc(docRef);
-
-      if (docSnap.exists()) {
-        const data =
-          docSnap.data();
-
-        setName(data.name);
-
-        setPrice(data.price);
-
-        setImage(data.image);
-      }
-    } catch (error) {
-      console.log(error);
+  // AI ტექსტის გენერაციის ფუნქცია
+  const generateAIDescription = async () => {
+    if (!brand || !model) {
+      alert("გთხოვთ ჯერ მიუთითოთ მარკა და მოდელი");
+      return;
     }
-
-    setLoading(false);
+    
+    setLoadingAI(true);
+    try {
+      const response = await fetch("/api/generate-description", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ brand, model, year }),
+      });
+      const data = await response.json();
+      setDescription(data.description);
+    } catch (error) {
+      console.error("AI Error:", error);
+      alert("AI გენერაცია ვერ მოხერხდა");
+    } finally {
+      setLoadingAI(false);
+    }
   };
 
-  useEffect(() => {
-    fetchCar();
-  }, []);
-
-  // განახლება
-
-  const updateCar = async () => {
-    if (
-      !name ||
-      !price ||
-      !image
-    ) {
-      alert("შეავსე ყველა ველი");
-
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!auth.currentUser) {
+      alert("გთხოვთ გაიაროთ ავტორიზაცია");
       return;
     }
 
     try {
-      const docRef = doc(
-        db,
-        "cars",
-        params.id as string
-      );
-
-      await updateDoc(docRef, {
-        name,
-        price,
+      await addDoc(collection(db, "cars"), {
+        brand,
+        model,
+        price: Number(price),
+        year: Number(year),
         image,
+        description,
+        userId: auth.currentUser.uid,
+        createdAt: new Date(),
       });
-
-      alert(
-        "განახლდა წარმატებით ✅"
-      );
-
       router.push("/");
     } catch (error) {
-      console.log(error);
-
-      alert("შეცდომა");
+      console.error("Error adding car:", error);
     }
   };
 
-  if (loading) {
-    return (
-      <div
-        style={{
-          background: "#111",
-          minHeight: "100vh",
-          color: "white",
-          display: "flex",
-          justifyContent:
-            "center",
-          alignItems: "center",
-        }}
-      >
-        იტვირთება...
-      </div>
-    );
-  }
-
   return (
-    <div
-      style={{
-        background: "#111",
-        minHeight: "100vh",
-        padding: 20,
-        color: "white",
-      }}
-    >
-      <div
-        style={{
-          maxWidth: 500,
-          margin: "0 auto",
-        }}
-      >
-        <h1
-          style={{
-            marginBottom: 20,
-          }}
-        >
-          ✏️ რედაქტირება
-        </h1>
-
-        {/* NAME */}
-
-        <input
-          placeholder="მანქანის სახელი"
-          value={name}
-          onChange={(e) =>
-            setName(
-              e.target.value
-            )
-          }
-          style={{
-            width: "100%",
-            padding: 14,
-            borderRadius: 12,
-            border: "none",
-            marginBottom: 20,
-          }}
-        />
-
-        {/* PRICE */}
-
-        <input
-          placeholder="ფასი"
-          value={price}
-          onChange={(e) =>
-            setPrice(
-              e.target.value
-            )
-          }
-          style={{
-            width: "100%",
-            padding: 14,
-            borderRadius: 12,
-            border: "none",
-            marginBottom: 20,
-          }}
-        />
-
-        {/* IMAGE */}
-
-        <input
-          placeholder="სურათის URL"
-          value={image}
-          onChange={(e) =>
-            setImage(
-              e.target.value
-            )
-          }
-          style={{
-            width: "100%",
-            padding: 14,
-            borderRadius: 12,
-            border: "none",
-            marginBottom: 20,
-          }}
-        />
-
-        {/* PREVIEW */}
-
-        {image && (
-          <img
-            src={image}
-            alt="preview"
-            style={{
-              width: "100%",
-              height: 220,
-              objectFit: "cover",
-              borderRadius: 20,
-              marginBottom: 20,
-            }}
+    <div className="max-w-2xl mx-auto p-6 bg-white shadow-lg rounded-xl mt-10">
+      <h1 className="text-2xl font-bold mb-6 text-gray-800">მანქანის დამატება</h1>
+      
+      <form onSubmit={handleSubmit} className="space-y-4">
+        <div className="grid grid-cols-2 gap-4">
+          <input
+            type="text"
+            placeholder="მარკა (მაგ: BMW)"
+            className="p-3 border rounded-lg focus:ring-2 focus:ring-blue-500"
+            value={brand}
+            onChange={(e) => setBrand(e.target.value)}
+            required
           />
-        )}
+          <input
+            type="text"
+            placeholder="მოდელი (მაგ: M5)"
+            className="p-3 border rounded-lg focus:ring-2 focus:ring-blue-500"
+            value={model}
+            onChange={(e) => setModel(e.target.value)}
+            required
+          />
+        </div>
 
-        {/* BUTTON */}
+        <div className="grid grid-cols-2 gap-4">
+          <input
+            type="number"
+            placeholder="ფასი ($)"
+            className="p-3 border rounded-lg focus:ring-2 focus:ring-blue-500"
+            value={price}
+            onChange={(e) => setPrice(e.target.value)}
+            required
+          />
+          <input
+            type="number"
+            placeholder="წელი"
+            className="p-3 border rounded-lg focus:ring-2 focus:ring-blue-500"
+            value={year}
+            onChange={(e) => setYear(e.target.value)}
+            required
+          />
+        </div>
+
+        <input
+          type="text"
+          placeholder="ფოტოს ლინკი (URL)"
+          className="w-full p-3 border rounded-lg focus:ring-2 focus:ring-blue-500"
+          value={image}
+          onChange={(e) => setImage(e.target.value)}
+          required
+        />
+
+        <div className="relative">
+          <div className="flex justify-between items-center mb-2">
+            <label className="text-sm font-medium text-gray-700">აღწერა</label>
+            <button
+              type="button"
+              onClick={generateAIDescription}
+              disabled={loadingAI}
+              className="text-xs bg-purple-600 hover:bg-purple-700 text-white px-3 py-1.5 rounded-full transition-all flex items-center gap-1 shadow-sm"
+            >
+              {loadingAI ? "✨ AI წერს..." : "✨ AI გენერაცია"}
+            </button>
+          </div>
+          <textarea
+            placeholder="დაწერეთ დეტალები..."
+            className="w-full p-3 border rounded-lg h-32 focus:ring-2 focus:ring-blue-500"
+            value={description}
+            onChange={(e) => setDescription(e.target.value)}
+          />
+        </div>
 
         <button
-          onClick={updateCar}
-          style={{
-            width: "100%",
-            padding: 16,
-            borderRadius: 14,
-            border: "none",
-            background: "#0066ff",
-            color: "white",
-            fontWeight: "bold",
-            fontSize: 18,
-          }}
+          type="submit"
+          className="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-3 rounded-lg transition-colors shadow-md"
         >
-          💾 შენახვა
+          განცხადების განთავსება
         </button>
-      </div>
+      </form>
     </div>
   );
 }
