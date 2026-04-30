@@ -1,87 +1,25 @@
 "use client";
 
-import {
-  signInWithPopup,
-  GoogleAuthProvider,
-} from "firebase/auth";
-
-import { auth } from "@/lib/firebase";
-
+import { auth } from "../../lib/firebase"; // შეცვლილი იმპორტი
+import { signInWithPopup, GoogleAuthProvider } from "firebase/auth";
 import { useRouter } from "next/navigation";
 
 export default function LoginPage() {
   const router = useRouter();
 
-  const loginWithGoogle =
-    async () => {
-      try {
-        const provider =
-          new GoogleAuthProvider();
-
-        await signInWithPopup(
-          auth,
-          provider
-        );
-
-        alert(
-          "წარმატებული შესვლა ❤️"
-        );
-
-        router.push("/");
-      } catch (error) {
-        console.log(error);
-
-        alert("შეცდომა ❌");
-      }
-    };
+  const login = async () => {
+    const provider = new GoogleAuthProvider();
+    try {
+      await signInWithPopup(auth, provider);
+      router.push("/profile");
+    } catch (err) { console.error(err); }
+  };
 
   return (
-    <div
-      style={{
-        background: "#111",
-        minHeight: "100vh",
-        display: "flex",
-        justifyContent: "center",
-        alignItems: "center",
-        padding: 20,
-      }}
-    >
-      <div
-        style={{
-          background: "#1e1e1e",
-          padding: 30,
-          borderRadius: 20,
-          width: "100%",
-          maxWidth: 400,
-        }}
-      >
-        <h1
-          style={{
-            color: "white",
-            marginBottom: 20,
-            textAlign: "center",
-          }}
-        >
-          🔐 Login
-        </h1>
-
-        <button
-          onClick={loginWithGoogle}
-          style={{
-            width: "100%",
-            padding: 16,
-            borderRadius: 12,
-            border: "none",
-            background: "#ffffff",
-            color: "#111",
-            fontWeight: "bold",
-            fontSize: 18,
-            cursor: "pointer",
-          }}
-        >
-          🔥 Google Login
-        </button>
-      </div>
+    <div className="flex flex-col items-center justify-center min-h-screen">
+      <button onClick={login} className="bg-white border p-3 rounded-lg shadow flex items-center gap-2">
+        Google-ით შესვლა
+      </button>
     </div>
   );
 }
