@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { ChevronDown, X, SlidersHorizontal, Sparkles, Search } from 'lucide-react'
+import { ChevronDown, SlidersHorizontal, Sparkles, Car, Truck, Bike, RotateCcw } from 'lucide-react'
 import { carBrands } from '@/data/cars'
 import type { FuelType, VehicleType } from '@/types/car'
 
@@ -31,19 +31,19 @@ const fuelTypes: { value: FuelType; label: string }[] = [
   { value: 'LPG', label: 'გაზი' },
 ]
 
-const vehicleTypes: { value: VehicleType; label: string }[] = [
-  { value: 'car', label: 'მანქანები' },
-  { value: 'moto', label: 'მოტო' },
-  { value: 'atv', label: 'ATV' },
+const vehicleCategories = [
+  { value: 'car' as VehicleType, label: 'ავტომობილები', icon: Car },
+  { value: 'moto' as VehicleType, label: 'სპეცტექნიკა', icon: Truck },
+  { value: 'atv' as VehicleType, label: 'მოტოტექნიკა', icon: Bike },
 ]
 
 const currentYear = new Date().getFullYear()
 const years = Array.from({ length: 35 }, (_, i) => currentYear - i)
 
 export default function FilterBar({ filters, onFiltersChange, onAISearch, carsCount }: FilterBarProps) {
-  const [showAdvanced, setShowAdvanced] = useState(false)
+  const [activeTab, setActiveTab] = useState<'filters' | 'ai'>('filters')
   const [aiQuery, setAIQuery] = useState('')
-  const [showAIInput, setShowAIInput] = useState(false)
+  const [listingType, setListingType] = useState<'sell' | 'rent'>('sell')
 
   const selectedBrand = carBrands.find(b => b.brand === filters.brand)
   const models = selectedBrand?.models || []
@@ -70,228 +70,264 @@ export default function FilterBar({ filters, onFiltersChange, onAISearch, carsCo
     setAIQuery('')
   }
 
-  const hasFilters = Object.values(filters).some(v => v !== '')
-
   const handleAISearch = () => {
     if (aiQuery.trim()) {
       onAISearch(aiQuery)
-      setShowAIInput(false)
     }
   }
 
   return (
-    <div className="space-y-4">
-      {/* Vehicle type tabs */}
-      <div className="flex items-center gap-2 overflow-x-auto pb-1">
-        <button
-          onClick={() => updateFilter('vehicleType', '')}
-          className={`shrink-0 rounded-lg px-4 py-2.5 text-sm font-medium transition-all ${
-            filters.vehicleType === '' 
-              ? 'bg-primary text-primary-foreground shadow-md shadow-primary/25' 
-              : 'bg-card border border-border text-card-foreground hover:bg-secondary'
-          }`}
-        >
-          ყველა
-        </button>
-        {vehicleTypes.map(type => (
+    <div className="rounded-2xl border border-gray-200 bg-white shadow-sm">
+      {/* Tabs */}
+      <div className="flex justify-center border-b border-gray-100 py-4">
+        <div className="inline-flex rounded-full bg-gray-100 p-1">
           <button
-            key={type.value}
-            onClick={() => updateFilter('vehicleType', type.value)}
-            className={`shrink-0 rounded-lg px-4 py-2.5 text-sm font-medium transition-all ${
-              filters.vehicleType === type.value 
-                ? 'bg-primary text-primary-foreground shadow-md shadow-primary/25' 
-                : 'bg-card border border-border text-card-foreground hover:bg-secondary'
-            }`}
-          >
-            {type.label}
-          </button>
-        ))}
-      </div>
-
-      {/* Main filters row */}
-      <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center">
-        {/* Brand select */}
-        <div className="relative flex-1 sm:flex-initial sm:min-w-[140px]">
-          <select
-            value={filters.brand}
-            onChange={(e) => updateFilter('brand', e.target.value)}
-            className="h-11 w-full appearance-none rounded-lg border border-border bg-card px-4 pr-10 text-sm text-card-foreground transition-colors focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
-          >
-            <option value="">მარკა</option>
-            {carBrands.map(brand => (
-              <option key={brand.brand} value={brand.brand}>{brand.brand}</option>
-            ))}
-          </select>
-          <ChevronDown className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-        </div>
-
-        {/* Model select */}
-        <div className="relative flex-1 sm:flex-initial sm:min-w-[140px]">
-          <select
-            value={filters.model}
-            onChange={(e) => updateFilter('model', e.target.value)}
-            disabled={!filters.brand}
-            className="h-11 w-full appearance-none rounded-lg border border-border bg-card px-4 pr-10 text-sm text-card-foreground transition-colors focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 disabled:cursor-not-allowed disabled:opacity-50"
-          >
-            <option value="">მოდელი</option>
-            {models.map(model => (
-              <option key={model} value={model}>{model}</option>
-            ))}
-          </select>
-          <ChevronDown className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-        </div>
-
-        {/* Action buttons */}
-        <div className="flex items-center gap-2">
-          {/* Advanced filters toggle */}
-          <button
-            onClick={() => setShowAdvanced(!showAdvanced)}
-            className={`flex h-11 items-center gap-2 rounded-lg border px-4 text-sm font-medium transition-all ${
-              showAdvanced 
-                ? 'border-primary bg-primary/10 text-primary' 
-                : 'border-border bg-card text-card-foreground hover:bg-secondary'
+            onClick={() => setActiveTab('filters')}
+            className={`flex items-center gap-2 rounded-full px-6 py-2.5 text-sm font-medium transition-all ${
+              activeTab === 'filters'
+                ? 'bg-white text-gray-900 shadow-sm'
+                : 'text-gray-600 hover:text-gray-900'
             }`}
           >
             <SlidersHorizontal className="h-4 w-4" />
-            <span className="hidden sm:inline">ფილტრები</span>
+            ფილტრები
           </button>
-
-          {/* AI Search toggle */}
           <button
-            onClick={() => setShowAIInput(!showAIInput)}
-            className={`flex h-11 items-center gap-2 rounded-lg border px-4 text-sm font-medium transition-all ${
-              showAIInput 
-                ? 'border-primary bg-primary/10 text-primary' 
-                : 'border-border bg-card text-card-foreground hover:bg-secondary'
+            onClick={() => setActiveTab('ai')}
+            className={`relative flex items-center gap-2 rounded-full px-6 py-2.5 text-sm font-medium transition-all ${
+              activeTab === 'ai'
+                ? 'bg-white text-gray-900 shadow-sm'
+                : 'text-gray-600 hover:text-gray-900'
             }`}
           >
-            <Sparkles className="h-4 w-4" />
-            <span className="hidden sm:inline">AI ძებნა</span>
+            <Sparkles className="h-4 w-4 text-primary" />
+            Myauto AI
+            <span className="absolute -right-1 -top-1 rounded-full bg-red-500 px-1.5 py-0.5 text-[10px] font-bold text-white">
+              ბეტა
+            </span>
           </button>
-        </div>
-
-        {/* Count & Clear */}
-        <div className="flex items-center gap-3 sm:ml-auto">
-          <span className="rounded-lg bg-secondary px-3 py-1.5 text-sm font-medium text-secondary-foreground">
-            {carsCount} განცხადება
-          </span>
-          {hasFilters && (
-            <button
-              onClick={clearFilters}
-              className="flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-sm font-medium text-muted-foreground transition-colors hover:bg-destructive/10 hover:text-destructive"
-            >
-              <X className="h-4 w-4" />
-              გასუფთავება
-            </button>
-          )}
         </div>
       </div>
 
-      {/* AI Search input */}
-      {showAIInput && (
-        <div className="animate-fade-in-up rounded-xl border border-primary/20 bg-gradient-to-r from-primary/5 to-transparent p-4">
-          <label className="mb-3 flex items-center gap-2 text-sm font-medium text-foreground">
-            <Sparkles className="h-4 w-4 text-primary" />
-            აღწერე რა მანქანა გინდა ბუნებრივ ენაზე
-          </label>
-          <div className="flex flex-col gap-3 sm:flex-row">
-            <div className="relative flex-1">
-              <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+      {activeTab === 'filters' ? (
+        <div className="p-5">
+          {/* Listing type toggle & Clear */}
+          <div className="mb-5 flex items-center justify-between">
+            <div className="flex items-center gap-4">
+              <span className={`text-sm font-medium ${listingType === 'sell' ? 'text-gray-900' : 'text-gray-400'}`}>
+                იყიდება
+              </span>
+              <button
+                onClick={() => setListingType(listingType === 'sell' ? 'rent' : 'sell')}
+                className={`relative h-6 w-11 rounded-full transition-colors ${
+                  listingType === 'rent' ? 'bg-primary' : 'bg-gray-300'
+                }`}
+              >
+                <span
+                  className={`absolute top-0.5 h-5 w-5 rounded-full bg-white shadow transition-transform ${
+                    listingType === 'rent' ? 'left-[22px]' : 'left-0.5'
+                  }`}
+                />
+              </button>
+              <span className={`text-sm font-medium ${listingType === 'rent' ? 'text-gray-900' : 'text-gray-400'}`}>
+                ქირავდება
+              </span>
+            </div>
+            <button
+              onClick={clearFilters}
+              className="flex items-center gap-2 text-sm text-gray-500 transition-colors hover:text-gray-700"
+            >
+              <RotateCcw className="h-4 w-4" />
+              ფილტრების გასუფთავება
+            </button>
+          </div>
+
+          {/* Main content with sidebar */}
+          <div className="flex gap-5">
+            {/* Left sidebar - Vehicle categories */}
+            <div className="w-48 shrink-0 space-y-1 border-r border-gray-100 pr-5">
+              {vehicleCategories.map((cat) => {
+                const Icon = cat.icon
+                const isActive = filters.vehicleType === cat.value || (!filters.vehicleType && cat.value === 'car')
+                return (
+                  <button
+                    key={cat.value}
+                    onClick={() => updateFilter('vehicleType', filters.vehicleType === cat.value ? '' : cat.value)}
+                    className={`flex w-full items-center gap-3 rounded-lg px-3 py-3 text-sm font-medium transition-all ${
+                      isActive
+                        ? 'border-l-2 border-primary bg-primary/5 text-primary'
+                        : 'text-gray-600 hover:bg-gray-50'
+                    }`}
+                  >
+                    <Icon className="h-5 w-5" />
+                    {cat.label}
+                  </button>
+                )
+              })}
+            </div>
+
+            {/* Right side - Filter dropdowns */}
+            <div className="flex-1 space-y-4">
+              {/* Row 1: Brand, Model, Location */}
+              <div className="grid grid-cols-3 gap-4">
+                {/* Brand */}
+                <div className="relative">
+                  <select
+                    value={filters.brand}
+                    onChange={(e) => updateFilter('brand', e.target.value)}
+                    className="h-12 w-full appearance-none rounded-lg border border-gray-200 bg-white px-4 pr-10 text-sm text-gray-700 transition-colors focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
+                  >
+                    <option value="">მწარმოებელი</option>
+                    {carBrands.map(brand => (
+                      <option key={brand.brand} value={brand.brand}>{brand.brand}</option>
+                    ))}
+                  </select>
+                  <ChevronDown className="pointer-events-none absolute right-3 top-1/2 h-5 w-5 -translate-y-1/2 text-gray-400" />
+                </div>
+
+                {/* Model */}
+                <div className="relative">
+                  <select
+                    value={filters.model}
+                    onChange={(e) => updateFilter('model', e.target.value)}
+                    disabled={!filters.brand}
+                    className="h-12 w-full appearance-none rounded-lg border border-gray-200 bg-white px-4 pr-10 text-sm text-gray-700 transition-colors focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 disabled:cursor-not-allowed disabled:bg-gray-50 disabled:text-gray-400"
+                  >
+                    <option value="">მოდელი</option>
+                    {models.map(model => (
+                      <option key={model} value={model}>{model}</option>
+                    ))}
+                  </select>
+                  <ChevronDown className="pointer-events-none absolute right-3 top-1/2 h-5 w-5 -translate-y-1/2 text-gray-400" />
+                </div>
+
+                {/* Location */}
+                <div className="relative">
+                  <select
+                    className="h-12 w-full appearance-none rounded-lg border border-gray-200 bg-white px-4 pr-10 text-sm text-gray-700 transition-colors focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
+                  >
+                    <option value="">მდებარეობა</option>
+                    <option value="tbilisi">თბილისი</option>
+                    <option value="batumi">ბათუმი</option>
+                    <option value="kutaisi">ქუთაისი</option>
+                  </select>
+                  <ChevronDown className="pointer-events-none absolute right-3 top-1/2 h-5 w-5 -translate-y-1/2 text-gray-400" />
+                </div>
+              </div>
+
+              {/* Row 2: Year, Price, Fuel + Additional filters */}
+              <div className="flex items-center gap-4">
+                {/* Year */}
+                <div className="relative flex-1">
+                  <select
+                    value={filters.yearFrom}
+                    onChange={(e) => updateFilter('yearFrom', e.target.value)}
+                    className="h-12 w-full appearance-none rounded-lg border border-gray-200 bg-white px-4 pr-10 text-sm text-gray-700 transition-colors focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
+                  >
+                    <option value="">წელი</option>
+                    {years.map(year => (
+                      <option key={year} value={year}>{year}</option>
+                    ))}
+                  </select>
+                  <ChevronDown className="pointer-events-none absolute right-3 top-1/2 h-5 w-5 -translate-y-1/2 text-gray-400" />
+                </div>
+
+                {/* Price */}
+                <div className="relative flex-1">
+                  <select
+                    value={filters.priceTo}
+                    onChange={(e) => updateFilter('priceTo', e.target.value)}
+                    className="h-12 w-full appearance-none rounded-lg border border-gray-200 bg-white px-4 pr-10 text-sm text-gray-700 transition-colors focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
+                  >
+                    <option value="">ფასი</option>
+                    <option value="5000">5,000 ₾-მდე</option>
+                    <option value="10000">10,000 ₾-მდე</option>
+                    <option value="20000">20,000 ₾-მდე</option>
+                    <option value="30000">30,000 ₾-მდე</option>
+                    <option value="50000">50,000 ₾-მდე</option>
+                    <option value="100000">100,000 ₾-მდე</option>
+                  </select>
+                  <ChevronDown className="pointer-events-none absolute right-3 top-1/2 h-5 w-5 -translate-y-1/2 text-gray-400" />
+                </div>
+
+                {/* Fuel type */}
+                <div className="relative flex-1">
+                  <select
+                    value={filters.fuelType}
+                    onChange={(e) => updateFilter('fuelType', e.target.value)}
+                    className="h-12 w-full appearance-none rounded-lg border border-gray-200 bg-white px-4 pr-10 text-sm text-gray-700 transition-colors focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
+                  >
+                    <option value="">საწვავი</option>
+                    {fuelTypes.map(fuel => (
+                      <option key={fuel.value} value={fuel.value}>{fuel.label}</option>
+                    ))}
+                  </select>
+                  <ChevronDown className="pointer-events-none absolute right-3 top-1/2 h-5 w-5 -translate-y-1/2 text-gray-400" />
+                </div>
+
+                {/* Additional filters button */}
+                <button className="flex h-12 items-center gap-2 rounded-lg border border-gray-200 bg-white px-5 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50">
+                  <SlidersHorizontal className="h-4 w-4" />
+                  დამატებითი ფილტრები
+                </button>
+              </div>
+
+              {/* Row 3: Toggle options */}
+              <div className="flex items-center gap-8">
+                <label className="flex cursor-pointer items-center gap-2">
+                  <div className="relative h-5 w-9 rounded-full bg-gray-200 transition-colors">
+                    <span className="absolute left-0.5 top-0.5 h-4 w-4 rounded-full bg-white shadow" />
+                  </div>
+                  <span className="text-sm text-gray-600">განცხადებები VIN კოდით</span>
+                </label>
+                <label className="flex cursor-pointer items-center gap-2">
+                  <div className="relative h-5 w-9 rounded-full bg-gray-200 transition-colors">
+                    <span className="absolute left-0.5 top-0.5 h-4 w-4 rounded-full bg-white shadow" />
+                  </div>
+                  <span className="text-sm text-gray-600">დამალე ფასი შეთანხმებით</span>
+                </label>
+                <label className="flex cursor-pointer items-center gap-2">
+                  <div className="relative h-5 w-9 rounded-full bg-gray-200 transition-colors">
+                    <span className="absolute left-0.5 top-0.5 h-4 w-4 rounded-full bg-white shadow" />
+                  </div>
+                  <span className="text-sm text-gray-600">{"360° ფოტოთი"}</span>
+                </label>
+              </div>
+            </div>
+          </div>
+
+          {/* Search button */}
+          <div className="mt-5 flex justify-end">
+            <button className="h-12 rounded-full bg-primary px-12 text-base font-semibold text-white shadow-lg shadow-primary/30 transition-all hover:bg-primary/90 hover:shadow-xl hover:shadow-primary/40">
+              ძებნა ({carsCount.toLocaleString()})
+            </button>
+          </div>
+        </div>
+      ) : (
+        /* AI Search Tab */
+        <div className="p-8">
+          <div className="mx-auto max-w-2xl text-center">
+            <div className="mb-4 inline-flex h-16 w-16 items-center justify-center rounded-full bg-primary/10">
+              <Sparkles className="h-8 w-8 text-primary" />
+            </div>
+            <h3 className="mb-2 text-xl font-bold text-gray-900">AI ძებნა</h3>
+            <p className="mb-6 text-sm text-gray-500">
+              აღწერე რა მანქანა გინდა ბუნებრივ ენაზე და AI მოძებნის შენთვის
+            </p>
+            <div className="flex gap-3">
               <input
                 type="text"
                 value={aiQuery}
                 onChange={(e) => setAIQuery(e.target.value)}
                 onKeyDown={(e) => e.key === 'Enter' && handleAISearch()}
-                placeholder="მაგ: იაფი ჰიბრიდი 2015 წლიდან, BMW 30000₾-მდე..."
-                className="h-11 w-full rounded-lg border border-border bg-background pl-10 pr-4 text-sm text-foreground placeholder:text-muted-foreground focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
+                placeholder="მაგ: იაფი ჰიბრიდი 2015 წლიდან, BMW X5 50000₾-მდე..."
+                className="h-14 flex-1 rounded-full border border-gray-200 bg-white px-6 text-sm text-gray-700 placeholder:text-gray-400 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
               />
-            </div>
-            <button
-              onClick={handleAISearch}
-              className="h-11 rounded-lg bg-primary px-6 text-sm font-medium text-primary-foreground shadow-md shadow-primary/25 transition-all hover:bg-primary/90 hover:shadow-lg"
-            >
-              ძებნა
-            </button>
-          </div>
-        </div>
-      )}
-
-      {/* Advanced filters panel */}
-      {showAdvanced && (
-        <div className="animate-fade-in-up rounded-xl border border-border bg-card p-4">
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-6">
-            {/* Year range */}
-            <div className="space-y-1.5">
-              <label className="block text-xs font-medium text-muted-foreground">წელი (დან)</label>
-              <select
-                value={filters.yearFrom}
-                onChange={(e) => updateFilter('yearFrom', e.target.value)}
-                className="h-10 w-full appearance-none rounded-lg border border-border bg-background px-3 text-sm focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
-              >
-                <option value="">ნებისმიერი</option>
-                {years.map(year => (
-                  <option key={year} value={year}>{year}</option>
-                ))}
-              </select>
-            </div>
-            <div className="space-y-1.5">
-              <label className="block text-xs font-medium text-muted-foreground">წელი (მდე)</label>
-              <select
-                value={filters.yearTo}
-                onChange={(e) => updateFilter('yearTo', e.target.value)}
-                className="h-10 w-full appearance-none rounded-lg border border-border bg-background px-3 text-sm focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
-              >
-                <option value="">ნებისმიერი</option>
-                {years.map(year => (
-                  <option key={year} value={year}>{year}</option>
-                ))}
-              </select>
-            </div>
-
-            {/* Price range */}
-            <div className="space-y-1.5">
-              <label className="block text-xs font-medium text-muted-foreground">ფასი (დან)</label>
-              <input
-                type="number"
-                value={filters.priceFrom}
-                onChange={(e) => updateFilter('priceFrom', e.target.value)}
-                placeholder="0 ₾"
-                className="h-10 w-full rounded-lg border border-border bg-background px-3 text-sm focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
-              />
-            </div>
-            <div className="space-y-1.5">
-              <label className="block text-xs font-medium text-muted-foreground">ფასი (მდე)</label>
-              <input
-                type="number"
-                value={filters.priceTo}
-                onChange={(e) => updateFilter('priceTo', e.target.value)}
-                placeholder="100000 ₾"
-                className="h-10 w-full rounded-lg border border-border bg-background px-3 text-sm focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
-              />
-            </div>
-
-            {/* Fuel type */}
-            <div className="space-y-1.5">
-              <label className="block text-xs font-medium text-muted-foreground">საწვავის ტიპი</label>
-              <select
-                value={filters.fuelType}
-                onChange={(e) => updateFilter('fuelType', e.target.value)}
-                className="h-10 w-full appearance-none rounded-lg border border-border bg-background px-3 text-sm focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
-              >
-                <option value="">ყველა</option>
-                {fuelTypes.map(fuel => (
-                  <option key={fuel.value} value={fuel.value}>{fuel.label}</option>
-                ))}
-              </select>
-            </div>
-
-            {/* Apply button */}
-            <div className="flex items-end">
               <button
-                onClick={() => setShowAdvanced(false)}
-                className="h-10 w-full rounded-lg bg-primary text-sm font-medium text-primary-foreground shadow-md shadow-primary/25 transition-all hover:bg-primary/90"
+                onClick={handleAISearch}
+                className="h-14 rounded-full bg-primary px-10 text-base font-semibold text-white shadow-lg shadow-primary/30 transition-all hover:bg-primary/90"
               >
-                ფილტრაცია
+                ძებნა
               </button>
             </div>
           </div>

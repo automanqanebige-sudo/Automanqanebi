@@ -6,12 +6,12 @@ import { CurrencyProvider } from "../context/CurrencyContext";
 const inter = Inter({ subsets: ["latin"], variable: "--font-inter" });
 
 export const metadata: Metadata = {
-  title: "AUTOMANQANEBI | ავტომობილების პლატფორმა",
-  description: "იყიდე და გაყიდე ავტომობილები საუკეთესო ფასად",
+  title: "AUTOMANQANEBI.GE | ავტომობილების ყიდვა-გაყიდვა",
+  description: "იყიდე და გაყიდე ავტომობილები საუკეთესო ფასად საქართველოში",
 };
 
 export const viewport: Viewport = {
-  themeColor: "#0d1117",
+  themeColor: "#ffffff",
   width: "device-width",
   initialScale: 1,
 };
@@ -22,7 +22,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="ka" className={`${inter.variable} dark bg-background antialiased`}>
+    <html lang="ka" className={`${inter.variable} bg-background antialiased`}>
       <body className="font-sans">
         <CurrencyProvider>
           {children}
