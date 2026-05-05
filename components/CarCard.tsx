@@ -7,39 +7,33 @@ type Car = {
   image?: string
 }
 
-export default function CarCard({
-  car,
-  currency = 'USD',
-  rate = 1
-}: {
-  car?: Car
-  currency?: string
-  rate?: number
-}) {
-
-  // თუ car საერთოდ არ არის
-  if (!car) {
-    return <div>Loading...</div>
-  }
-
-  const safePrice = car?.price || 0
-
-  const displayPrice =
-    currency === 'GEL'
-      ? Math.round(safePrice * rate).toLocaleString()
-      : safePrice.toLocaleString()
+export default function CarCard({ car }: { car?: Car }) {
+  if (!car) return null
 
   return (
-    <div style={{ border: '1px solid #ccc', padding: 12 }}>
-      <h2>{car?.name || "უცნობი მანქანა"}</h2>
+    <div className="bg-[#111] text-white rounded-2xl overflow-hidden shadow-lg hover:scale-[1.02] transition">
 
-      <p>
-        ფასი: {displayPrice} {currency}
-      </p>
-
-      {car?.image && (
-        <img src={car.image} alt="car" width={200} />
+      {car.image && (
+        <img
+          src={car.image}
+          alt="car"
+          className="w-full h-48 object-cover"
+        />
       )}
+
+      <div className="p-4">
+        <h2 className="text-lg font-bold">
+          {car?.name || "უცნობი მანქანა"}
+        </h2>
+
+        <p className="text-gray-400 mt-1">
+          {car?.price ? car.price.toLocaleString() + " $" : "ფასი არ არის"}
+        </p>
+
+        <button className="mt-3 w-full bg-blue-600 hover:bg-blue-700 py-2 rounded-lg transition">
+          ნახვა
+        </button>
+      </div>
     </div>
   )
 }
