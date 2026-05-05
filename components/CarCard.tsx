@@ -2,7 +2,6 @@
 
 import Link from 'next/link'
 import { Calendar, DollarSign, Eye } from 'lucide-react'
-import { motion } from 'framer-motion'
 
 type Car = {
   id?: string
@@ -21,10 +20,9 @@ export default function CarCard({ car, index = 0 }: { car?: Car; index?: number 
   const displayName = car.name || (car.brand && car.model ? `${car.brand} ${car.model}` : 'უცნობი მანქანა')
 
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.35, delay: index * 0.05 }}
+    <div
+      className="animate-fade-in-up"
+      style={{ animationDelay: `${index * 50}ms` }}
     >
       <Link
         href={car.id ? `/car/${car.id}` : '#'}
@@ -82,6 +80,6 @@ export default function CarCard({ car, index = 0 }: { car?: Car; index?: number 
           </div>
         </div>
       </Link>
-    </motion.div>
+    </div>
   )
 }

@@ -2,7 +2,6 @@
 
 import { Search, ArrowRight, TrendingUp, Shield, Zap } from 'lucide-react'
 import { useState } from 'react'
-import { motion } from 'framer-motion'
 
 const stats = [
   { icon: TrendingUp, value: '2,500+', label: 'განცხადება' },
@@ -26,32 +25,23 @@ export default function HeroSection({ onSearch }: { onSearch?: (query: string) =
 
       <div className="relative mx-auto max-w-7xl px-4 pb-16 pt-16 lg:px-8 lg:pb-24 lg:pt-24">
         <div className="mx-auto max-w-3xl text-center">
-          <motion.h1
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5 }}
-            className="text-balance text-4xl font-bold tracking-tight text-foreground sm:text-5xl lg:text-6xl"
+          <h1
+            className="animate-fade-in-up text-balance text-4xl font-bold tracking-tight text-foreground sm:text-5xl lg:text-6xl"
           >
             {"იპოვე შენი "}
             <span className="text-primary">იდეალური</span>
             {" ავტომობილი"}
-          </motion.h1>
+          </h1>
 
-          <motion.p
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5, delay: 0.1 }}
-            className="mx-auto mt-5 max-w-xl text-pretty text-base leading-relaxed text-muted-foreground lg:text-lg"
+          <p
+            className="animate-fade-in-up mx-auto mt-5 max-w-xl text-pretty text-base leading-relaxed text-muted-foreground lg:text-lg [animation-delay:100ms]"
           >
             {"საქართველოს უდიდესი ავტომობილების პლატფორმა. იყიდე, გაყიდე და მოძებნე საუკეთესო შეთავაზებები."}
-          </motion.p>
+          </p>
 
           {/* Search bar */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5, delay: 0.2 }}
-            className="mx-auto mt-8 max-w-xl"
+          <div
+            className="animate-fade-in-up mx-auto mt-8 max-w-xl [animation-delay:200ms]"
           >
             <div className="flex items-center gap-2 rounded-xl border border-border bg-card p-1.5 shadow-lg shadow-background/50">
               <div className="flex flex-1 items-center gap-2 px-3">
@@ -73,15 +63,12 @@ export default function HeroSection({ onSearch }: { onSearch?: (query: string) =
                 <ArrowRight className="h-4 w-4" />
               </button>
             </div>
-          </motion.div>
+          </div>
         </div>
 
         {/* Stats */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, delay: 0.35 }}
-          className="mx-auto mt-14 grid max-w-lg grid-cols-3 gap-4"
+        <div
+          className="animate-fade-in-up mx-auto mt-14 grid max-w-lg grid-cols-3 gap-4 [animation-delay:350ms]"
         >
           {stats.map((stat) => {
             const Icon = stat.icon
@@ -93,7 +80,7 @@ export default function HeroSection({ onSearch }: { onSearch?: (query: string) =
               </div>
             )
           })}
-        </motion.div>
+        </div>
       </div>
     </section>
   )
