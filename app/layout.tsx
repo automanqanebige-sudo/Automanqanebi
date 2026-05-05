@@ -1,14 +1,19 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
-import Navbar from "../components/Navbar";
 import { CurrencyProvider } from "../context/CurrencyContext";
 
-const inter = Inter({ subsets: ["latin"] });
+const inter = Inter({ subsets: ["latin"], variable: "--font-inter" });
 
 export const metadata: Metadata = {
   title: "AUTOMANQANEBI | ავტომობილების პლატფორმა",
   description: "იყიდე და გაყიდე ავტომობილები საუკეთესო ფასად",
+};
+
+export const viewport: Viewport = {
+  themeColor: "#0d1117",
+  width: "device-width",
+  initialScale: 1,
 };
 
 export default function RootLayout({
@@ -17,18 +22,10 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="ka">
-      <body className={`${inter.className} bg-gray-50 antialiased`}>
+    <html lang="ka" className={`${inter.variable} dark bg-background antialiased`}>
+      <body className="font-sans">
         <CurrencyProvider>
-          {/* ნავიგაცია */}
-          <Navbar />
-          
-          {/* მთავარი კონტენტი */}
-          <main className="min-h-screen">
-            {children}
-          </main>
-          
-          {/* აქ შეგიძლიათ მოგვიანებით Footer დაამატოთ */}
+          {children}
         </CurrencyProvider>
       </body>
     </html>

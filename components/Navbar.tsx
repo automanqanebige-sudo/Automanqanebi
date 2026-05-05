@@ -1,18 +1,110 @@
 'use client'
 
 import Link from 'next/link'
+import { usePathname } from 'next/navigation'
+import { useState } from 'react'
+import { Car, Heart, Plus, LogIn, Menu, X } from 'lucide-react'
+
+const navLinks = [
+  { href: '/', label: 'მთავარი', icon: Car },
+  { href: '/favorites', label: 'ფავორიტები', icon: Heart },
+  { href: '/add-car', label: 'დამატება', icon: Plus },
+]
 
 export default function Navbar() {
-  return (
-    <div className="bg-black text-white px-6 py-4 flex justify-between items-center">
-      
-      <h1 className="text-xl font-bold">AutoMarket</h1>
+  const pathname = usePathname()
+  const [mobileOpen, setMobileOpen] = useState(false)
 
-      <div className="flex gap-4">
-        <Link href="/">მთავარი</Link>
-        <Link href="/favorites">ფავორიტები</Link>
-        <Link href="/add-car">დამატება</Link>
-      </div>
-    </div>
+  return (
+    <header className="sticky top-0 z-50 border-b border-border bg-background/80 backdrop-blur-xl">
+      <nav className="mx-auto flex max-w-7xl items-center justify-between px-4 py-3 lg:px-8">
+        {/* Logo */}
+        <Link href="/" className="flex items-center gap-2.5">
+          <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary">
+            <Car className="h-5 w-5 text-primary-foreground" />
+          </div>
+          <span className="text-lg font-bold tracking-tight text-foreground">
+            AutoManqanebi
+          </span>
+        </Link>
+
+        {/* Desktop nav */}
+        <div className="hidden items-center gap-1 md:flex">
+          {navLinks.map((link) => {
+            const isActive = pathname === link.href
+            const Icon = link.icon
+            return (
+              <Link
+                key={link.href}
+                href={link.href}
+                className={`flex items-center gap-2 rounded-lg px-3.5 py-2 text-sm font-medium transition-colors ${
+                  isActive
+                    ? 'bg-primary/10 text-primary'
+                    : 'text-muted-foreground hover:bg-secondary hover:text-foreground'
+                }`}
+              >
+                <Icon className="h-4 w-4" />
+                {link.label}
+              </Link>
+            )
+          })}
+        </div>
+
+        {/* Right side */}
+        <div className="flex items-center gap-2">
+          <Link
+            href="/login"
+            className="hidden items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90 md:flex"
+          >
+            <LogIn className="h-4 w-4" />
+            შესვლა
+          </Link>
+
+          {/* Mobile toggle */}
+          <button
+            onClick={() => setMobileOpen(!mobileOpen)}
+            className="flex h-9 w-9 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground md:hidden"
+            aria-label={mobileOpen ? 'მენიუს დახურვა' : 'მენიუს გახსნა'}
+          >
+            {mobileOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+          </button>
+        </div>
+      </nav>
+
+      {/* Mobile menu */}
+      {mobileOpen && (
+        <div className="border-t border-border bg-background px-4 pb-4 pt-2 md:hidden">
+          <div className="flex flex-col gap-1">
+            {navLinks.map((link) => {
+              const isActive = pathname === link.href
+              const Icon = link.icon
+              return (
+                <Link
+                  key={link.href}
+                  href={link.href}
+                  onClick={() => setMobileOpen(false)}
+                  className={`flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors ${
+                    isActive
+                      ? 'bg-primary/10 text-primary'
+                      : 'text-muted-foreground hover:bg-secondary hover:text-foreground'
+                  }`}
+                >
+                  <Icon className="h-4 w-4" />
+                  {link.label}
+                </Link>
+              )
+            })}
+            <Link
+              href="/login"
+              onClick={() => setMobileOpen(false)}
+              className="mt-2 flex items-center justify-center gap-2 rounded-lg bg-primary px-4 py-2.5 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90"
+            >
+              <LogIn className="h-4 w-4" />
+              შესვლა
+            </Link>
+          </div>
+        </div>
+      )}
+    </header>
   )
 }
