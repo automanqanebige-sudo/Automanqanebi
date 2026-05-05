@@ -1,85 +1,52 @@
 'use client'
 
-import { Search, ArrowRight, TrendingUp, Shield, Zap } from 'lucide-react'
-import { useState } from 'react'
+import { TrendingUp, Clock, Tag } from 'lucide-react'
 
 const stats = [
-  { icon: TrendingUp, value: '2,500+', label: 'განცხადება' },
-  { icon: Shield, value: '100%', label: 'დაცული' },
-  { icon: Zap, value: '24/7', label: 'მხარდაჭერა' },
+  { icon: TrendingUp, value: '12+', label: 'განცხადება' },
+  { icon: Clock, value: '24/7', label: 'ხელმისაწვდომი' },
+  { icon: Tag, value: 'უფასო', label: 'განცხადება' },
 ]
 
-export default function HeroSection({ onSearch }: { onSearch?: (query: string) => void }) {
-  const [searchQuery, setSearchQuery] = useState('')
-
-  const handleSearch = () => {
-    onSearch?.(searchQuery)
-  }
-
+export default function HeroSection() {
   return (
-    <section className="relative overflow-hidden border-b border-border">
-      {/* Background glow */}
+    <section className="relative overflow-hidden border-b border-border bg-gradient-to-b from-primary/5 to-transparent">
+      {/* Background image/pattern */}
       <div className="pointer-events-none absolute inset-0">
-        <div className="absolute left-1/2 top-0 h-[500px] w-[800px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-primary/5 blur-3xl" />
+        <div className="absolute left-1/2 top-0 h-[400px] w-[600px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-primary/10 blur-3xl" />
       </div>
 
-      <div className="relative mx-auto max-w-7xl px-4 pb-16 pt-16 lg:px-8 lg:pb-24 lg:pt-24">
-        <div className="mx-auto max-w-3xl text-center">
-          <h1
-            className="animate-fade-in-up text-balance text-4xl font-bold tracking-tight text-foreground sm:text-5xl lg:text-6xl"
-          >
-            {"იპოვე შენი "}
-            <span className="text-primary">იდეალური</span>
-            {" ავტომობილი"}
+      <div className="relative mx-auto max-w-7xl px-4 py-12 lg:px-8 lg:py-16">
+        <div className="flex flex-col items-center text-center">
+          {/* Badge */}
+          <div className="animate-fade-in-up mb-4 inline-flex items-center gap-2 rounded-full border border-primary/30 bg-primary/10 px-4 py-1.5 text-xs font-medium text-primary">
+            <span className="flex h-2 w-2 rounded-full bg-primary" />
+            საქართველო #1 მარკეტი
+          </div>
+
+          <h1 className="animate-fade-in-up text-balance text-3xl font-bold tracking-tight text-foreground sm:text-4xl lg:text-5xl [animation-delay:100ms]">
+            AUTOMANQANEBI.GE
           </h1>
 
-          <p
-            className="animate-fade-in-up mx-auto mt-5 max-w-xl text-pretty text-base leading-relaxed text-muted-foreground lg:text-lg [animation-delay:100ms]"
-          >
-            {"საქართველოს უდიდესი ავტომობილების პლატფორმა. იყიდე, გაყიდე და მოძებნე საუკეთესო შეთავაზებები."}
+          <p className="animate-fade-in-up mt-3 max-w-lg text-pretty text-base leading-relaxed text-muted-foreground [animation-delay:200ms]">
+            იყიდე, გაყიდე, იქირავე — სწრაფად და მარტივად
           </p>
 
-          {/* Search bar */}
-          <div
-            className="animate-fade-in-up mx-auto mt-8 max-w-xl [animation-delay:200ms]"
-          >
-            <div className="flex items-center gap-2 rounded-xl border border-border bg-card p-1.5 shadow-lg shadow-background/50">
-              <div className="flex flex-1 items-center gap-2 px-3">
-                <Search className="h-5 w-5 shrink-0 text-muted-foreground" />
-                <input
-                  type="text"
-                  placeholder="მოძებნე მარკა, მოდელი..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
-                  className="w-full bg-transparent py-2.5 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none"
-                />
-              </div>
-              <button
-                onClick={handleSearch}
-                className="flex items-center gap-2 rounded-lg bg-primary px-5 py-2.5 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90"
-              >
-                ძებნა
-                <ArrowRight className="h-4 w-4" />
-              </button>
-            </div>
+          {/* Stats */}
+          <div className="animate-fade-in-up mt-8 grid grid-cols-3 gap-6 [animation-delay:300ms]">
+            {stats.map((stat) => {
+              const Icon = stat.icon
+              return (
+                <div key={stat.label} className="flex flex-col items-center gap-1">
+                  <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-card border border-border">
+                    <Icon className="h-5 w-5 text-primary" />
+                  </div>
+                  <span className="text-lg font-bold text-foreground">{stat.value}</span>
+                  <span className="text-xs text-muted-foreground">{stat.label}</span>
+                </div>
+              )
+            })}
           </div>
-        </div>
-
-        {/* Stats */}
-        <div
-          className="animate-fade-in-up mx-auto mt-14 grid max-w-lg grid-cols-3 gap-4 [animation-delay:350ms]"
-        >
-          {stats.map((stat) => {
-            const Icon = stat.icon
-            return (
-              <div key={stat.label} className="flex flex-col items-center gap-2 rounded-xl border border-border bg-card/50 px-4 py-5">
-                <Icon className="h-5 w-5 text-primary" />
-                <span className="text-xl font-bold text-foreground">{stat.value}</span>
-                <span className="text-xs text-muted-foreground">{stat.label}</span>
-              </div>
-            )
-          })}
         </div>
       </div>
     </section>

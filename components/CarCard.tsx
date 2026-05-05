@@ -1,23 +1,35 @@
 'use client'
 
 import Link from 'next/link'
-import { Calendar, DollarSign, Eye } from 'lucide-react'
+import { Calendar, MapPin, Gauge, Fuel, Eye, Clock } from 'lucide-react'
+import type { Car, ListingTier } from '@/types/car'
+import { fuelTypeLabels, tierColors, tierLabels } from '@/types/car'
 
-type Car = {
-  id?: string
-  name?: string
-  brand?: string
-  model?: string
-  price?: number
-  image?: string
-  year?: number
-  description?: string
+function formatTimeAgo(date: Date | string | undefined): string {
+  if (!date) return ''
+  const now = new Date()
+  const past = new Date(date)
+  const diffMs = now.getTime() - past.getTime()
+  const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24))
+  
+  if (diffDays === 0) return 'დღეს'
+  if (diffDays === 1) return 'გუშინ'
+  return `${diffDays} დღის წინ`
+}
+
+function formatMileage(km: number | undefined): string {
+  if (!km) return ''
+  if (km >= 1000) return `${Math.round(km / 1000)}k`
+  return `${km}`
 }
 
 export default function CarCard({ car, index = 0 }: { car?: Car; index?: number }) {
   if (!car) return null
 
   const displayName = car.name || (car.brand && car.model ? `${car.brand} ${car.model}` : 'უცნობი მანქანა')
+  const fullName = car.year ? `${car.year} ${displayName}` : displayName
+  const tier = car.tier || 'standard'
+  const showBadge = tier !== 'standard'
 
   return (
     <div
@@ -44,35 +56,66 @@ export default function CarCard({ car, index = 0 }: { car?: Car; index?: number 
             </div>
           )}
 
-          {/* Year badge */}
-          {car.year && (
-            <div className="absolute left-3 top-3 flex items-center gap-1 rounded-md bg-background/80 px-2 py-1 text-xs font-medium text-foreground backdrop-blur-sm">
-              <Calendar className="h-3 w-3" />
-              {car.year}
+          {/* Tier badge */}
+          {showBadge && (
+            <div className={`absolute left-3 top-3 flex items-center gap-1.5 rounded-md px-2 py-1 text-xs font-bold text-white ${tierColors[tier]}`}>
+              {tierLabels[tier]}
+              {car.views && (
+                <span className="flex items-center gap-0.5 rounded bg-black/20 px-1 py-0.5 text-[10px]">
+                  {car.views}
+                </span>
+              )}
             </div>
           )}
         </div>
 
         {/* Content */}
         <div className="p-4">
-          <h3 className="text-base font-semibold text-card-foreground group-hover:text-primary transition-colors">
-            {displayName}
+          <h3 className="line-clamp-1 text-base font-semibold text-card-foreground group-hover:text-primary transition-colors">
+            {fullName}
           </h3>
 
-          {car.description && (
-            <p className="mt-1.5 line-clamp-2 text-xs leading-relaxed text-muted-foreground">
-              {car.description}
-            </p>
-          )}
+          {/* Price */}
+          <div className="mt-2 text-xl font-bold text-foreground">
+            {car.price ? `${car.price.toLocaleString()} ₾` : '---'}
+          </div>
 
-          <div className="mt-4 flex items-center justify-between">
-            <div className="flex items-center gap-1">
-              <DollarSign className="h-4 w-4 text-primary" />
-              <span className="text-lg font-bold text-foreground">
-                {car.price ? car.price.toLocaleString() : '---'}
+          {/* Details row */}
+          <div className="mt-3 flex flex-wrap items-center gap-x-3 gap-y-1.5 text-xs text-muted-foreground">
+            {car.year && (
+              <span className="flex items-center gap-1">
+                <Calendar className="h-3.5 w-3.5" />
+                {car.year}
               </span>
-            </div>
+            )}
+            {car.mileage !== undefined && (
+              <span className="flex items-center gap-1">
+                <Gauge className="h-3.5 w-3.5" />
+                {formatMileage(car.mileage)}
+              </span>
+            )}
+            {car.fuelType && (
+              <span className="flex items-center gap-1">
+                <Fuel className="h-3.5 w-3.5" />
+                {fuelTypeLabels[car.fuelType] || car.fuelType}
+              </span>
+            )}
+            {car.location && (
+              <span className="flex items-center gap-1">
+                <MapPin className="h-3.5 w-3.5" />
+                {car.location}
+              </span>
+            )}
+          </div>
 
+          {/* Footer */}
+          <div className="mt-3 flex items-center justify-between border-t border-border pt-3">
+            {car.createdAt && (
+              <span className="flex items-center gap-1 text-xs text-muted-foreground">
+                <Clock className="h-3 w-3" />
+                {formatTimeAgo(car.createdAt)}
+              </span>
+            )}
             <span className="flex items-center gap-1.5 rounded-lg bg-primary/10 px-3 py-1.5 text-xs font-medium text-primary transition-colors group-hover:bg-primary group-hover:text-primary-foreground">
               <Eye className="h-3.5 w-3.5" />
               ნახვა

@@ -3,22 +3,26 @@
 import { useEffect, useState } from 'react'
 import Navbar from '@/components/Navbar'
 import Link from 'next/link'
-import { ArrowLeft, Calendar, DollarSign, Loader2, Heart, Share2 } from 'lucide-react'
+import { ArrowLeft, Calendar, Loader2, Heart, Share2, Phone, MapPin, Gauge, Fuel, Settings, Eye, Clock, GitCompare } from 'lucide-react'
+import type { Car } from '@/types/car'
+import { fuelTypeLabels, tierColors, tierLabels } from '@/types/car'
 
-type Car = {
-  id?: string
-  name?: string
-  brand?: string
-  model?: string
-  price?: number
-  image?: string
-  year?: number
-  description?: string
+function formatTimeAgo(date: Date | string | undefined): string {
+  if (!date) return ''
+  const now = new Date()
+  const past = new Date(date)
+  const diffMs = now.getTime() - past.getTime()
+  const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24))
+  
+  if (diffDays === 0) return 'დღეს'
+  if (diffDays === 1) return 'გუშინ'
+  return `${diffDays} დღის წინ`
 }
 
 export default function CarPage({ params }: { params: { id: string } }) {
   const [car, setCar] = useState<Car | null>(null)
   const [loading, setLoading] = useState(true)
+  const [isFavorite, setIsFavorite] = useState(false)
 
   useEffect(() => {
     setLoading(true)
@@ -30,6 +34,23 @@ export default function CarPage({ params }: { params: { id: string } }) {
       })
       .catch(() => setLoading(false))
   }, [params.id])
+
+  const toggleFavorite = () => {
+    setIsFavorite(!isFavorite)
+    // TODO: Save to localStorage or Firebase
+  }
+
+  const shareCar = () => {
+    if (navigator.share) {
+      navigator.share({
+        title: car?.name || 'მანქანა',
+        url: window.location.href,
+      })
+    } else {
+      navigator.clipboard.writeText(window.location.href)
+      alert('ლინკი დაკოპირდა!')
+    }
+  }
 
   if (loading) {
     return (
@@ -63,12 +84,15 @@ export default function CarPage({ params }: { params: { id: string } }) {
   }
 
   const displayName = car.name || (car.brand && car.model ? `${car.brand} ${car.model}` : 'უცნობი მანქანა')
+  const fullName = car.year ? `${car.year} ${displayName}` : displayName
+  const tier = car.tier || 'standard'
+  const showBadge = tier !== 'standard'
 
   return (
     <div className="min-h-screen bg-background">
       <Navbar />
 
-      <div className="mx-auto max-w-5xl px-4 py-10 lg:px-8">
+      <div className="mx-auto max-w-6xl px-4 py-10 lg:px-8">
         {/* Back link */}
         <Link
           href="/"
@@ -79,9 +103,21 @@ export default function CarPage({ params }: { params: { id: string } }) {
         </Link>
 
         <div className="grid gap-8 lg:grid-cols-5">
-          {/* Image */}
+          {/* Image section */}
           <div className="lg:col-span-3">
-            <div className="overflow-hidden rounded-2xl border border-border bg-secondary">
+            <div className="relative overflow-hidden rounded-2xl border border-border bg-secondary">
+              {showBadge && (
+                <div className={`absolute left-4 top-4 z-10 flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-sm font-bold text-white ${tierColors[tier]}`}>
+                  {tierLabels[tier]}
+                  {car.views && (
+                    <span className="flex items-center gap-1 rounded bg-black/20 px-1.5 py-0.5 text-xs">
+                      <Eye className="h-3 w-3" />
+                      {car.views}
+                    </span>
+                  )}
+                </div>
+              )}
+              
               {car.image ? (
                 <img
                   src={car.image}
@@ -96,47 +132,124 @@ export default function CarPage({ params }: { params: { id: string } }) {
                 </div>
               )}
             </div>
+
+            {/* Specs grid */}
+            <div className="mt-6 grid grid-cols-2 gap-4 sm:grid-cols-4">
+              {car.year && (
+                <div className="rounded-xl border border-border bg-card p-4">
+                  <Calendar className="h-5 w-5 text-primary" />
+                  <p className="mt-2 text-lg font-bold text-foreground">{car.year}</p>
+                  <p className="text-xs text-muted-foreground">წელი</p>
+                </div>
+              )}
+              {car.mileage !== undefined && (
+                <div className="rounded-xl border border-border bg-card p-4">
+                  <Gauge className="h-5 w-5 text-primary" />
+                  <p className="mt-2 text-lg font-bold text-foreground">{car.mileage.toLocaleString()}</p>
+                  <p className="text-xs text-muted-foreground">კმ გარბენი</p>
+                </div>
+              )}
+              {car.fuelType && (
+                <div className="rounded-xl border border-border bg-card p-4">
+                  <Fuel className="h-5 w-5 text-primary" />
+                  <p className="mt-2 text-lg font-bold text-foreground">{fuelTypeLabels[car.fuelType] || car.fuelType}</p>
+                  <p className="text-xs text-muted-foreground">საწვავი</p>
+                </div>
+              )}
+              {car.transmission && (
+                <div className="rounded-xl border border-border bg-card p-4">
+                  <Settings className="h-5 w-5 text-primary" />
+                  <p className="mt-2 text-lg font-bold text-foreground">
+                    {car.transmission === 'Automatic' ? 'ავტომატიკა' : 'მექანიკა'}
+                  </p>
+                  <p className="text-xs text-muted-foreground">გადაცემათა კოლოფი</p>
+                </div>
+              )}
+            </div>
           </div>
 
-          {/* Details */}
+          {/* Details sidebar */}
           <div className="lg:col-span-2">
-            <div className="rounded-2xl border border-border bg-card p-6">
-              <h1 className="text-2xl font-bold text-foreground">{displayName}</h1>
+            <div className="sticky top-24 space-y-4">
+              {/* Main card */}
+              <div className="rounded-2xl border border-border bg-card p-6">
+                <h1 className="text-2xl font-bold text-foreground">{fullName}</h1>
 
-              {car.year && (
-                <div className="mt-3 flex items-center gap-2 text-sm text-muted-foreground">
-                  <Calendar className="h-4 w-4" />
-                  <span>{car.year} წელი</span>
+                {car.location && (
+                  <div className="mt-3 flex items-center gap-2 text-sm text-muted-foreground">
+                    <MapPin className="h-4 w-4" />
+                    <span>{car.location}</span>
+                  </div>
+                )}
+
+                {car.createdAt && (
+                  <div className="mt-2 flex items-center gap-2 text-sm text-muted-foreground">
+                    <Clock className="h-4 w-4" />
+                    <span>დაემატა {formatTimeAgo(car.createdAt)}</span>
+                  </div>
+                )}
+
+                {/* Price */}
+                <div className="mt-6 rounded-xl bg-primary/10 p-4">
+                  <p className="text-xs font-medium text-primary">ფასი</p>
+                  <div className="mt-1 flex items-baseline gap-1">
+                    <span className="text-3xl font-bold text-foreground">
+                      {car.price ? car.price.toLocaleString() : '---'}
+                    </span>
+                    <span className="text-lg text-muted-foreground">₾</span>
+                  </div>
+                </div>
+
+                {/* Actions */}
+                <div className="mt-6 flex gap-3">
+                  <button 
+                    onClick={toggleFavorite}
+                    className={`flex flex-1 items-center justify-center gap-2 rounded-lg px-4 py-3 text-sm font-semibold transition-colors ${
+                      isFavorite 
+                        ? 'bg-rose-500 text-white' 
+                        : 'bg-primary text-primary-foreground hover:bg-primary/90'
+                    }`}
+                  >
+                    <Heart className={`h-4 w-4 ${isFavorite ? 'fill-current' : ''}`} />
+                    {isFavorite ? 'რჩეულებში' : 'დამატება'}
+                  </button>
+                  <button 
+                    onClick={shareCar}
+                    className="flex h-12 w-12 items-center justify-center rounded-lg border border-border text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
+                  >
+                    <Share2 className="h-4 w-4" />
+                  </button>
+                </div>
+
+                {/* Compare button */}
+                <Link
+                  href="/compare"
+                  className="mt-3 flex w-full items-center justify-center gap-2 rounded-lg border border-border py-3 text-sm font-medium text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
+                >
+                  <GitCompare className="h-4 w-4" />
+                  შეადარე სხვა მანქანას
+                </Link>
+              </div>
+
+              {/* Contact card */}
+              {car.phone && (
+                <div className="rounded-2xl border border-border bg-card p-6">
+                  <h3 className="text-sm font-semibold text-foreground">დაუკავშირდი გამყიდველს</h3>
+                  <a
+                    href={`tel:${car.phone}`}
+                    className="mt-4 flex items-center justify-center gap-2 rounded-lg bg-emerald-500 px-4 py-3 text-sm font-semibold text-white transition-colors hover:bg-emerald-600"
+                  >
+                    <Phone className="h-4 w-4" />
+                    {car.phone}
+                  </a>
                 </div>
               )}
 
-              {/* Price */}
-              <div className="mt-6 rounded-xl bg-primary/10 p-4">
-                <p className="text-xs font-medium text-primary">ფასი</p>
-                <div className="mt-1 flex items-center gap-1.5">
-                  <DollarSign className="h-6 w-6 text-primary" />
-                  <span className="text-3xl font-bold text-foreground">
-                    {car.price ? car.price.toLocaleString() : '---'}
-                  </span>
-                </div>
-              </div>
-
-              {/* Actions */}
-              <div className="mt-6 flex gap-3">
-                <button className="flex flex-1 items-center justify-center gap-2 rounded-lg bg-primary px-4 py-3 text-sm font-semibold text-primary-foreground transition-colors hover:bg-primary/90">
-                  <Heart className="h-4 w-4" />
-                  ფავორიტებში
-                </button>
-                <button className="flex h-11 w-11 items-center justify-center rounded-lg border border-border text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground">
-                  <Share2 className="h-4 w-4" />
-                </button>
-              </div>
-
               {/* Description */}
               {car.description && (
-                <div className="mt-6 border-t border-border pt-6">
+                <div className="rounded-2xl border border-border bg-card p-6">
                   <h3 className="text-sm font-semibold text-foreground">აღწერა</h3>
-                  <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
+                  <p className="mt-3 text-sm leading-relaxed text-muted-foreground">
                     {car.description}
                   </p>
                 </div>
