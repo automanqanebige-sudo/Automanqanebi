@@ -154,7 +154,7 @@ export default function ProfilePage() {
             {myCars.length > 0 ? (
               <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
                 {myCars.map((car, i) => (
-                  <CarCard key={car.id} car={car} index={i} showActions />
+                  <CarCard key={car.id} car={car} index={i} />
                 ))}
               </div>
             ) : (
