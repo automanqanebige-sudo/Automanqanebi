@@ -3,6 +3,7 @@
 import { useState, useMemo } from 'react'
 import CarCard, { Car } from '@/components/CarCard'
 import SearchFilters, { FilterState } from '@/components/SearchFilters'
+import VipListingsSection from '@/components/VipListingsSection'
 
 // Sample data for demonstration
 const sampleCars: Car[] = [
@@ -152,6 +153,16 @@ export default function Home() {
     setFilters(initialFilters)
   }
 
+  // Separate VIP cars for the dedicated section
+  const vipCars = useMemo(() => {
+    return cars.filter(car => car.isVip)
+  }, [cars])
+
+  // Non-VIP cars for the regular listings (or all if no filters applied)
+  const regularCars = useMemo(() => {
+    return cars.filter(car => !car.isVip)
+  }, [cars])
+
   const filteredAndSortedCars = useMemo(() => {
     let result = cars.filter(car => {
       // Search filter
@@ -231,10 +242,23 @@ export default function Home() {
         </div>
       </section>
 
+      {/* VIP Listings Section */}
+      <VipListingsSection 
+        cars={vipCars} 
+        onFavoriteToggle={handleFavoriteToggle} 
+      />
+
       {/* Results Section */}
       <section className="py-8 px-4 sm:px-6 lg:px-8">
         <div className="max-w-7xl mx-auto">
           {/* Results Header */}
+          <div className="flex items-center gap-3 mb-6">
+            <h2 className="text-2xl font-bold text-foreground">All Listings</h2>
+            <span className="px-3 py-1 text-sm font-medium bg-secondary text-secondary-foreground rounded-full">
+              {filteredAndSortedCars.length} cars
+            </span>
+          </div>
+          
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
             <p className="text-muted-foreground">
               <span className="font-semibold text-foreground">{filteredAndSortedCars.length}</span>{' '}
