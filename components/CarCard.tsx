@@ -5,7 +5,7 @@ import { Calendar, MapPin, Gauge, Fuel, Clock, Heart, Settings2 } from 'lucide-r
 import type { Car } from '@/types/car'
 import { fuelTypeLabels, tierLabels } from '@/types/car'
 import { useCurrency } from '@/context/CurrencyContext'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 
 const tierStyles: Record<string, { bg: string; text: string; label: string }> = {
   platinum: { bg: 'bg-gradient-to-r from-violet-500 to-purple-600', text: 'text-white', label: 'SUPER VIP' },
@@ -32,6 +32,15 @@ function formatTimeAgo(date: Date | string | undefined): string {
 export default function CarCard({ car, index = 0 }: { car?: Car; index?: number }) {
   const { currency, convertPrice } = useCurrency()
   const [isFavorite, setIsFavorite] = useState(false)
+  const [timeAgo, setTimeAgo] = useState<string>('')
+  const [mounted, setMounted] = useState(false)
+  
+  useEffect(() => {
+    setMounted(true)
+    if (car?.createdAt) {
+      setTimeAgo(formatTimeAgo(car.createdAt))
+    }
+  }, [car?.createdAt])
 
   if (!car) return null
 
@@ -134,10 +143,10 @@ export default function CarCard({ car, index = 0 }: { car?: Car; index?: number 
                 <span>{car.location}</span>
               </div>
             )}
-            {car.createdAt && (
+            {mounted && timeAgo && (
               <div className="flex items-center gap-1">
                 <Clock className="h-3 w-3" />
-                <span>{formatTimeAgo(car.createdAt)}</span>
+                <span>{timeAgo}</span>
               </div>
             )}
           </div>
