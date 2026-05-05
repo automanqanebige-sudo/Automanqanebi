@@ -15,6 +15,7 @@ export type Car = {
   location: string
   mileage: number
   fuelType: string
+  transmission?: string
   isVip?: boolean
   isFavorite?: boolean
 }
