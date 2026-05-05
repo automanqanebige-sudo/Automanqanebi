@@ -1,154 +1,53 @@
-"use client";
+'use client'
 
-import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
+import { useEffect, useState } from 'react'
 
-export default function EditCar({
-  params,
-}: {
-  params: { id: string };
-}) {
-  const router = useRouter();
-
-  const [name, setName] = useState("");
-  const [price, setPrice] = useState("");
-  const [image, setImage] = useState("");
+export default function EditCar({ params }: { params: { id: string } }) {
+  const [name, setName] = useState('')
+  const [price, setPrice] = useState(0)
+  const [image, setImage] = useState('')
+  const [car, setCar] = useState<any>(null)
 
   useEffect(() => {
-    const cars = JSON.parse(
-      localStorage.getItem("userCars") ||
-        "[]"
-    );
+    fetch(`/api/cars/${params.id}`)
+      .then(res => res.json())
+      .then(data => setCar(data))
+  }, [params.id])
 
-    const car = cars.find(
-      (c: any) =>
-        c.id === Number(params.id)
-    );
-
+  useEffect(() => {
     if (car) {
-      setName(car.name);
-      setPrice(car.price);
-      setImage(car.image);
+      setName(car.name || '')
+      setPrice(car.price || 0)
+      setImage(car.image || '')
     }
-  }, [params.id]);
+  }, [car])
 
-  const updateCar = () => {
-    const cars = JSON.parse(
-      localStorage.getItem("userCars") ||
-        "[]"
-    );
-
-    const updatedCars = cars.map(
-      (car: any) => {
-        if (
-          car.id === Number(params.id)
-        ) {
-          return {
-            ...car,
-            name,
-            price,
-            image,
-          };
-        }
-
-        return car;
-      }
-    );
-
-    localStorage.setItem(
-      "userCars",
-      JSON.stringify(updatedCars)
-    );
-
-    alert("განახლდა ✏️");
-
-    router.push("/");
-  };
+  if (!car) {
+    return <div>Loading...</div>
+  }
 
   return (
-    <div
-      style={{
-        background: "#111",
-        minHeight: "100vh",
-        padding: 20,
-        color: "white",
-      }}
-    >
-      <div
-        style={{
-          maxWidth: 500,
-          margin: "0 auto",
-        }}
-      >
-        <h1
-          style={{
-            marginBottom: 20,
-          }}
-        >
-          ✏️ მანქანის შეცვლა
-        </h1>
+    <div>
+      <h1>Edit Car</h1>
 
-        <input
-          placeholder="სახელი"
-          value={name}
-          onChange={(e) =>
-            setName(e.target.value)
-          }
-          style={{
-            width: "100%",
-            padding: 14,
-            marginBottom: 15,
-            borderRadius: 12,
-            border: "none",
-          }}
-        />
+      <input
+        value={name}
+        onChange={(e) => setName(e.target.value)}
+        placeholder="Name"
+      />
 
-        <input
-          placeholder="ფასი"
-          value={price}
-          onChange={(e) =>
-            setPrice(e.target.value)
-          }
-          style={{
-            width: "100%",
-            padding: 14,
-            marginBottom: 15,
-            borderRadius: 12,
-            border: "none",
-          }}
-        />
+      <input
+        value={price}
+        onChange={(e) => setPrice(Number(e.target.value))}
+        placeholder="Price"
+        type="number"
+      />
 
-        <input
-          placeholder="სურათის URL"
-          value={image}
-          onChange={(e) =>
-            setImage(e.target.value)
-          }
-          style={{
-            width: "100%",
-            padding: 14,
-            marginBottom: 20,
-            borderRadius: 12,
-            border: "none",
-          }}
-        />
-
-        <button
-          onClick={updateCar}
-          style={{
-            width: "100%",
-            padding: 16,
-            borderRadius: 12,
-            border: "none",
-            background: "#00aa55",
-            color: "white",
-            fontWeight: "bold",
-            fontSize: 16,
-          }}
-        >
-          💾 შენახვა
-        </button>
-      </div>
+      <input
+        value={image}
+        onChange={(e) => setImage(e.target.value)}
+        placeholder="Image URL"
+      />
     </div>
-  );
+  )
 }
