@@ -4,33 +4,33 @@
 
 @layer base {
   :root {
-    --background: 0 0% 95%;
-    --foreground: 222 20% 15%;
+    --background: 0 0% 98%;
+    --foreground: 220 15% 15%;
 
     --card: 0 0% 100%;
-    --card-foreground: 222 20% 15%;
+    --card-foreground: 220 15% 15%;
 
     --popover: 0 0% 100%;
-    --popover-foreground: 222 20% 15%;
+    --popover-foreground: 220 15% 15%;
 
-    --primary: 14 100% 50%;
+    --primary: 16 90% 55%;
     --primary-foreground: 0 0% 100%;
 
-    --secondary: 220 14% 96%;
-    --secondary-foreground: 222 20% 20%;
+    --secondary: 220 10% 96%;
+    --secondary-foreground: 220 15% 25%;
 
-    --muted: 220 14% 96%;
-    --muted-foreground: 220 10% 40%;
+    --muted: 220 10% 96%;
+    --muted-foreground: 220 10% 45%;
 
-    --accent: 14 100% 50%;
+    --accent: 16 90% 55%;
     --accent-foreground: 0 0% 100%;
 
-    --destructive: 0 84% 60%;
+    --destructive: 0 72% 51%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 220 13% 91%;
-    --input: 220 13% 91%;
-    --ring: 14 100% 50%;
+    --border: 220 10% 90%;
+    --input: 220 10% 90%;
+    --ring: 16 90% 55%;
 
     --radius: 0.5rem;
   }
@@ -41,8 +41,7 @@
     @apply border-border;
   }
   body {
-    @apply bg-background text-foreground antialiased;
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+    @apply bg-background text-foreground;
   }
 }
 
@@ -50,7 +49,7 @@
 @keyframes fade-in-up {
   from {
     opacity: 0;
-    transform: translateY(10px);
+    transform: translateY(12px);
   }
   to {
     opacity: 1;
@@ -68,7 +67,7 @@
 }
 
 .animate-fade-in-up {
-  animation: fade-in-up 0.25s ease-out both;
+  animation: fade-in-up 0.3s ease-out both;
 }
 
 .animate-fade-in {
@@ -77,32 +76,32 @@
 
 /* Custom scrollbar */
 ::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
+  width: 6px;
+  height: 6px;
 }
 
 ::-webkit-scrollbar-track {
-  background: #F2F3F6;
+  background: hsl(var(--background));
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #D1D5DB;
-  border-radius: 4px;
+  background: hsl(var(--muted-foreground) / 0.2);
+  border-radius: 3px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #9CA3AF;
+  background: hsl(var(--muted-foreground) / 0.3);
 }
 
 /* Selection */
 ::selection {
-  background: rgba(253, 65, 0, 0.15);
-  color: inherit;
+  background: hsl(var(--primary) / 0.15);
+  color: hsl(var(--foreground));
 }
 
 /* Focus visible */
 :focus-visible {
-  outline: 2px solid #FD4100;
+  outline: 2px solid hsl(var(--primary));
   outline-offset: 2px;
 }
 
@@ -117,9 +116,4 @@ html {
   a {
     -webkit-tap-highlight-color: transparent;
   }
-}
-
-/* Custom select arrow removal for cleaner look */
-select {
-  background-image: none;
 }
