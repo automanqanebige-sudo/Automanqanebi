@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useMemo } from 'react' 
+import { useState, useMemo } from 'react'
 import CarCard, { Car } from '@/components/CarCard'
 import SearchFilters, { FilterState } from '@/components/SearchFilters'
 import VipListingsSection from '@/components/VipListingsSection'
