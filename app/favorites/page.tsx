@@ -1,15 +1,11 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-
-type Car = {
-  id?: string
-  name?: string
-  price?: number
-}
+import CarCard from '@/components/CarCard'
+import Navbar from '@/components/Navbar'
 
 export default function FavoritesPage() {
-  const [cars, setCars] = useState<Car[]>([])
+  const [cars, setCars] = useState([])
 
   useEffect(() => {
     fetch('/api/favorites')
@@ -17,18 +13,17 @@ export default function FavoritesPage() {
       .then(data => setCars(data || []))
   }, [])
 
-  if (!cars || cars.length === 0) {
-    return <div>არ გაქვს ფავორიტები</div>
-  }
-
   return (
-    <div>
-      {cars?.map((car) => (
-        <div key={car.id} style={{ marginBottom: 20 }}>
-          <h2>{car?.name || "უცნობი მანქანა"}</h2>
-          <p>${car?.price || "ფასი არ არის"}</p>
-        </div>
-      ))}
+    <div className="bg-[#0a0a0a] min-h-screen">
+
+      <Navbar />
+
+      <div className="p-6 grid grid-cols-1 md:grid-cols-3 gap-6">
+        {cars?.map((car: any) => (
+          <CarCard key={car.id} car={car} />
+        ))}
+      </div>
+
     </div>
   )
 }
