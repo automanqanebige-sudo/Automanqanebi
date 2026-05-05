@@ -26,6 +26,8 @@ export interface Car {
   driveType?: string // წამყვანი თვლები
   userId?: string
   phone?: string
+  hasVIN?: boolean
+  has360?: boolean
 }
 
 export interface Service {
