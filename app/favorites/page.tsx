@@ -1,24 +1,33 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import { auth } from '@/lib/firebase'
 import CarCard from '@/components/CarCard'
 import Navbar from '@/components/Navbar'
-import { Heart, Loader2 } from 'lucide-react'
+import { Heart, Loader2, LogIn } from 'lucide-react'
 import Link from 'next/link'
 
 export default function FavoritesPage() {
-  const [cars, setCars] = useState([])
+  const [cars, setCars] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
+  const [user, setUser] = useState<any>(null)
 
   useEffect(() => {
-    setLoading(true)
-    fetch('/api/favorites')
-      .then(res => res.json())
-      .then(data => {
-        setCars(data || [])
+    const unsubscribe = auth.onAuthStateChanged((u) => {
+      setUser(u)
+      if (u) {
+        fetch(`/api/favorites?userId=${u.uid}`)
+          .then((res) => res.json())
+          .then((data) => {
+            setCars(data || [])
+            setLoading(false)
+          })
+          .catch(() => setLoading(false))
+      } else {
         setLoading(false)
-      })
-      .catch(() => setLoading(false))
+      }
+    })
+    return () => unsubscribe()
   }, [])
 
   return (
@@ -45,6 +54,21 @@ export default function FavoritesPage() {
               <Loader2 className="h-8 w-8 animate-spin text-primary" />
               <p className="text-sm text-muted-foreground">იტვირთება...</p>
             </div>
+          </div>
+        ) : !user ? (
+          <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-border bg-card/50 py-24">
+            <LogIn className="h-12 w-12 text-muted-foreground/50" />
+            <h3 className="mt-4 text-lg font-semibold text-foreground">შესვლა საჭიროა</h3>
+            <p className="mt-1 text-sm text-muted-foreground">
+              ფავორიტების სანახავად გთხოვთ შეხვიდეთ თქვენს ანგარიშში
+            </p>
+            <Link
+              href="/login"
+              className="mt-6 flex items-center gap-2 rounded-lg bg-primary px-5 py-2.5 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90"
+            >
+              <LogIn className="h-4 w-4" />
+              შესვლა
+            </Link>
           </div>
         ) : cars.length > 0 ? (
           <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
