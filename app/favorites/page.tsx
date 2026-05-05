@@ -1,85 +1,34 @@
-"use client";
+'use client'
 
-import { useEffect, useState } from "react";
-import Link from "next/link";
+import { useEffect, useState } from 'react'
 
-const cars = [
-  {
-    id: 1,
-    name: "BMW X5",
-    price: 15000,
-  },
-  {
-    id: 2,
-    name: "Mercedes E-Class",
-    price: 13000,
-  },
-  {
-    id: 3,
-    name: "Toyota Camry",
-    price: 10000,
-  },
-];
+type Car = {
+  id?: string
+  name?: string
+  price?: number
+}
 
 export default function FavoritesPage() {
-  const [favorites, setFavorites] =
-    useState<number[]>([]);
+  const [cars, setCars] = useState<Car[]>([])
 
   useEffect(() => {
-    const saved =
-      localStorage.getItem("favorites");
+    fetch('/api/favorites')
+      .then(res => res.json())
+      .then(data => setCars(data || []))
+  }, [])
 
-    if (saved) {
-      setFavorites(JSON.parse(saved));
-    }
-  }, []);
-
-  const favoriteCars = cars.filter((car) =>
-    favorites.includes(car.id)
-  );
+  if (!cars || cars.length === 0) {
+    return <div>არ გაქვს ფავორიტები</div>
+  }
 
   return (
-    <div
-      style={{
-        background: "#111",
-        minHeight: "100vh",
-        color: "white",
-        padding: 20,
-      }}
-    >
-      <h1>❤️ ფავორიტები</h1>
-
-      <Link href="/">
-        <button
-          style={{
-            padding: 12,
-            borderRadius: 12,
-            border: "none",
-            marginBottom: 20,
-          }}
-        >
-          ⬅ უკან
-        </button>
-      </Link>
-
-      {favoriteCars.length === 0 ? (
-        <p>ფავორიტები ცარიელია</p>
-      ) : (
-        favoriteCars.map((car) => (
-          <div
-            key={car.id}
-            style={{
-              background: "#1e1e1e",
-              padding: 20,
-              borderRadius: 16,
-              marginBottom: 15,
-            }}
-          >
-            <h2>{car.name}</h2>
-            <p>${car.price}</p>
-          </div>
-        ))
-      )}
+    <div>
+      {cars?.map((car) => (
+        <div key={car.id} style={{ marginBottom: 20 }}>
+          <h2>{car?.name || "უცნობი მანქანა"}</h2>
+          <p>${car?.price || "ფასი არ არის"}</p>
+        </div>
+      ))}
     </div>
-  );
+  )
 }
