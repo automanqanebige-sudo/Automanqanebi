@@ -22,8 +22,8 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="ka" className={`${inter.variable} bg-background antialiased`}>
-      <body className="font-sans">
+    <html lang="ka" className={inter.variable}>
+      <body className="min-h-screen bg-[#0f172a] font-sans text-slate-100 antialiased">
         <CurrencyProvider>
           {children}
         </CurrencyProvider>
