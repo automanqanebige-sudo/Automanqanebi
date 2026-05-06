@@ -329,7 +329,7 @@ function SelectField({ value, onChange, placeholder, options, disabled = false }
         value={value}
         onChange={(e) => onChange(e.target.value)}
         disabled={disabled}
-        className="h-13 w-full appearance-none rounded-xl border border-gray-200 bg-white px-4 pr-10 text-sm text-gray-700 transition-all focus:border-primary focus:outline-none focus:ring-4 focus:ring-primary/10 disabled:cursor-not-allowed disabled:bg-gray-50 disabled:text-gray-400"
+        className="h-12 w-full appearance-none rounded-xl border border-gray-200 bg-white px-4 pr-10 text-sm text-gray-700 transition-all focus:border-primary focus:outline-none focus:ring-4 focus:ring-primary/10 disabled:cursor-not-allowed disabled:bg-gray-50 disabled:text-gray-400"
       >
         <option value="">{placeholder}</option>
         {options.map(opt => (
