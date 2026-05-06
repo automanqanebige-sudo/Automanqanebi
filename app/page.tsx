@@ -4,7 +4,8 @@ import { useEffect, useState, useMemo } from 'react'
 import CarCard from '@/components/CarCard'
 import Navbar from '@/components/Navbar'
 import FilterBar, { Filters } from '@/components/FilterBar'
-import { Car as CarIcon, ChevronLeft, ChevronRight, LayoutGrid, List, ArrowUpDown, Sparkles, Shield, Clock, Users } from 'lucide-react'
+import { Car as CarIcon, LayoutGrid, List, ArrowUpDown, Shield, Clock, Users } from 'lucide-react'
+import VIPListings from '@/components/VIPListings'
 import type { Car } from '@/types/car'
 import Link from 'next/link'
 import Image from 'next/image'
@@ -85,29 +86,8 @@ export default function Home() {
           <FilterBar filters={filters} onFiltersChange={setFilters} onAISearch={handleAISearch} carsCount={filteredCars.length} />
         </section>
 
-        {/* VIP Cars */}
-        {vipCars.length > 0 && (
-          <section className="mx-auto max-w-7xl px-4 py-6 lg:px-6">
-            <div className="mb-5 flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-amber-400 to-orange-500 shadow-lg shadow-orange-500/25">
-                  <Sparkles className="h-5 w-5 text-white" />
-                </div>
-                <div>
-                  <h2 className="text-lg font-bold text-white">SUPER VIP</h2>
-                  <p className="text-sm text-slate-400">პრემიუმ განცხადებები</p>
-                </div>
-              </div>
-              <div className="flex gap-2">
-                <button className="flex h-10 w-10 items-center justify-center rounded-xl border border-white/10 bg-white/5 text-slate-400 hover:bg-white/10 hover:text-white"><ChevronLeft className="h-5 w-5" /></button>
-                <button className="flex h-10 w-10 items-center justify-center rounded-xl border border-white/10 bg-white/5 text-slate-400 hover:bg-white/10 hover:text-white"><ChevronRight className="h-5 w-5" /></button>
-              </div>
-            </div>
-            <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-              {vipCars.slice(0, 4).map((car, i) => <CarCard key={car.id || i} car={car} index={i} />)}
-            </div>
-          </section>
-        )}
+        {/* VIP Cars - Horizontal Scroll */}
+        {vipCars.length > 0 && <VIPListings cars={vipCars} />}
 
         {/* All Cars */}
         <section className="mx-auto max-w-7xl px-4 py-6 lg:px-6">
