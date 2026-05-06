@@ -11,7 +11,7 @@ import Image from 'next/image'
 
 const emptyFilters: Filters = {
   brand: '', model: '', yearFrom: '', yearTo: '',
-  priceFrom: '', priceTo: '', fuelType: '', vehicleType: '',
+  priceFrom: '', priceTo: '', fuelType: '', vehicleType: '', transmission: '',
 }
 
 const stats = [
