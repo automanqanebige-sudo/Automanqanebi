@@ -1,159 +1,155 @@
 'use client'
 
 import Link from 'next/link'
-import { Calendar, MapPin, Gauge, Fuel, Clock, Heart, Check } from 'lucide-react'
+import Image from 'next/image'
+import { MapPin, Gauge, Heart, Fuel, Calendar } from 'lucide-react'
 import type { Car } from '@/types/car'
-import { fuelTypeLabels, tierLabels } from '@/types/car'
+import { fuelTypeLabels } from '@/types/car'
 import { useCurrency } from '@/context/CurrencyContext'
 import { useState, useEffect } from 'react'
 
-const tierStyles: Record<string, { bg: string; text: string }> = {
-  platinum: { bg: 'bg-gradient-to-r from-violet-600 to-purple-600', text: 'SUPER VIP' },
-  gold: { bg: 'bg-gradient-to-r from-amber-500 to-orange-500', text: 'VIP' },
-  silver: { bg: 'bg-gradient-to-r from-gray-500 to-gray-600', text: 'VIP+' },
-}
-
-function formatTimeAgo(date: Date | string | undefined): string {
-  if (!date) return ''
-  const now = new Date()
-  const past = new Date(date)
-  const diffMs = now.getTime() - past.getTime()
-  const diffMins = Math.floor(diffMs / 60000)
-  const diffHours = Math.floor(diffMs / 3600000)
-  const diffDays = Math.floor(diffMs / 86400000)
-
-  if (diffMins < 60) return `${diffMins} წუთის წინ`
-  if (diffHours < 24) return `${diffHours} საათის წინ`
-  if (diffDays === 1) return 'გუშინ'
-  if (diffDays < 7) return `${diffDays} დღის წინ`
-  return `${Math.floor(diffDays / 7)} კვირის წინ`
+const tierConfig: Record<string, { gradient: string; label: string }> = {
+  platinum: { gradient: 'from-purple-600 to-indigo-600', label: 'SUPER VIP' },
+  gold: { gradient: 'from-amber-500 to-orange-500', label: 'VIP' },
+  silver: { gradient: 'from-slate-400 to-slate-500', label: 'VIP+' },
 }
 
 export default function CarCard({ car, index = 0 }: { car?: Car; index?: number }) {
   const { currency, convertPrice } = useCurrency()
   const [isFavorite, setIsFavorite] = useState(false)
-  const [timeAgo, setTimeAgo] = useState<string>('')
-  const [mounted, setMounted] = useState(false)
-
-  useEffect(() => {
-    setMounted(true)
-    if (car?.createdAt) {
-      setTimeAgo(formatTimeAgo(car.createdAt))
-    }
-  }, [car?.createdAt])
+  const [isImageLoaded, setIsImageLoaded] = useState(false)
 
   if (!car) return null
 
-  const displayName = car.name || (car.brand && car.model ? `${car.brand} ${car.model}` : 'უცნობი მანქანა')
-  const displayPrice = car.price ? convertPrice(car.price) : null
-  const formattedPrice = displayPrice ? `${displayPrice.toLocaleString()} ${currency === 'GEL' ? '₾' : '$'}` : 'ფასი შეთანხმებით'
+  const title = car.year && car.brand && car.model 
+    ? `${car.year} ${car.brand} ${car.model}` 
+    : car.name || 'უცნობი მანქანა'
+  
+  const price = car.price ? convertPrice(car.price) : null
+  const formattedPrice = price 
+    ? `${price.toLocaleString()} ${currency === 'GEL' ? '₾' : '$'}` 
+    : 'ფასი შეთანხმებით'
+  
   const tier = car.tier || 'standard'
-  const showBadge = tier !== 'standard'
-  const tierStyle = tierStyles[tier]
+  const tierStyle = tierConfig[tier]
 
   return (
-    <div
-      className="animate-fade-in-up card-hover group overflow-hidden rounded-2xl border border-gray-200 bg-white"
-      style={{ animationDelay: `${(index || 0) * 50}ms` }}
+    <div 
+      className="group relative overflow-hidden rounded-xl bg-white shadow-sm ring-1 ring-gray-200 transition-all duration-300 hover:shadow-xl hover:ring-gray-300 hover:-translate-y-1"
+      style={{ 
+        animationDelay: `${index * 50}ms`,
+        animation: 'fadeInUp 0.4s ease-out forwards',
+        opacity: 0
+      }}
     >
       <Link href={`/car/${car.id || ''}`} className="block">
-        {/* Image */}
-        <div className="relative aspect-[16/10] overflow-hidden bg-gradient-to-br from-gray-100 to-gray-50">
+        {/* Image Container */}
+        <div className="relative aspect-[4/3] overflow-hidden bg-gray-100">
           {car.image ? (
             <img
               src={car.image}
-              alt={displayName}
-              className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-110"
+              alt={title}
+              className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+              onLoad={() => setIsImageLoaded(true)}
             />
           ) : (
-            <div className="flex h-full items-center justify-center">
-              <Gauge className="h-16 w-16 text-gray-200" />
+            <div className="flex h-full items-center justify-center bg-gradient-to-br from-gray-50 to-gray-100">
+              <Gauge className="h-12 w-12 text-gray-300" />
             </div>
           )}
 
-          {/* Gradient overlay */}
-          <div className="absolute inset-0 bg-gradient-to-t from-black/30 via-transparent to-transparent opacity-0 transition-opacity group-hover:opacity-100" />
+          {/* Hover Overlay */}
+          <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
 
-          {/* Tier badge */}
-          {showBadge && tierStyle && (
-            <span className={`absolute left-3 top-3 rounded-lg px-3 py-1.5 text-xs font-bold text-white shadow-lg ${tierStyle.bg}`}>
-              {tierStyle.text}
-            </span>
+          {/* VIP Badge */}
+          {tierStyle && (
+            <div className={`absolute left-3 top-3 rounded-md bg-gradient-to-r ${tierStyle.gradient} px-2.5 py-1 shadow-lg`}>
+              <span className="text-[11px] font-bold tracking-wide text-white">
+                {tierStyle.label}
+              </span>
+            </div>
           )}
 
-          {/* VIN verified badge */}
-          {car.hasVIN && (
-            <span className="absolute left-3 bottom-3 flex items-center gap-1 rounded-lg bg-green-500 px-2 py-1 text-xs font-medium text-white shadow-lg">
-              <Check className="h-3 w-3" />
-              VIN
-            </span>
-          )}
-
-          {/* Favorite button */}
+          {/* Favorite Button */}
           <button
             onClick={(e) => {
               e.preventDefault()
+              e.stopPropagation()
               setIsFavorite(!isFavorite)
             }}
-            className={`absolute right-3 top-3 flex h-10 w-10 items-center justify-center rounded-full shadow-lg backdrop-blur-md transition-all ${
+            className={`absolute right-3 top-3 flex h-9 w-9 items-center justify-center rounded-full shadow-lg transition-all duration-200 ${
               isFavorite 
-                ? 'bg-red-500 text-white' 
-                : 'bg-white/90 text-gray-600 hover:bg-white hover:text-red-500 hover:scale-110'
+                ? 'bg-red-500 text-white scale-110' 
+                : 'bg-white/95 text-gray-500 hover:bg-white hover:text-red-500 hover:scale-110'
             }`}
           >
-            <Heart className={`h-5 w-5 transition-transform ${isFavorite ? 'fill-current scale-110' : ''}`} />
+            <Heart className={`h-4.5 w-4.5 ${isFavorite ? 'fill-current' : ''}`} />
           </button>
+
+          {/* Photo Count */}
+          {car.images && car.images.length > 1 && (
+            <div className="absolute bottom-3 right-3 flex items-center gap-1 rounded-md bg-black/60 px-2 py-1 text-xs font-medium text-white">
+              <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+              </svg>
+              {car.images.length}
+            </div>
+          )}
         </div>
 
         {/* Content */}
         <div className="p-4">
           {/* Price */}
           <div className="mb-2">
-            <span className="text-xl font-bold text-gray-900">{formattedPrice}</span>
+            <span className="text-xl font-bold text-gray-900">
+              {formattedPrice}
+            </span>
           </div>
 
           {/* Title */}
-          <h3 className="mb-3 line-clamp-1 text-base font-semibold text-gray-800 group-hover:text-primary transition-colors">
-            {displayName}
+          <h3 className="mb-3 line-clamp-1 text-[15px] font-semibold text-gray-800 transition-colors group-hover:text-orange-500">
+            {title}
           </h3>
 
-          {/* Details grid */}
-          <div className="grid grid-cols-2 gap-x-4 gap-y-2">
-            {car.year && (
-              <div className="flex items-center gap-2 text-sm text-gray-500">
-                <Calendar className="h-4 w-4 text-gray-400" />
-                <span>{car.year} წ.</span>
-              </div>
-            )}
+          {/* Info Row */}
+          <div className="flex flex-wrap items-center gap-x-4 gap-y-1.5 text-[13px] text-gray-500">
             {car.mileage !== undefined && (
-              <div className="flex items-center gap-2 text-sm text-gray-500">
+              <div className="flex items-center gap-1.5">
                 <Gauge className="h-4 w-4 text-gray-400" />
                 <span>{car.mileage.toLocaleString()} კმ</span>
               </div>
             )}
             {car.fuelType && (
-              <div className="flex items-center gap-2 text-sm text-gray-500">
+              <div className="flex items-center gap-1.5">
                 <Fuel className="h-4 w-4 text-gray-400" />
                 <span>{fuelTypeLabels[car.fuelType] || car.fuelType}</span>
               </div>
             )}
-            {car.location && (
-              <div className="flex items-center gap-2 text-sm text-gray-500">
-                <MapPin className="h-4 w-4 text-gray-400" />
-                <span className="truncate">{car.location}</span>
-              </div>
-            )}
           </div>
 
-          {/* Footer */}
-          {mounted && timeAgo && (
-            <div className="mt-4 flex items-center gap-2 border-t border-gray-100 pt-3">
-              <Clock className="h-4 w-4 text-gray-300" />
-              <span className="text-xs text-gray-400">{timeAgo}</span>
+          {/* Location */}
+          {car.location && (
+            <div className="mt-3 flex items-center gap-1.5 border-t border-gray-100 pt-3 text-[13px] text-gray-500">
+              <MapPin className="h-4 w-4 text-gray-400" />
+              <span className="truncate">{car.location}</span>
             </div>
           )}
         </div>
       </Link>
+
+      {/* CSS Animation */}
+      <style jsx>{`
+        @keyframes fadeInUp {
+          from {
+            opacity: 0;
+            transform: translateY(10px);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0);
+          }
+        }
+      `}</style>
     </div>
   )
 }
