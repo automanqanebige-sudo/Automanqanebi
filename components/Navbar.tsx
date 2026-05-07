@@ -8,6 +8,7 @@ import { Search, Plus, User, Menu, X, Heart, Bell, LogOut } from 'lucide-react'
 import { useAuth } from '@/context/AuthContext'
 import { useTranslations } from 'next-intl'
 import LanguageSwitcher from './LanguageSwitcher'
+import CurrencySwitcher from './CurrencySwitcher'
 
 export default function Navbar() {
   const pathname = usePathname()
@@ -56,6 +57,9 @@ export default function Navbar() {
 
         {/* Right section */}
         <div className="flex items-center gap-2 lg:gap-3">
+          {/* Currency Switcher */}
+          <CurrencySwitcher />
+
           {/* Language Switcher */}
           <LanguageSwitcher />
 
