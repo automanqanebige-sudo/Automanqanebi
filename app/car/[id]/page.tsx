@@ -5,24 +5,20 @@ import Navbar from '@/components/Navbar'
 import Link from 'next/link'
 import { ArrowLeft, Calendar, Loader2, Heart, Share2, Phone, MapPin, Gauge, Fuel, Settings, Eye, Clock, GitCompare } from 'lucide-react'
 import type { Car } from '@/types/car'
-import { fuelTypeLabels, tierColors, tierLabels } from '@/types/car'
-
-function formatTimeAgo(date: Date | string | undefined): string {
-  if (!date) return ''
-  const now = new Date()
-  const past = new Date(date)
-  const diffMs = now.getTime() - past.getTime()
-  const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24))
-  
-  if (diffDays === 0) return 'დღეს'
-  if (diffDays === 1) return 'გუშინ'
-  return `${diffDays} დღის წინ`
-}
+import { tierColors, tierLabels } from '@/types/car'
+import { useTranslations } from 'next-intl'
 
 export default function CarPage({ params }: { params: { id: string } }) {
+  const t = useTranslations()
   const [car, setCar] = useState<Car | null>(null)
   const [loading, setLoading] = useState(true)
   const [isFavorite, setIsFavorite] = useState(false)
+  const [mounted, setMounted] = useState(false)
+  const [timeAgo, setTimeAgo] = useState('')
+
+  useEffect(() => {
+    setMounted(true)
+  }, [])
 
   useEffect(() => {
     setLoading(true)
@@ -31,24 +27,32 @@ export default function CarPage({ params }: { params: { id: string } }) {
       .then(data => {
         setCar(data)
         setLoading(false)
+        if (data?.createdAt) {
+          const now = new Date()
+          const past = new Date(data.createdAt)
+          const diffMs = now.getTime() - past.getTime()
+          const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24))
+          if (diffDays === 0) setTimeAgo(t('common.today'))
+          else if (diffDays === 1) setTimeAgo(t('common.yesterday'))
+          else setTimeAgo(`${diffDays} ${t('common.daysAgo')}`)
+        }
       })
       .catch(() => setLoading(false))
-  }, [params.id])
+  }, [params.id, t])
 
   const toggleFavorite = () => {
     setIsFavorite(!isFavorite)
-    // TODO: Save to localStorage or Firebase
   }
 
   const shareCar = () => {
     if (navigator.share) {
       navigator.share({
-        title: car?.name || 'მანქანა',
+        title: car?.name || t('car.unknownCar'),
         url: window.location.href,
       })
     } else {
       navigator.clipboard.writeText(window.location.href)
-      alert('ლინკი დაკოპირდა!')
+      alert(t('common.linkCopied'))
     }
   }
 
@@ -59,7 +63,7 @@ export default function CarPage({ params }: { params: { id: string } }) {
         <div className="flex items-center justify-center py-32">
           <div className="flex flex-col items-center gap-3">
             <Loader2 className="h-8 w-8 animate-spin text-primary" />
-            <p className="text-sm text-muted-foreground">იტვირთება...</p>
+            <p className="text-sm text-muted-foreground">{t('common.loading')}</p>
           </div>
         </div>
       </div>
@@ -71,19 +75,19 @@ export default function CarPage({ params }: { params: { id: string } }) {
       <div className="min-h-screen bg-background">
         <Navbar />
         <div className="flex flex-col items-center justify-center py-32">
-          <h2 className="text-xl font-bold text-foreground">ავტომობილი ვერ მოიძებნა</h2>
+          <h2 className="text-xl font-bold text-foreground">{t('car.notFound')}</h2>
           <Link
             href="/"
             className="mt-4 rounded-lg bg-primary px-5 py-2.5 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90"
           >
-            მთავარზე დაბრუნება
+            {t('common.backToHome')}
           </Link>
         </div>
       </div>
     )
   }
 
-  const displayName = car.name || (car.brand && car.model ? `${car.brand} ${car.model}` : 'უცნობი მანქანა')
+  const displayName = car.name || (car.brand && car.model ? `${car.brand} ${car.model}` : t('car.unknownCar'))
   const fullName = car.year ? `${car.year} ${displayName}` : displayName
   const tier = car.tier || 'standard'
   const showBadge = tier !== 'standard'
@@ -93,17 +97,15 @@ export default function CarPage({ params }: { params: { id: string } }) {
       <Navbar />
 
       <div className="mx-auto max-w-6xl px-4 py-10 lg:px-8">
-        {/* Back link */}
         <Link
           href="/"
           className="mb-6 inline-flex items-center gap-2 text-sm text-muted-foreground transition-colors hover:text-foreground"
         >
           <ArrowLeft className="h-4 w-4" />
-          უკან დაბრუნება
+          {t('common.back')}
         </Link>
 
         <div className="grid gap-8 lg:grid-cols-5">
-          {/* Image section */}
           <div className="lg:col-span-3">
             <div className="relative overflow-hidden rounded-2xl border border-border bg-secondary">
               {showBadge && (
@@ -133,45 +135,42 @@ export default function CarPage({ params }: { params: { id: string } }) {
               )}
             </div>
 
-            {/* Specs grid */}
             <div className="mt-6 grid grid-cols-2 gap-4 sm:grid-cols-4">
               {car.year && (
                 <div className="rounded-xl border border-border bg-card p-4">
                   <Calendar className="h-5 w-5 text-primary" />
                   <p className="mt-2 text-lg font-bold text-foreground">{car.year}</p>
-                  <p className="text-xs text-muted-foreground">წელი</p>
+                  <p className="text-xs text-muted-foreground">{t('car.year')}</p>
                 </div>
               )}
               {car.mileage !== undefined && (
                 <div className="rounded-xl border border-border bg-card p-4">
                   <Gauge className="h-5 w-5 text-primary" />
                   <p className="mt-2 text-lg font-bold text-foreground">{car.mileage.toLocaleString()}</p>
-                  <p className="text-xs text-muted-foreground">კმ გარბენი</p>
+                  <p className="text-xs text-muted-foreground">{t('car.mileageKm')}</p>
                 </div>
               )}
               {car.fuelType && (
                 <div className="rounded-xl border border-border bg-card p-4">
                   <Fuel className="h-5 w-5 text-primary" />
-                  <p className="mt-2 text-lg font-bold text-foreground">{fuelTypeLabels[car.fuelType] || car.fuelType}</p>
-                  <p className="text-xs text-muted-foreground">საწვავი</p>
+                  <p className="mt-2 text-lg font-bold text-foreground">{t(`filters.fuelTypes.${car.fuelType}`)}</p>
+                  <p className="text-xs text-muted-foreground">{t('car.fuelType')}</p>
                 </div>
               )}
               {car.transmission && (
                 <div className="rounded-xl border border-border bg-card p-4">
                   <Settings className="h-5 w-5 text-primary" />
                   <p className="mt-2 text-lg font-bold text-foreground">
-                    {car.transmission === 'Automatic' ? 'ავტომატიკა' : 'მექანიკა'}
+                    {car.transmission === 'Automatic' ? t('filters.transmissionTypes.automatic') : t('filters.transmissionTypes.manual')}
                   </p>
-                  <p className="text-xs text-muted-foreground">გადაცემათა კოლოფი</p>
+                  <p className="text-xs text-muted-foreground">{t('car.transmission')}</p>
                 </div>
               )}
             </div>
           </div>
 
-          {/* Details sidebar */}
           <div className="lg:col-span-2">
             <div className="sticky top-24 space-y-4">
-              {/* Main card */}
               <div className="rounded-2xl border border-border bg-card p-6">
                 <h1 className="text-2xl font-bold text-foreground">{fullName}</h1>
 
@@ -182,25 +181,23 @@ export default function CarPage({ params }: { params: { id: string } }) {
                   </div>
                 )}
 
-                {car.createdAt && (
+                {mounted && timeAgo && (
                   <div className="mt-2 flex items-center gap-2 text-sm text-muted-foreground">
                     <Clock className="h-4 w-4" />
-                    <span>დაემატა {formatTimeAgo(car.createdAt)}</span>
+                    <span>{t('car.addedTime')} {timeAgo}</span>
                   </div>
                 )}
 
-                {/* Price */}
                 <div className="mt-6 rounded-xl bg-primary/10 p-4">
-                  <p className="text-xs font-medium text-primary">ფასი</p>
+                  <p className="text-xs font-medium text-primary">{t('car.price')}</p>
                   <div className="mt-1 flex items-baseline gap-1">
                     <span className="text-3xl font-bold text-foreground">
                       {car.price ? car.price.toLocaleString() : '---'}
                     </span>
-                    <span className="text-lg text-muted-foreground">₾</span>
+                    <span className="text-lg text-muted-foreground">$</span>
                   </div>
                 </div>
 
-                {/* Actions */}
                 <div className="mt-6 flex gap-3">
                   <button 
                     onClick={toggleFavorite}
@@ -211,7 +208,7 @@ export default function CarPage({ params }: { params: { id: string } }) {
                     }`}
                   >
                     <Heart className={`h-4 w-4 ${isFavorite ? 'fill-current' : ''}`} />
-                    {isFavorite ? 'რჩეულებში' : 'დამატება'}
+                    {isFavorite ? t('favorites.inFavorites') : t('favorites.add')}
                   </button>
                   <button 
                     onClick={shareCar}
@@ -221,20 +218,18 @@ export default function CarPage({ params }: { params: { id: string } }) {
                   </button>
                 </div>
 
-                {/* Compare button */}
                 <Link
                   href="/compare"
                   className="mt-3 flex w-full items-center justify-center gap-2 rounded-lg border border-border py-3 text-sm font-medium text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
                 >
                   <GitCompare className="h-4 w-4" />
-                  შეადარე სხვა მანქანას
+                  {t('compare.compareWith')}
                 </Link>
               </div>
 
-              {/* Contact card */}
               {car.phone && (
                 <div className="rounded-2xl border border-border bg-card p-6">
-                  <h3 className="text-sm font-semibold text-foreground">დაუკავშირდი გამყიდველს</h3>
+                  <h3 className="text-sm font-semibold text-foreground">{t('car.contactSeller')}</h3>
                   <a
                     href={`tel:${car.phone}`}
                     className="mt-4 flex items-center justify-center gap-2 rounded-lg bg-emerald-500 px-4 py-3 text-sm font-semibold text-white transition-colors hover:bg-emerald-600"
@@ -245,10 +240,9 @@ export default function CarPage({ params }: { params: { id: string } }) {
                 </div>
               )}
 
-              {/* Description */}
               {car.description && (
                 <div className="rounded-2xl border border-border bg-card p-6">
-                  <h3 className="text-sm font-semibold text-foreground">აღწერა</h3>
+                  <h3 className="text-sm font-semibold text-foreground">{t('car.description')}</h3>
                   <p className="mt-3 text-sm leading-relaxed text-muted-foreground">
                     {car.description}
                   </p>

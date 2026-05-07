@@ -27,7 +27,11 @@
     "or": "or",
     "required": "Required",
     "optional": "Optional",
-    "select": "Select"
+    "select": "Select",
+    "today": "Today",
+    "yesterday": "Yesterday",
+    "daysAgo": "days ago",
+    "linkCopied": "Link copied!"
   },
   "nav": {
     "home": "Home",
@@ -109,13 +113,28 @@
     "kutaisi": "Kutaisi",
     "rustavi": "Rustavi",
     "fuelType": "Fuel Type",
-    "engine": "Engine"
+    "engine": "Engine",
+    "fuelTypes": {
+      "petrol": "Petrol",
+      "diesel": "Diesel",
+      "hybrid": "Hybrid",
+      "electric": "Electric",
+      "lpg": "LPG"
+    },
+    "transmissionTypes": {
+      "automatic": "Automatic",
+      "manual": "Manual",
+      "tiptronic": "Tiptronic",
+      "variator": "CVT"
+    }
   },
   "car": {
     "year": "Year",
     "mileage": "Mileage",
+    "mileageKm": "km mileage",
     "km": "km",
     "fuel": "Fuel",
+    "fuelType": "Fuel",
     "transmission": "Transmission",
     "location": "Location",
     "place": "Place",
@@ -124,6 +143,7 @@
     "description": "Description",
     "specifications": "Specifications",
     "contact": "Contact",
+    "contactSeller": "Contact Seller",
     "call": "Call",
     "message": "Message",
     "addToFavorites": "Add to Favorites",
@@ -135,7 +155,10 @@
     "vipPlus": "VIP+",
     "verified": "Verified",
     "addCar": "Add Car",
-    "parameter": "Parameter"
+    "parameter": "Parameter",
+    "notFound": "Car not found",
+    "unknownCar": "Unknown car",
+    "addedTime": "Added"
   },
   "home": {
     "allListings": "All Listings",
@@ -262,7 +285,9 @@
     "title": "Favorites",
     "empty": "Favorites is empty",
     "emptyDescription": "No listings saved yet",
-    "browseCars": "Browse Listings"
+    "browseCars": "Browse Listings",
+    "add": "Add",
+    "inFavorites": "In Favorites"
   },
   "compare": {
     "title": "Compare Cars",
@@ -275,7 +300,8 @@
     "removeFromCompare": "Remove from Compare",
     "clear": "Clear",
     "chooseCar": "Choose Car",
-    "noCarsFound": "No cars found"
+    "noCarsFound": "No cars found",
+    "compareWith": "Compare with another car"
   },
   "footer": {
     "aboutUs": "About Us",

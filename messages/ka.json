@@ -30,7 +30,8 @@
     "select": "აირჩიე",
     "today": "დღეს",
     "yesterday": "გუშინ",
-    "daysAgo": "{count} დღის წინ"
+    "daysAgo": "დღის წინ",
+    "linkCopied": "ლინკი დაკოპირდა!"
   },
   "nav": {
     "home": "მთავარი",
@@ -112,13 +113,28 @@
     "kutaisi": "ქუთაისი",
     "rustavi": "რუსთავი",
     "fuelType": "საწვავის ტიპი",
-    "engine": "ძრავი"
+    "engine": "ძრავი",
+    "fuelTypes": {
+      "petrol": "ბენზინი",
+      "diesel": "დიზელი",
+      "hybrid": "ჰიბრიდი",
+      "electric": "ელექტრო",
+      "lpg": "გაზი"
+    },
+    "transmissionTypes": {
+      "automatic": "ავტომატიკა",
+      "manual": "მექანიკა",
+      "tiptronic": "ტიპტრონიკი",
+      "variator": "ვარიატორი"
+    }
   },
   "car": {
     "year": "წელი",
     "mileage": "გარბენი",
+    "mileageKm": "კმ გარბენი",
     "km": "კმ",
     "fuel": "საწვავი",
+    "fuelType": "საწვავი",
     "transmission": "კოლოფი",
     "location": "მდებარეობა",
     "place": "ადგილი",
@@ -127,6 +143,7 @@
     "description": "აღწერა",
     "specifications": "მახასიათებლები",
     "contact": "დაკავშირება",
+    "contactSeller": "დაუკავშირდი გამყიდველს",
     "call": "დარეკვა",
     "message": "შეტყობინება",
     "addToFavorites": "ფავორიტებში",
@@ -138,7 +155,10 @@
     "vipPlus": "VIP+",
     "verified": "დამოწმებული",
     "addCar": "მანქანის დამატება",
-    "parameter": "პარამეტრი"
+    "parameter": "პარამეტრი",
+    "notFound": "ავტომობილი ვერ მოიძებნა",
+    "unknownCar": "უცნობი მანქანა",
+    "addedTime": "დაემატა"
   },
   "home": {
     "allListings": "ყველა განცხადება",
@@ -265,7 +285,9 @@
     "title": "ფავორიტები",
     "empty": "ფავორიტები ცარიელია",
     "emptyDescription": "ჯერ არცერთი განცხადება არ გაქვთ შენახული",
-    "browseCars": "განცხადებების ნახვა"
+    "browseCars": "განცხადებების ნახვა",
+    "add": "დამატება",
+    "inFavorites": "რჩეულებში"
   },
   "compare": {
     "title": "მანქანების შედარება",
@@ -278,7 +300,8 @@
     "removeFromCompare": "შედარებიდან ამოშლა",
     "clear": "გასუფთავება",
     "chooseCar": "აირჩიე მანქანა",
-    "noCarsFound": "მანქანები ვერ მოიძებნა"
+    "noCarsFound": "მანქანები ვერ მოიძებნა",
+    "compareWith": "შეადარე სხვა მანქანას"
   },
   "footer": {
     "aboutUs": "ჩვენს შესახებ",

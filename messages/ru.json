@@ -27,7 +27,11 @@
     "or": "или",
     "required": "Обязательно",
     "optional": "Необязательно",
-    "select": "Выбрать"
+    "select": "Выбрать",
+    "today": "Сегодня",
+    "yesterday": "Вчера",
+    "daysAgo": "дней назад",
+    "linkCopied": "Ссылка скопирована!"
   },
   "nav": {
     "home": "Главная",
@@ -109,13 +113,28 @@
     "kutaisi": "Кутаиси",
     "rustavi": "Рустави",
     "fuelType": "Тип топлива",
-    "engine": "Двигатель"
+    "engine": "Двигатель",
+    "fuelTypes": {
+      "petrol": "Бензин",
+      "diesel": "Дизель",
+      "hybrid": "Гибрид",
+      "electric": "Электро",
+      "lpg": "Газ"
+    },
+    "transmissionTypes": {
+      "automatic": "Автомат",
+      "manual": "Механика",
+      "tiptronic": "Типтроник",
+      "variator": "Вариатор"
+    }
   },
   "car": {
     "year": "Год",
     "mileage": "Пробег",
+    "mileageKm": "км пробег",
     "km": "км",
     "fuel": "Топливо",
+    "fuelType": "Топливо",
     "transmission": "Коробка",
     "location": "Расположение",
     "place": "Место",
@@ -124,6 +143,7 @@
     "description": "Описание",
     "specifications": "Характеристики",
     "contact": "Связаться",
+    "contactSeller": "Связаться с продавцом",
     "call": "Позвонить",
     "message": "Сообщение",
     "addToFavorites": "В избранное",
@@ -135,7 +155,10 @@
     "vipPlus": "VIP+",
     "verified": "Проверено",
     "addCar": "Добавить авто",
-    "parameter": "Параметр"
+    "parameter": "Параметр",
+    "notFound": "Автомобиль не найден",
+    "unknownCar": "Неизвестный автомобиль",
+    "addedTime": "Добавлено"
   },
   "home": {
     "allListings": "Все объявления",
@@ -262,7 +285,9 @@
     "title": "Избранное",
     "empty": "Избранное пусто",
     "emptyDescription": "Пока нет сохранённых объявлений",
-    "browseCars": "Смотреть объявления"
+    "browseCars": "Смотреть объявления",
+    "add": "Добавить",
+    "inFavorites": "В избранном"
   },
   "compare": {
     "title": "Сравнение авто",
@@ -275,7 +300,8 @@
     "removeFromCompare": "Убрать из сравнения",
     "clear": "Очистить",
     "chooseCar": "Выбрать авто",
-    "noCarsFound": "Автомобили не найдены"
+    "noCarsFound": "Автомобили не найдены",
+    "compareWith": "Сравнить с другим авто"
   },
   "footer": {
     "aboutUs": "О нас",
