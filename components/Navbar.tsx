@@ -4,11 +4,19 @@ import Link from 'next/link'
 import Image from 'next/image'
 import { usePathname } from 'next/navigation'
 import { useState } from 'react'
-import { Search, Plus, User, Menu, X, Heart, Bell } from 'lucide-react'
+import { Search, Plus, User, Menu, X, Heart, Bell, LogOut } from 'lucide-react'
+import { useAuth } from '@/context/AuthContext'
 
 export default function Navbar() {
   const pathname = usePathname()
   const [mobileOpen, setMobileOpen] = useState(false)
+  const [profileOpen, setProfileOpen] = useState(false)
+  const { user, logout } = useAuth()
+
+  const handleLogout = async () => {
+    await logout()
+    setProfileOpen(false)
+  }
 
   return (
     <header className="sticky top-0 z-50 border-b border-white/10 bg-[#0f172a]/95 backdrop-blur-xl">
@@ -51,26 +59,72 @@ export default function Navbar() {
             className="relative flex h-10 w-10 items-center justify-center rounded-xl bg-white/5 text-slate-400 transition-all hover:bg-white/10 hover:text-white lg:h-11 lg:w-11"
           >
             <Heart className="h-5 w-5" />
-            <span className="absolute -right-1 -top-1 flex h-5 w-5 items-center justify-center rounded-full bg-orange-500 text-[10px] font-bold text-white">
-              3
-            </span>
           </Link>
 
           {/* Notifications */}
           <button className="relative hidden h-10 w-10 items-center justify-center rounded-xl bg-white/5 text-slate-400 transition-all hover:bg-white/10 hover:text-white sm:flex lg:h-11 lg:w-11">
             <Bell className="h-5 w-5" />
-            <span className="absolute -right-1 -top-1 flex h-5 w-5 items-center justify-center rounded-full bg-red-500 text-[10px] font-bold text-white">
-              5
-            </span>
           </button>
 
-          {/* Profile */}
-          <Link
-            href="/login"
-            className="hidden h-10 w-10 items-center justify-center rounded-xl bg-white/5 text-slate-400 transition-all hover:bg-white/10 hover:text-white sm:flex lg:h-11 lg:w-11"
-          >
-            <User className="h-5 w-5" />
-          </Link>
+          {/* Profile / Login */}
+          {user ? (
+            <div className="relative">
+              <button
+                onClick={() => setProfileOpen(!profileOpen)}
+                className="hidden h-10 w-10 items-center justify-center overflow-hidden rounded-xl bg-white/5 transition-all hover:bg-white/10 sm:flex lg:h-11 lg:w-11"
+              >
+                {user.photoURL ? (
+                  <img src={user.photoURL} alt="" className="h-full w-full object-cover" />
+                ) : (
+                  <div className="flex h-full w-full items-center justify-center bg-orange-500 text-sm font-bold text-white">
+                    {user.displayName?.charAt(0) || user.email?.charAt(0) || 'U'}
+                  </div>
+                )}
+              </button>
+
+              {/* Dropdown */}
+              {profileOpen && (
+                <div className="absolute right-0 top-14 w-56 rounded-xl border border-white/10 bg-slate-800 p-2 shadow-2xl">
+                  <div className="border-b border-white/10 px-3 py-2">
+                    <p className="text-sm font-medium text-white">{user.displayName || 'მომხმარებელი'}</p>
+                    <p className="text-xs text-slate-400">{user.email}</p>
+                  </div>
+                  <div className="mt-2 space-y-1">
+                    <Link
+                      href="/profile"
+                      onClick={() => setProfileOpen(false)}
+                      className="flex items-center gap-3 rounded-lg px-3 py-2 text-sm text-slate-300 hover:bg-white/5 hover:text-white"
+                    >
+                      <User className="h-4 w-4" />
+                      ჩემი პროფილი
+                    </Link>
+                    <Link
+                      href="/favorites"
+                      onClick={() => setProfileOpen(false)}
+                      className="flex items-center gap-3 rounded-lg px-3 py-2 text-sm text-slate-300 hover:bg-white/5 hover:text-white"
+                    >
+                      <Heart className="h-4 w-4" />
+                      ფავორიტები
+                    </Link>
+                    <button
+                      onClick={handleLogout}
+                      className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm text-red-400 hover:bg-red-500/10"
+                    >
+                      <LogOut className="h-4 w-4" />
+                      გასვლა
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
+          ) : (
+            <Link
+              href="/login"
+              className="hidden h-10 w-10 items-center justify-center rounded-xl bg-white/5 text-slate-400 transition-all hover:bg-white/10 hover:text-white sm:flex lg:h-11 lg:w-11"
+            >
+              <User className="h-5 w-5" />
+            </Link>
+          )}
 
           {/* Add car CTA */}
           <Link
@@ -135,24 +189,59 @@ export default function Navbar() {
 
           {/* Mobile actions */}
           <div className="border-t border-white/10 p-4">
-            <div className="grid grid-cols-2 gap-3">
-              <Link
-                href="/add-car"
-                onClick={() => setMobileOpen(false)}
-                className="flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-orange-500 to-orange-600 py-3 text-sm font-semibold text-white"
-              >
-                <Plus className="h-4 w-4" />
-                დამატება
-              </Link>
-              <Link
-                href="/login"
-                onClick={() => setMobileOpen(false)}
-                className="flex items-center justify-center gap-2 rounded-xl border border-white/10 bg-white/5 py-3 text-sm font-medium text-white"
-              >
-                <User className="h-4 w-4" />
-                შესვლა
-              </Link>
-            </div>
+            {user ? (
+              <div className="space-y-3">
+                <div className="flex items-center gap-3 rounded-xl bg-white/5 p-3">
+                  {user.photoURL ? (
+                    <img src={user.photoURL} alt="" className="h-10 w-10 rounded-full object-cover" />
+                  ) : (
+                    <div className="flex h-10 w-10 items-center justify-center rounded-full bg-orange-500 text-sm font-bold text-white">
+                      {user.displayName?.charAt(0) || 'U'}
+                    </div>
+                  )}
+                  <div>
+                    <p className="text-sm font-medium text-white">{user.displayName || 'მომხმარებელი'}</p>
+                    <p className="text-xs text-slate-400">{user.email}</p>
+                  </div>
+                </div>
+                <div className="grid grid-cols-2 gap-3">
+                  <Link
+                    href="/add-car"
+                    onClick={() => setMobileOpen(false)}
+                    className="flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-orange-500 to-orange-600 py-3 text-sm font-semibold text-white"
+                  >
+                    <Plus className="h-4 w-4" />
+                    დამატება
+                  </Link>
+                  <button
+                    onClick={() => { handleLogout(); setMobileOpen(false); }}
+                    className="flex items-center justify-center gap-2 rounded-xl border border-white/10 bg-white/5 py-3 text-sm font-medium text-white"
+                  >
+                    <LogOut className="h-4 w-4" />
+                    გასვლა
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <div className="grid grid-cols-2 gap-3">
+                <Link
+                  href="/add-car"
+                  onClick={() => setMobileOpen(false)}
+                  className="flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-orange-500 to-orange-600 py-3 text-sm font-semibold text-white"
+                >
+                  <Plus className="h-4 w-4" />
+                  დამატება
+                </Link>
+                <Link
+                  href="/login"
+                  onClick={() => setMobileOpen(false)}
+                  className="flex items-center justify-center gap-2 rounded-xl border border-white/10 bg-white/5 py-3 text-sm font-medium text-white"
+                >
+                  <User className="h-4 w-4" />
+                  შესვლა
+                </Link>
+              </div>
+            )}
           </div>
         </div>
       )}

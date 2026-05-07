@@ -5,33 +5,48 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
 import { useAuth } from "@/context/AuthContext";
-import { Mail, Lock, Eye, EyeOff, Loader2 } from "lucide-react";
+import { Mail, Lock, Eye, EyeOff, Loader2, User } from "lucide-react";
 
-export default function LoginPage() {
+export default function RegisterPage() {
   const router = useRouter();
-  const { loginWithEmail, loginWithGoogle, loginWithApple } = useAuth();
+  const { registerWithEmail, loginWithGoogle, loginWithApple } = useAuth();
   
+  const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
-  const handleEmailLogin = async (e: React.FormEvent) => {
+  const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
+
+    if (password !== confirmPassword) {
+      setError("პაროლები არ ემთხვევა");
+      return;
+    }
+
+    if (password.length < 6) {
+      setError("პაროლი უნდა იყოს მინიმუმ 6 სიმბოლო");
+      return;
+    }
+
     setLoading(true);
     
     try {
-      await loginWithEmail(email, password);
+      await registerWithEmail(email, password, name);
       router.push("/profile");
     } catch (err: any) {
-      if (err.code === "auth/invalid-credential") {
-        setError("არასწორი ელ-ფოსტა ან პაროლი");
-      } else if (err.code === "auth/user-not-found") {
-        setError("მომხმარებელი ვერ მოიძებნა");
+      if (err.code === "auth/email-already-in-use") {
+        setError("ეს ელ-ფოსტა უკვე გამოყენებულია");
+      } else if (err.code === "auth/weak-password") {
+        setError("პაროლი ძალიან სუსტია");
+      } else if (err.code === "auth/invalid-email") {
+        setError("არასწორი ელ-ფოსტის ფორმატი");
       } else {
-        setError("შესვლა ვერ მოხერხდა");
+        setError("რეგისტრაცია ვერ მოხერხდა");
       }
     } finally {
       setLoading(false);
@@ -72,8 +87,8 @@ export default function LoginPage() {
               className="h-16 w-auto"
             />
           </Link>
-          <h1 className="mt-6 text-2xl font-bold text-white">შესვლა</h1>
-          <p className="mt-2 text-slate-400">შედით თქვენს ანგარიშში</p>
+          <h1 className="mt-6 text-2xl font-bold text-white">რეგისტრაცია</h1>
+          <p className="mt-2 text-slate-400">შექმენით ახალი ანგარიში</p>
         </div>
 
         {/* Card */}
@@ -85,8 +100,25 @@ export default function LoginPage() {
             </div>
           )}
 
-          {/* Email Form */}
-          <form onSubmit={handleEmailLogin} className="space-y-4">
+          {/* Register Form */}
+          <form onSubmit={handleRegister} className="space-y-4">
+            <div>
+              <label className="mb-2 block text-sm font-medium text-slate-300">
+                სახელი
+              </label>
+              <div className="relative">
+                <User className="absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-slate-400" />
+                <input
+                  type="text"
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  placeholder="თქვენი სახელი"
+                  required
+                  className="w-full rounded-xl border border-slate-600 bg-slate-700 py-3 pl-12 pr-4 text-white placeholder:text-slate-400 focus:border-orange-500 focus:outline-none focus:ring-2 focus:ring-orange-500/20"
+                />
+              </div>
+            </div>
+
             <div>
               <label className="mb-2 block text-sm font-medium text-slate-300">
                 ელ-ფოსტა
@@ -114,7 +146,7 @@ export default function LoginPage() {
                   type={showPassword ? "text" : "password"}
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  placeholder="შეიყვანეთ პაროლი"
+                  placeholder="მინიმუმ 6 სიმბოლო"
                   required
                   className="w-full rounded-xl border border-slate-600 bg-slate-700 py-3 pl-12 pr-12 text-white placeholder:text-slate-400 focus:border-orange-500 focus:outline-none focus:ring-2 focus:ring-orange-500/20"
                 />
@@ -128,14 +160,31 @@ export default function LoginPage() {
               </div>
             </div>
 
-            <div className="flex items-center justify-between">
-              <label className="flex items-center gap-2 text-sm text-slate-400">
-                <input type="checkbox" className="rounded border-slate-600 bg-slate-700" />
-                დამიმახსოვრე
+            <div>
+              <label className="mb-2 block text-sm font-medium text-slate-300">
+                გაიმეორეთ პაროლი
               </label>
-              <Link href="/forgot-password" className="text-sm text-orange-500 hover:underline">
-                დაგავიწყდა პაროლი?
-              </Link>
+              <div className="relative">
+                <Lock className="absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-slate-400" />
+                <input
+                  type={showPassword ? "text" : "password"}
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                  placeholder="გაიმეორეთ პაროლი"
+                  required
+                  className="w-full rounded-xl border border-slate-600 bg-slate-700 py-3 pl-12 pr-4 text-white placeholder:text-slate-400 focus:border-orange-500 focus:outline-none focus:ring-2 focus:ring-orange-500/20"
+                />
+              </div>
+            </div>
+
+            <div className="flex items-start gap-2">
+              <input type="checkbox" required className="mt-1 rounded border-slate-600 bg-slate-700" />
+              <label className="text-sm text-slate-400">
+                ვეთანხმები{" "}
+                <Link href="/terms" className="text-orange-500 hover:underline">
+                  წესებსა და პირობებს
+                </Link>
+              </label>
             </div>
 
             <button
@@ -149,7 +198,7 @@ export default function LoginPage() {
                   იტვირთება...
                 </>
               ) : (
-                "შესვლა"
+                "რეგისტრაცია"
               )}
             </button>
           </form>
@@ -173,7 +222,7 @@ export default function LoginPage() {
                 <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
                 <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
               </svg>
-              Google-ით შესვლა
+              Google-ით რეგისტრაცია
             </button>
 
             <button
@@ -183,15 +232,15 @@ export default function LoginPage() {
               <svg className="h-5 w-5" viewBox="0 0 24 24" fill="currentColor">
                 <path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.81-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M13 3.5c.73-.83 1.94-1.46 2.94-1.5.13 1.17-.34 2.35-1.04 3.19-.69.85-1.83 1.51-2.95 1.42-.15-1.15.41-2.35 1.05-3.11z"/>
               </svg>
-              Apple-ით შესვლა
+              Apple-ით რეგისტრაცია
             </button>
           </div>
 
-          {/* Register Link */}
+          {/* Login Link */}
           <p className="mt-8 text-center text-sm text-slate-400">
-            არ გაქვთ ანგარიში?{" "}
-            <Link href="/register" className="font-semibold text-orange-500 hover:underline">
-              რეგისტრაცია
+            უკვე გაქვთ ანგარიში?{" "}
+            <Link href="/login" className="font-semibold text-orange-500 hover:underline">
+              შესვლა
             </Link>
           </p>
         </div>

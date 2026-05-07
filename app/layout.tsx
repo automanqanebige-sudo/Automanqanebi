@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
 import { CurrencyProvider } from "../context/CurrencyContext";
+import { AuthProvider } from "../context/AuthContext";
 
 const inter = Inter({ subsets: ["latin"], variable: "--font-inter" });
 
@@ -24,9 +25,11 @@ export default function RootLayout({
   return (
     <html lang="ka" className={`${inter.variable} dark`}>
       <body className="min-h-screen bg-background font-sans text-foreground antialiased">
-        <CurrencyProvider>
-          {children}
-        </CurrencyProvider>
+        <AuthProvider>
+          <CurrencyProvider>
+            {children}
+          </CurrencyProvider>
+        </AuthProvider>
       </body>
     </html>
   );
