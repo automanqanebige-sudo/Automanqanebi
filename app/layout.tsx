@@ -11,7 +11,7 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
-  themeColor: "#ffffff",
+  themeColor: "#0f172a",
   width: "device-width",
   initialScale: 1,
 };
@@ -22,8 +22,8 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="ka" className={inter.variable}>
-      <body className="min-h-screen bg-[#0f172a] font-sans text-slate-100 antialiased">
+    <html lang="ka" className={`${inter.variable} dark`}>
+      <body className="min-h-screen bg-background font-sans text-foreground antialiased">
         <CurrencyProvider>
           {children}
         </CurrencyProvider>
