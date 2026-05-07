@@ -1,19 +1,20 @@
 'use client'
 
 import Link from 'next/link'
+import { useTranslations } from 'next-intl'
 import { MapPin, Gauge, Heart, Fuel, Calendar } from 'lucide-react'
 import type { Car } from '@/types/car'
-import { fuelTypeLabels } from '@/types/car'
 import { useCurrency } from '@/context/CurrencyContext'
 import { useState } from 'react'
 
-const tierConfig: Record<string, { gradient: string; label: string }> = {
-  platinum: { gradient: 'from-violet-600 to-purple-600', label: 'SUPER VIP' },
-  gold: { gradient: 'from-amber-500 to-orange-500', label: 'VIP' },
-  silver: { gradient: 'from-slate-400 to-slate-500', label: 'VIP+' },
+const tierConfig: Record<string, { gradient: string; labelKey: string }> = {
+  platinum: { gradient: 'from-violet-600 to-purple-600', labelKey: 'superVip' },
+  gold: { gradient: 'from-amber-500 to-orange-500', labelKey: 'vip' },
+  silver: { gradient: 'from-slate-400 to-slate-500', labelKey: 'vipPlus' },
 }
 
 export default function CarCard({ car, index = 0 }: { car?: Car; index?: number }) {
+  const t = useTranslations()
   const { currency, convertPrice } = useCurrency()
   const [isFavorite, setIsFavorite] = useState(false)
 
@@ -21,12 +22,12 @@ export default function CarCard({ car, index = 0 }: { car?: Car; index?: number 
 
   const title = car.year 
     ? `${car.year} ${car.brand || ''} ${car.model || ''}`.trim()
-    : car.name || `${car.brand || ''} ${car.model || ''}`.trim() || 'უცნობი'
+    : car.name || `${car.brand || ''} ${car.model || ''}`.trim() || t('common.unknown')
   
   const price = car.price ? convertPrice(car.price) : null
   const priceText = price 
     ? `${price.toLocaleString()} ${currency === 'GEL' ? '₾' : '$'}` 
-    : 'ფასი შეთანხმებით'
+    : t('car.negotiable')
   
   const tier = car.tier && car.tier !== 'standard' ? tierConfig[car.tier] : null
 
@@ -56,7 +57,7 @@ export default function CarCard({ car, index = 0 }: { car?: Car; index?: number 
           {/* VIP Badge */}
           {tier && (
             <div className={`absolute left-3 top-3 rounded-lg bg-gradient-to-r ${tier.gradient} px-3 py-1.5 text-xs font-bold text-white shadow-lg`}>
-              {tier.label}
+              {t(`car.${tier.labelKey}`)}
             </div>
           )}
 
@@ -99,8 +100,8 @@ export default function CarCard({ car, index = 0 }: { car?: Car; index?: number 
                   <Gauge className="h-4 w-4 text-slate-400" />
                 </div>
                 <div>
-                  <p className="text-xs text-slate-500">გარბენი</p>
-                  <p className="text-sm font-medium text-white">{car.mileage.toLocaleString()} კმ</p>
+                  <p className="text-xs text-slate-500">{t('car.mileage')}</p>
+                  <p className="text-sm font-medium text-white">{car.mileage.toLocaleString()} {t('common.km')}</p>
                 </div>
               </div>
             )}
@@ -111,8 +112,8 @@ export default function CarCard({ car, index = 0 }: { car?: Car; index?: number 
                   <Fuel className="h-4 w-4 text-slate-400" />
                 </div>
                 <div>
-                  <p className="text-xs text-slate-500">საწვავი</p>
-                  <p className="text-sm font-medium text-white">{fuelTypeLabels[car.fuelType] || car.fuelType}</p>
+                  <p className="text-xs text-slate-500">{t('car.fuel')}</p>
+                  <p className="text-sm font-medium text-white">{t(`filters.${car.fuelType.toLowerCase()}`)}</p>
                 </div>
               </div>
             )}
@@ -123,7 +124,7 @@ export default function CarCard({ car, index = 0 }: { car?: Car; index?: number 
                   <Calendar className="h-4 w-4 text-slate-400" />
                 </div>
                 <div>
-                  <p className="text-xs text-slate-500">წელი</p>
+                  <p className="text-xs text-slate-500">{t('car.year')}</p>
                   <p className="text-sm font-medium text-white">{car.year}</p>
                 </div>
               </div>
@@ -135,7 +136,7 @@ export default function CarCard({ car, index = 0 }: { car?: Car; index?: number 
                   <MapPin className="h-4 w-4 text-slate-400" />
                 </div>
                 <div>
-                  <p className="text-xs text-slate-500">ადგილი</p>
+                  <p className="text-xs text-slate-500">{t('car.place')}</p>
                   <p className="text-sm font-medium text-white truncate">{car.location}</p>
                 </div>
               </div>

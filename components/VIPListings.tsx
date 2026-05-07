@@ -2,9 +2,9 @@
 
 import { useRef, useState } from 'react'
 import Link from 'next/link'
+import { useTranslations } from 'next-intl'
 import { Crown, ChevronLeft, ChevronRight, Heart, Gauge, MapPin, Fuel, Sparkles, Star } from 'lucide-react'
 import type { Car } from '@/types/car'
-import { fuelTypeLabels } from '@/types/car'
 import { useCurrency } from '@/context/CurrencyContext'
 
 interface VIPListingsProps {
@@ -12,6 +12,7 @@ interface VIPListingsProps {
 }
 
 export default function VIPListings({ cars }: VIPListingsProps) {
+  const t = useTranslations()
   const scrollRef = useRef<HTMLDivElement>(null)
   const [canScrollLeft, setCanScrollLeft] = useState(false)
   const [canScrollRight, setCanScrollRight] = useState(true)
@@ -57,12 +58,12 @@ export default function VIPListings({ cars }: VIPListingsProps) {
             </div>
             <div>
               <div className="flex items-center gap-2">
-                <h2 className="text-2xl font-bold text-white">VIP განცხადებები</h2>
+                <h2 className="text-2xl font-bold text-white">{t('vip.title')}</h2>
                 <span className="rounded-full bg-gradient-to-r from-amber-500 to-orange-500 px-3 py-1 text-xs font-bold text-white">
                   PREMIUM
                 </span>
               </div>
-              <p className="mt-1 text-slate-400">პრემიუმ ავტომობილები საუკეთესო ფასებში</p>
+              <p className="mt-1 text-slate-400">{t('vip.subtitle')}</p>
             </div>
           </div>
 
@@ -110,17 +111,18 @@ export default function VIPListings({ cars }: VIPListingsProps) {
 }
 
 function VIPCard({ car, index }: { car: Car; index: number }) {
+  const t = useTranslations()
   const { currency, convertPrice } = useCurrency()
   const [isFavorite, setIsFavorite] = useState(false)
 
   const title = car.year
     ? `${car.year} ${car.brand || ''} ${car.model || ''}`.trim()
-    : car.name || `${car.brand || ''} ${car.model || ''}`.trim() || 'უცნობი'
+    : car.name || `${car.brand || ''} ${car.model || ''}`.trim() || t('common.unknown')
 
   const price = car.price ? convertPrice(car.price) : null
   const priceText = price
     ? `${price.toLocaleString()} ${currency === 'GEL' ? '₾' : '$'}`
-    : 'ფასი შეთანხმებით'
+    : t('car.negotiable')
 
   const isSuper = car.tier === 'platinum'
 
@@ -172,7 +174,7 @@ function VIPCard({ car, index }: { car: Car; index: number }) {
                   <Crown className="h-4 w-4 text-white" />
                 )}
                 <span className="text-sm font-bold text-white">
-                  {isSuper ? 'SUPER VIP' : 'VIP'}
+                  {isSuper ? t('car.superVip') : t('car.vip')}
                 </span>
               </div>
             </div>
@@ -217,14 +219,14 @@ function VIPCard({ car, index }: { car: Car; index: number }) {
               {car.mileage !== undefined && (
                 <div className="flex items-center gap-2 text-slate-400">
                   <Gauge className="h-4 w-4" />
-                  <span className="text-sm">{car.mileage.toLocaleString()} კმ</span>
+                  <span className="text-sm">{car.mileage.toLocaleString()} {t('common.km')}</span>
                 </div>
               )}
 
               {car.fuelType && (
                 <div className="flex items-center gap-2 text-slate-400">
                   <Fuel className="h-4 w-4" />
-                  <span className="text-sm">{fuelTypeLabels[car.fuelType] || car.fuelType}</span>
+                  <span className="text-sm">{t(`filters.${car.fuelType.toLowerCase()}`)}</span>
                 </div>
               )}
 

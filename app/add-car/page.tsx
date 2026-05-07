@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useTranslations } from "next-intl";
 import { db } from "../../lib/firebase";
 import { collection, addDoc } from "firebase/firestore";
 import { useRouter } from "next/navigation";
@@ -10,18 +11,11 @@ import Link from "next/link";
 import { carBrands } from "@/data/cars";
 import type { FuelType, TransmissionType, VehicleType } from "@/types/car";
 
-const fuelTypes: { value: FuelType; label: string }[] = [
-  { value: 'Gasoline', label: 'ბენზინი' },
-  { value: 'Diesel', label: 'დიზელი' },
-  { value: 'Hybrid', label: 'ჰიბრიდი' },
-  { value: 'Electric', label: 'ელექტრო' },
-  { value: 'LPG', label: 'გაზი' },
-];
-
 const currentYear = new Date().getFullYear();
 const years = Array.from({ length: 35 }, (_, i) => currentYear - i);
 
 export default function AddCarPage() {
+  const t = useTranslations();
   const [brand, setBrand] = useState("");
   const [model, setModel] = useState("");
   const [price, setPrice] = useState("");
@@ -38,11 +32,25 @@ export default function AddCarPage() {
   const [submitting, setSubmitting] = useState(false);
   const router = useRouter();
 
+  const fuelTypes: { value: FuelType; label: string }[] = [
+    { value: 'Gasoline', label: t('filters.petrol') },
+    { value: 'Diesel', label: t('filters.diesel') },
+    { value: 'Hybrid', label: t('filters.hybrid') },
+    { value: 'Electric', label: t('filters.electric') },
+    { value: 'LPG', label: t('filters.lpg') },
+  ];
+
+  const vehicleTypes = [
+    { value: 'car' as VehicleType, label: t('addCar.vehicleTypes.car') },
+    { value: 'moto' as VehicleType, label: t('addCar.vehicleTypes.moto') },
+    { value: 'atv' as VehicleType, label: t('addCar.vehicleTypes.atv') },
+  ];
+
   const selectedBrand = carBrands.find(b => b.brand === brand);
   const models = selectedBrand?.models || [];
 
   const generateAIDescription = async () => {
-    if (!brand || !model) return alert("მიუთითეთ მარკა და მოდელი");
+    if (!brand || !model) return alert(t('addCar.selectBrandModel'));
     setLoadingAI(true);
     try {
       const res = await fetch("/api/generate-description", {
@@ -61,7 +69,7 @@ export default function AddCarPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!brand || !model || !price) {
-      alert("შეავსეთ სავალდებულო ველები");
+      alert(t('addCar.requiredFields'));
       return;
     }
     
@@ -88,7 +96,7 @@ export default function AddCarPage() {
       router.push("/");
     } catch (err) {
       console.error(err);
-      alert("შეცდომა მოხდა, სცადეთ თავიდან");
+      alert(t('addCar.errorOccurred'));
     } finally {
       setSubmitting(false);
     }
@@ -105,7 +113,7 @@ export default function AddCarPage() {
           className="mb-6 inline-flex items-center gap-2 text-sm text-muted-foreground transition-colors hover:text-foreground"
         >
           <ArrowLeft className="h-4 w-4" />
-          მთავარზე დაბრუნება
+          {t('addCar.backToHome')}
         </Link>
 
         {/* Header */}
@@ -115,19 +123,15 @@ export default function AddCarPage() {
               <Car className="h-5 w-5 text-primary" />
             </div>
             <div>
-              <h1 className="text-2xl font-bold text-foreground">განცხადების დამატება</h1>
-              <p className="text-sm text-muted-foreground">შეავსეთ ინფორმაცია განცხადების გამოსაქვეყნებლად</p>
+              <h1 className="text-2xl font-bold text-foreground">{t('addCar.title')}</h1>
+              <p className="text-sm text-muted-foreground">{t('addCar.subtitle')}</p>
             </div>
           </div>
         </div>
 
         {/* Vehicle type tabs */}
         <div className="mb-6 flex gap-2">
-          {[
-            { value: 'car' as VehicleType, label: 'მანქანა' },
-            { value: 'moto' as VehicleType, label: 'მოტო' },
-            { value: 'atv' as VehicleType, label: 'ATV' },
-          ].map(type => (
+          {vehicleTypes.map(type => (
             <button
               key={type.value}
               type="button"
@@ -148,14 +152,14 @@ export default function AddCarPage() {
           {/* Brand & Model */}
           <div className="grid grid-cols-2 gap-4">
             <div className="relative">
-              <label className="mb-1.5 block text-sm font-medium text-foreground">მარკა *</label>
+              <label className="mb-1.5 block text-sm font-medium text-foreground">{t('filters.brand')} *</label>
               <select
                 value={brand}
                 onChange={(e) => { setBrand(e.target.value); setModel(""); }}
                 className="h-11 w-full appearance-none rounded-lg border border-input bg-card px-3 pr-9 text-sm text-card-foreground focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
                 required
               >
-                <option value="">აირჩიე მარკა</option>
+                <option value="">{t('filters.selectBrand')}</option>
                 {carBrands.map(b => (
                   <option key={b.brand} value={b.brand}>{b.brand}</option>
                 ))}
@@ -163,7 +167,7 @@ export default function AddCarPage() {
               <ChevronDown className="pointer-events-none absolute right-3 top-9 h-4 w-4 text-muted-foreground" />
             </div>
             <div className="relative">
-              <label className="mb-1.5 block text-sm font-medium text-foreground">მოდელი *</label>
+              <label className="mb-1.5 block text-sm font-medium text-foreground">{t('filters.model')} *</label>
               <select
                 value={model}
                 onChange={(e) => setModel(e.target.value)}
@@ -171,7 +175,7 @@ export default function AddCarPage() {
                 className="h-11 w-full appearance-none rounded-lg border border-input bg-card px-3 pr-9 text-sm text-card-foreground focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary disabled:cursor-not-allowed disabled:opacity-50"
                 required
               >
-                <option value="">აირჩიე მოდელი</option>
+                <option value="">{t('filters.selectModel')}</option>
                 {models.map(m => (
                   <option key={m} value={m}>{m}</option>
                 ))}
@@ -183,7 +187,7 @@ export default function AddCarPage() {
           {/* Price & Year */}
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="mb-1.5 block text-sm font-medium text-foreground">ფასი (₾) *</label>
+              <label className="mb-1.5 block text-sm font-medium text-foreground">{t('filters.price')} (₾) *</label>
               <input
                 className="h-11 w-full rounded-lg border border-input bg-card px-3 text-sm text-card-foreground placeholder:text-muted-foreground focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
                 type="number"
@@ -194,13 +198,13 @@ export default function AddCarPage() {
               />
             </div>
             <div className="relative">
-              <label className="mb-1.5 block text-sm font-medium text-foreground">წელი</label>
+              <label className="mb-1.5 block text-sm font-medium text-foreground">{t('filters.year')}</label>
               <select
                 value={year}
                 onChange={(e) => setYear(e.target.value)}
                 className="h-11 w-full appearance-none rounded-lg border border-input bg-card px-3 pr-9 text-sm text-card-foreground focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
               >
-                <option value="">აირჩიე წელი</option>
+                <option value="">{t('filters.selectYear')}</option>
                 {years.map(y => (
                   <option key={y} value={y}>{y}</option>
                 ))}
@@ -212,7 +216,7 @@ export default function AddCarPage() {
           {/* Mileage & Fuel type */}
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="mb-1.5 block text-sm font-medium text-foreground">გარბენი (კმ)</label>
+              <label className="mb-1.5 block text-sm font-medium text-foreground">{t('car.mileage')} ({t('common.km')})</label>
               <input
                 className="h-11 w-full rounded-lg border border-input bg-card px-3 text-sm text-card-foreground placeholder:text-muted-foreground focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
                 type="number"
@@ -222,13 +226,13 @@ export default function AddCarPage() {
               />
             </div>
             <div className="relative">
-              <label className="mb-1.5 block text-sm font-medium text-foreground">საწვავის ტიპი</label>
+              <label className="mb-1.5 block text-sm font-medium text-foreground">{t('filters.fuel')}</label>
               <select
                 value={fuelType}
                 onChange={(e) => setFuelType(e.target.value as FuelType | "")}
                 className="h-11 w-full appearance-none rounded-lg border border-input bg-card px-3 pr-9 text-sm text-card-foreground focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
               >
-                <option value="">აირჩიე</option>
+                <option value="">{t('filters.select')}</option>
                 {fuelTypes.map(f => (
                   <option key={f.value} value={f.value}>{f.label}</option>
                 ))}
@@ -240,23 +244,26 @@ export default function AddCarPage() {
           {/* Transmission & Location */}
           <div className="grid grid-cols-2 gap-4">
             <div className="relative">
-              <label className="mb-1.5 block text-sm font-medium text-foreground">გადაცემათა კოლოფი</label>
+              <label className="mb-1.5 block text-sm font-medium text-foreground">{t('filters.transmission')}</label>
               <select
                 value={transmission}
                 onChange={(e) => setTransmission(e.target.value as TransmissionType | "")}
                 className="h-11 w-full appearance-none rounded-lg border border-input bg-card px-3 pr-9 text-sm text-card-foreground focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
               >
-                <option value="">აირჩიე</option>
-                <option value="Automatic">ავტომატიკა</option>
-                <option value="Manual">მექანიკა</option>
+                <option value="">{t('filters.select')}</option>
+                <option value="Automatic">{t('filters.automatic')}</option>
+                <option value="Manual">{t('filters.manual')}</option>
+                <option value="Tiptronic">{t('filters.tiptronic')}</option>
+                <option value="Variator">{t('filters.variator')}</option>
               </select>
               <ChevronDown className="pointer-events-none absolute right-3 top-9 h-4 w-4 text-muted-foreground" />
             </div>
             <div>
-              <label className="mb-1.5 block text-sm font-medium text-foreground">მდებარეობა</label>
+              <label className="mb-1.5 block text-sm font-medium text-foreground">{t('filters.location')}</label>
               <input
                 className="h-11 w-full rounded-lg border border-input bg-card px-3 text-sm text-card-foreground placeholder:text-muted-foreground focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
-                placeholder="თბილისი"
+                type="text"
+                placeholder={t('filters.tbilisi')}
                 value={location}
                 onChange={(e) => setLocation(e.target.value)}
               />
@@ -265,10 +272,11 @@ export default function AddCarPage() {
 
           {/* Phone */}
           <div>
-            <label className="mb-1.5 block text-sm font-medium text-foreground">ტელეფონი</label>
+            <label className="mb-1.5 block text-sm font-medium text-foreground">{t('addCar.phone')}</label>
             <input
-              className="w-full rounded-lg border border-input bg-card px-3 py-2.5 text-sm text-card-foreground placeholder:text-muted-foreground focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
-              placeholder="+995 5XX XXX XXX"
+              className="h-11 w-full rounded-lg border border-input bg-card px-3 text-sm text-card-foreground placeholder:text-muted-foreground focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
+              type="tel"
+              placeholder={t('addCar.phonePlaceholder')}
               value={phone}
               onChange={(e) => setPhone(e.target.value)}
             />
@@ -276,58 +284,64 @@ export default function AddCarPage() {
 
           {/* Image URL */}
           <div>
-            <label className="mb-1.5 block text-sm font-medium text-foreground">ფოტოს URL</label>
-            <div className="flex items-center gap-2">
+            <label className="mb-1.5 block text-sm font-medium text-foreground">{t('addCar.photoUrl')}</label>
+            <div className="flex gap-2">
               <input
-                className="w-full rounded-lg border border-input bg-card px-3 py-2.5 text-sm text-card-foreground placeholder:text-muted-foreground focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
-                placeholder="https://example.com/photo.jpg"
+                className="h-11 flex-1 rounded-lg border border-input bg-card px-3 text-sm text-card-foreground placeholder:text-muted-foreground focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
+                type="url"
+                placeholder={t('addCar.photoUrlPlaceholder')}
                 value={image}
                 onChange={(e) => setImage(e.target.value)}
               />
-              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border border-dashed border-input text-muted-foreground">
+              <button
+                type="button"
+                className="flex h-11 items-center gap-2 rounded-lg border border-dashed border-input bg-card px-4 text-sm text-muted-foreground transition-colors hover:border-primary hover:text-foreground"
+              >
                 <Upload className="h-4 w-4" />
-              </div>
+                {t('addCar.browse')}
+              </button>
             </div>
           </div>
 
-          {/* AI Description */}
+          {/* Description */}
           <div>
             <div className="mb-1.5 flex items-center justify-between">
-              <label className="text-sm font-medium text-foreground">აღწერა</label>
+              <label className="text-sm font-medium text-foreground">{t('car.description')}</label>
               <button
                 type="button"
                 onClick={generateAIDescription}
                 disabled={loadingAI}
-                className="flex items-center gap-1.5 rounded-md bg-primary/10 px-3 py-1 text-xs font-medium text-primary transition-colors hover:bg-primary/20 disabled:opacity-50"
+                className="flex items-center gap-1.5 rounded-md bg-primary/10 px-3 py-1.5 text-xs font-medium text-primary transition-colors hover:bg-primary/20 disabled:opacity-50"
               >
                 {loadingAI ? (
                   <Loader2 className="h-3.5 w-3.5 animate-spin" />
                 ) : (
                   <Sparkles className="h-3.5 w-3.5" />
                 )}
-                {loadingAI ? "გენერირდება..." : "AI აღწერა"}
+                {loadingAI ? t('addCar.generating') : t('addCar.generateDescription')}
               </button>
             </div>
             <textarea
-              className="h-32 w-full resize-none rounded-lg border border-input bg-card px-3 py-2.5 text-sm text-card-foreground placeholder:text-muted-foreground focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
-              placeholder="ავტომობილის აღწერა..."
+              className="min-h-[100px] w-full resize-none rounded-lg border border-input bg-card px-3 py-2.5 text-sm text-card-foreground placeholder:text-muted-foreground focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
+              placeholder={t('addCar.descriptionPlaceholder')}
               value={description}
               onChange={(e) => setDescription(e.target.value)}
             />
           </div>
 
+          {/* Submit */}
           <button
             type="submit"
             disabled={submitting}
-            className="flex w-full items-center justify-center gap-2 rounded-lg bg-primary px-4 py-3 text-sm font-semibold text-primary-foreground transition-colors hover:bg-primary/90 disabled:opacity-50"
+            className="h-12 w-full rounded-lg bg-primary font-semibold text-primary-foreground transition-colors hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-50"
           >
             {submitting ? (
-              <>
+              <span className="flex items-center justify-center gap-2">
                 <Loader2 className="h-4 w-4 animate-spin" />
-                გამოქვეყნება...
-              </>
+                {t('addCar.publishing')}
+              </span>
             ) : (
-              "გამოქვეყნება"
+              t('addCar.publish')
             )}
           </button>
         </form>

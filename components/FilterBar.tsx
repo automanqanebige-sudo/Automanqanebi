@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { useTranslations } from 'next-intl'
 import { Search, ChevronDown, SlidersHorizontal, Sparkles, Car, Truck, Bike, RotateCcw, X } from 'lucide-react'
 import { carBrands } from '@/data/cars'
 import type { FuelType, VehicleType } from '@/types/car'
@@ -24,44 +25,52 @@ interface FilterBarProps {
   carsCount: number
 }
 
-const fuelTypes = [
-  { value: 'Gasoline', label: 'ბენზინი' },
-  { value: 'Diesel', label: 'დიზელი' },
-  { value: 'Hybrid', label: 'ჰიბრიდი' },
-  { value: 'Electric', label: 'ელექტრო' },
-  { value: 'LPG', label: 'გაზი' },
-]
-
-const transmissionTypes = [
-  { value: 'automatic', label: 'ავტომატიკა' },
-  { value: 'manual', label: 'მექანიკა' },
-  { value: 'tiptronic', label: 'ტიპტრონიკი' },
-  { value: 'variator', label: 'ვარიატორი' },
-]
-
-const vehicleCategories = [
-  { value: 'car', label: 'ავტომობილები', icon: Car, count: '137,413' },
-  { value: 'special', label: 'სპეცტექნიკა', icon: Truck, count: '2,841' },
-  { value: 'moto', label: 'მოტოტექნიკა', icon: Bike, count: '1,205' },
-]
-
 const priceRanges = [
-  { value: '5000', label: '5,000-მდე' },
-  { value: '10000', label: '10,000-მდე' },
-  { value: '15000', label: '15,000-მდე' },
-  { value: '20000', label: '20,000-მდე' },
-  { value: '30000', label: '30,000-მდე' },
-  { value: '50000', label: '50,000-მდე' },
-  { value: '100000', label: '100,000-მდე' },
+  { value: '5000', label: '5,000' },
+  { value: '10000', label: '10,000' },
+  { value: '15000', label: '15,000' },
+  { value: '20000', label: '20,000' },
+  { value: '30000', label: '30,000' },
+  { value: '50000', label: '50,000' },
+  { value: '100000', label: '100,000' },
 ]
 
 const currentYear = new Date().getFullYear()
 const years = Array.from({ length: 35 }, (_, i) => currentYear - i)
 
 export default function FilterBar({ filters, onFiltersChange, onAISearch, carsCount }: FilterBarProps) {
+  const t = useTranslations()
   const [activeTab, setActiveTab] = useState<'filters' | 'ai'>('filters')
   const [aiQuery, setAIQuery] = useState('')
   const [listingType, setListingType] = useState<'sell' | 'rent'>('sell')
+
+  const fuelTypes = [
+    { value: 'Gasoline', label: t('filters.petrol') },
+    { value: 'Diesel', label: t('filters.diesel') },
+    { value: 'Hybrid', label: t('filters.hybrid') },
+    { value: 'Electric', label: t('filters.electric') },
+    { value: 'LPG', label: t('filters.lpg') },
+  ]
+
+  const transmissionTypes = [
+    { value: 'automatic', label: t('filters.automatic') },
+    { value: 'manual', label: t('filters.manual') },
+    { value: 'tiptronic', label: t('filters.tiptronic') },
+    { value: 'variator', label: t('filters.variator') },
+  ]
+
+  const vehicleCategories = [
+    { value: 'car', label: t('filters.cars'), icon: Car, count: '137,413' },
+    { value: 'special', label: t('filters.trucks'), icon: Truck, count: '2,841' },
+    { value: 'moto', label: t('filters.moto'), icon: Bike, count: '1,205' },
+  ]
+
+  const locations = [
+    { value: 'tbilisi', label: t('filters.tbilisi') },
+    { value: 'batumi', label: t('filters.batumi') },
+    { value: 'kutaisi', label: t('filters.kutaisi') },
+    { value: 'rustavi', label: t('filters.rustavi') },
+  ]
 
   const selectedBrand = carBrands.find(b => b.brand === filters.brand)
   const models = selectedBrand?.models || []
@@ -95,7 +104,7 @@ export default function FilterBar({ filters, onFiltersChange, onAISearch, carsCo
             }`}
           >
             <SlidersHorizontal className="h-4 w-4" />
-            ფილტრები
+            {t('filters.title')}
             {activeFiltersCount > 0 && (
               <span className="flex h-5 min-w-5 items-center justify-center rounded-full bg-orange-500 px-1.5 text-xs font-bold text-white">
                 {activeFiltersCount}
@@ -111,9 +120,9 @@ export default function FilterBar({ filters, onFiltersChange, onAISearch, carsCo
             }`}
           >
             <Sparkles className="h-4 w-4" />
-            AI ძებნა
+            {t('filters.aiSearch')}
             <span className="rounded bg-emerald-500 px-1.5 py-0.5 text-[10px] font-bold text-white">
-              NEW
+              {t('filters.new')}
             </span>
           </button>
         </div>
@@ -124,7 +133,7 @@ export default function FilterBar({ filters, onFiltersChange, onAISearch, carsCo
             className="flex items-center gap-1.5 rounded-lg px-3 py-2 text-sm text-slate-400 transition-colors hover:bg-white/5 hover:text-white"
           >
             <RotateCcw className="h-4 w-4" />
-            გასუფთავება
+            {t('filters.reset')}
           </button>
         )}
       </div>
@@ -140,7 +149,7 @@ export default function FilterBar({ filters, onFiltersChange, onAISearch, carsCo
                   listingType === 'sell' ? 'bg-white text-slate-900' : 'text-slate-400 hover:text-white'
                 }`}
               >
-                იყიდება
+                {t('filters.buy')}
               </button>
               <button
                 onClick={() => setListingType('rent')}
@@ -148,7 +157,7 @@ export default function FilterBar({ filters, onFiltersChange, onAISearch, carsCo
                   listingType === 'rent' ? 'bg-white text-slate-900' : 'text-slate-400 hover:text-white'
                 }`}
               >
-                ქირავდება
+                {t('filters.rent')}
               </button>
             </div>
           </div>
@@ -157,7 +166,7 @@ export default function FilterBar({ filters, onFiltersChange, onAISearch, carsCo
           <div className="flex gap-8">
             {/* Sidebar - Vehicle Categories */}
             <div className="w-52 shrink-0 space-y-1 border-r border-white/10 pr-6">
-              <p className="mb-3 text-xs font-medium uppercase tracking-wider text-slate-500">კატეგორია</p>
+              <p className="mb-3 text-xs font-medium uppercase tracking-wider text-slate-500">{t('filters.category')}</p>
               {vehicleCategories.map((cat) => {
                 const Icon = cat.icon
                 const isActive = filters.vehicleType === cat.value || (!filters.vehicleType && cat.value === 'car')
@@ -190,26 +199,21 @@ export default function FilterBar({ filters, onFiltersChange, onAISearch, carsCo
                 <FilterSelect 
                   value={filters.brand} 
                   onChange={(v) => updateFilter('brand', v)} 
-                  placeholder="მწარმოებელი"
+                  placeholder={t('filters.brand')}
                   options={carBrands.map(b => ({ value: b.brand, label: b.brand }))} 
                 />
                 <FilterSelect 
                   value={filters.model} 
                   onChange={(v) => updateFilter('model', v)} 
-                  placeholder="მოდელი"
+                  placeholder={t('filters.model')}
                   options={models.map(m => ({ value: m, label: m }))} 
                   disabled={!filters.brand} 
                 />
                 <FilterSelect 
                   value="" 
                   onChange={() => {}} 
-                  placeholder="მდებარეობა"
-                  options={[
-                    { value: 'tbilisi', label: 'თბილისი' }, 
-                    { value: 'batumi', label: 'ბათუმი' },
-                    { value: 'kutaisi', label: 'ქუთაისი' },
-                    { value: 'rustavi', label: 'რუსთავი' },
-                  ]} 
+                  placeholder={t('filters.location')}
+                  options={locations} 
                 />
               </div>
 
@@ -218,25 +222,25 @@ export default function FilterBar({ filters, onFiltersChange, onAISearch, carsCo
                 <FilterSelect 
                   value={filters.yearFrom} 
                   onChange={(v) => updateFilter('yearFrom', v)} 
-                  placeholder="წელი"
+                  placeholder={t('filters.year')}
                   options={years.map(y => ({ value: String(y), label: String(y) }))} 
                 />
                 <FilterSelect 
                   value={filters.priceTo} 
                   onChange={(v) => updateFilter('priceTo', v)} 
-                  placeholder="ფასი"
-                  options={priceRanges} 
+                  placeholder={t('filters.price')}
+                  options={priceRanges.map(p => ({ value: p.value, label: `${t('filters.upTo')} ${p.label}` }))} 
                 />
                 <FilterSelect 
                   value={filters.fuelType} 
                   onChange={(v) => updateFilter('fuelType', v)} 
-                  placeholder="საწვავი"
+                  placeholder={t('filters.fuel')}
                   options={fuelTypes} 
                 />
                 <FilterSelect 
                   value={filters.transmission} 
                   onChange={(v) => updateFilter('transmission', v)} 
-                  placeholder="გადაცემათა კოლოფი"
+                  placeholder={t('filters.transmission')}
                   options={transmissionTypes} 
                 />
               </div>
@@ -244,13 +248,13 @@ export default function FilterBar({ filters, onFiltersChange, onAISearch, carsCo
               {/* Row 3 - Toggle options and more filters */}
               <div className="flex items-center justify-between border-t border-white/10 pt-4">
                 <div className="flex items-center gap-6">
-                  <ToggleSwitch label="VIN კოდით" />
-                  <ToggleSwitch label="360° ფოტო" />
-                  <ToggleSwitch label="ფასი შეთანხმებით" />
+                  <ToggleSwitch label={t('filters.hasVin')} />
+                  <ToggleSwitch label={t('filters.has360')} />
+                  <ToggleSwitch label={t('filters.priceNegotiable')} />
                 </div>
                 <button className="flex items-center gap-2 rounded-xl border border-white/10 px-4 py-2.5 text-sm text-slate-400 transition-all hover:border-white/20 hover:bg-white/5 hover:text-white">
                   <SlidersHorizontal className="h-4 w-4" />
-                  მეტი ფილტრი
+                  {t('filters.moreFilters')}
                 </button>
               </div>
             </div>
@@ -259,16 +263,16 @@ export default function FilterBar({ filters, onFiltersChange, onAISearch, carsCo
           {/* Search button */}
           <div className="mt-6 flex items-center justify-between border-t border-white/10 pt-6">
             <div className="flex items-center gap-3">
-              <span className="text-sm text-slate-400">სორტირება:</span>
+              <span className="text-sm text-slate-400">{t('filters.sortBy')}:</span>
               <div className="flex gap-1 rounded-lg bg-slate-800/50 p-1">
-                <button className="rounded-md bg-white px-3 py-1.5 text-xs font-medium text-slate-900">თარიღით</button>
-                <button className="rounded-md px-3 py-1.5 text-xs font-medium text-slate-400 hover:text-white">ფასით</button>
-                <button className="rounded-md px-3 py-1.5 text-xs font-medium text-slate-400 hover:text-white">გარბენით</button>
+                <button className="rounded-md bg-white px-3 py-1.5 text-xs font-medium text-slate-900">{t('filters.sortByDate')}</button>
+                <button className="rounded-md px-3 py-1.5 text-xs font-medium text-slate-400 hover:text-white">{t('filters.sortByPrice')}</button>
+                <button className="rounded-md px-3 py-1.5 text-xs font-medium text-slate-400 hover:text-white">{t('filters.sortByMileage')}</button>
               </div>
             </div>
             <button className="flex items-center gap-2 rounded-xl bg-gradient-to-r from-orange-500 to-orange-600 px-8 py-3.5 text-sm font-bold text-white shadow-lg shadow-orange-500/30 transition-all hover:shadow-orange-500/50 hover:brightness-110">
               <Search className="h-4 w-4" />
-              ძებნა ({carsCount.toLocaleString()})
+              {t('common.search')} ({carsCount.toLocaleString()})
             </button>
           </div>
         </div>
@@ -279,8 +283,8 @@ export default function FilterBar({ filters, onFiltersChange, onAISearch, carsCo
             <div className="mx-auto mb-6 flex h-20 w-20 items-center justify-center rounded-2xl bg-gradient-to-br from-orange-500 to-orange-600 shadow-xl shadow-orange-500/30">
               <Sparkles className="h-10 w-10 text-white" />
             </div>
-            <h3 className="mb-2 text-2xl font-bold text-white">AI ძებნა</h3>
-            <p className="mb-8 text-slate-400">აღწერე რა მანქანა გინდა ბუნებრივი ენით და AI მოძებნის შენთვის საუკეთესო ვარიანტებს</p>
+            <h3 className="mb-2 text-2xl font-bold text-white">{t('aiSearch.title')}</h3>
+            <p className="mb-8 text-slate-400">{t('aiSearch.description')}</p>
             
             <div className="relative">
               <div className="flex overflow-hidden rounded-2xl border border-white/10 bg-slate-800/50 shadow-xl">
@@ -289,7 +293,7 @@ export default function FilterBar({ filters, onFiltersChange, onAISearch, carsCo
                   value={aiQuery}
                   onChange={(e) => setAIQuery(e.target.value)}
                   onKeyDown={(e) => e.key === 'Enter' && aiQuery && onAISearch(aiQuery)}
-                  placeholder="მაგ: იაფი ჰიბრიდი 2015 წლიდან თბილისში..."
+                  placeholder={t('aiSearch.placeholder')}
                   className="h-14 flex-1 bg-transparent px-6 text-white placeholder:text-slate-500 focus:outline-none"
                 />
                 <button 
@@ -298,14 +302,19 @@ export default function FilterBar({ filters, onFiltersChange, onAISearch, carsCo
                   className="m-2 flex items-center gap-2 rounded-xl bg-gradient-to-r from-orange-500 to-orange-600 px-6 text-sm font-bold text-white transition-all hover:shadow-lg hover:shadow-orange-500/30 disabled:opacity-50 disabled:shadow-none"
                 >
                   <Search className="h-4 w-4" />
-                  ძებნა
+                  {t('common.search')}
                 </button>
               </div>
             </div>
 
             {/* AI Suggestions */}
             <div className="mt-6 flex flex-wrap justify-center gap-2">
-              {['იაფი ჰიბრიდი', 'სედანი 2020+', 'ელექტრო მანქანა', 'ოჯახური SUV'].map((suggestion) => (
+              {[
+                t('aiSearch.suggestions.cheapHybrid'),
+                t('aiSearch.suggestions.sedan2020'),
+                t('aiSearch.suggestions.electricCar'),
+                t('aiSearch.suggestions.familySuv')
+              ].map((suggestion) => (
                 <button
                   key={suggestion}
                   onClick={() => { setAIQuery(suggestion); onAISearch(suggestion) }}

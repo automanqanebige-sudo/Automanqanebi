@@ -16,7 +16,13 @@
     "previous": "Previous",
     "all": "All",
     "view": "View",
-    "close": "Close"
+    "close": "Close",
+    "clear": "Clear",
+    "results": "results",
+    "unknown": "Unknown",
+    "negotiable": "Negotiable",
+    "more": "More",
+    "km": "km"
   },
   "nav": {
     "home": "Home",
@@ -24,7 +30,7 @@
     "auction": "Auction",
     "vinCheck": "VIN Check",
     "dealers": "Dealers",
-    "salons": "Auto Salons",
+    "salons": "Showrooms",
     "autoNews": "Auto News",
     "catalog": "Catalog",
     "help": "Help",
@@ -37,13 +43,14 @@
     "logout": "Logout",
     "myCars": "My Cars",
     "settings": "Settings",
-    "notifications": "Notifications"
+    "notifications": "Notifications",
+    "searchPlaceholder": "Search brand, model..."
   },
   "filters": {
     "title": "Filters",
     "aiSearch": "AI Search",
-    "new": "New",
-    "beta": "Beta",
+    "new": "NEW",
+    "beta": "BETA",
     "buy": "For Sale",
     "rent": "For Rent",
     "category": "Category",
@@ -63,15 +70,20 @@
     "transmission": "Transmission",
     "automatic": "Automatic",
     "manual": "Manual",
+    "tiptronic": "Tiptronic",
+    "variator": "CVT",
     "petrol": "Petrol",
     "diesel": "Diesel",
     "hybrid": "Hybrid",
     "electric": "Electric",
     "lpg": "LPG",
     "hasVin": "With VIN",
-    "has360": "360° Photos",
-    "negotiable": "Negotiable",
+    "has360": "360° Photo",
+    "priceNegotiable": "Price Negotiable",
     "sortBy": "Sort by",
+    "sortByDate": "Date",
+    "sortByPrice": "Price",
+    "sortByMileage": "Mileage",
     "newest": "Newest",
     "oldest": "Oldest",
     "priceAsc": "Price: Low to High",
@@ -80,8 +92,16 @@
     "mileageDesc": "Mileage: High to Low",
     "reset": "Reset",
     "apply": "Search",
-    "results": "Results",
-    "additionalFilters": "More Filters"
+    "moreFilters": "More Filters",
+    "selectBrand": "Select Brand",
+    "selectModel": "Select Model",
+    "selectYear": "Select Year",
+    "select": "Select",
+    "upTo": "Up to",
+    "tbilisi": "Tbilisi",
+    "batumi": "Batumi",
+    "kutaisi": "Kutaisi",
+    "rustavi": "Rustavi"
   },
   "car": {
     "year": "Year",
@@ -90,8 +110,9 @@
     "fuel": "Fuel",
     "transmission": "Transmission",
     "location": "Location",
+    "place": "Place",
     "price": "Price",
-    "negotiable": "Negotiable",
+    "negotiable": "Price Negotiable",
     "description": "Description",
     "specifications": "Specifications",
     "contact": "Contact",
@@ -103,10 +124,30 @@
     "report": "Report",
     "vip": "VIP",
     "superVip": "SUPER VIP",
+    "vipPlus": "VIP+",
     "verified": "Verified"
   },
+  "home": {
+    "allListings": "All Listings",
+    "noCarsFound": "No cars found",
+    "tryOtherFilters": "Try different filters",
+    "noListingsYet": "No listings yet",
+    "addListing": "Add Listing",
+    "users": "Users",
+    "listings": "Listings",
+    "secure": "Secure",
+    "support": "Support",
+    "largestPlatform": "Georgia's largest car marketplace."
+  },
+  "vip": {
+    "title": "SUPER VIP",
+    "subtitle": "Premium Listings",
+    "viewAll": "View All"
+  },
   "addCar": {
-    "title": "Add Car",
+    "title": "Add Listing",
+    "subtitle": "Fill in the information to publish your listing",
+    "backToHome": "Back to Home",
     "basicInfo": "Basic Information",
     "photos": "Photos",
     "details": "Details",
@@ -115,25 +156,43 @@
     "uploadPhotos": "Upload Photos",
     "dragDrop": "Drag and drop photos here",
     "or": "or",
-    "browse": "Browse Files",
+    "browse": "Choose File",
     "maxPhotos": "Maximum 20 photos",
     "mainPhoto": "Main Photo",
     "phone": "Phone",
-    "generateDescription": "Generate AI Description",
+    "phonePlaceholder": "+995 5XX XXX XXX",
+    "photoUrl": "Photo URL",
+    "photoUrlPlaceholder": "https://example.com/photo.jpg",
+    "generateDescription": "AI Description",
+    "generating": "Generating...",
+    "descriptionPlaceholder": "Vehicle description...",
     "publish": "Publish",
+    "publishing": "Publishing...",
     "saveDraft": "Save Draft",
-    "preview": "Preview"
+    "preview": "Preview",
+    "requiredFields": "Please fill in required fields",
+    "errorOccurred": "An error occurred, please try again",
+    "selectBrandModel": "Please select brand and model",
+    "vehicleTypes": {
+      "car": "Car",
+      "moto": "Motorcycle",
+      "atv": "ATV"
+    }
   },
   "auth": {
     "login": "Login",
     "register": "Register",
     "email": "Email",
+    "emailPlaceholder": "name@example.com",
     "password": "Password",
+    "passwordPlaceholder": "Enter password",
     "confirmPassword": "Confirm Password",
+    "confirmPasswordPlaceholder": "Confirm password",
     "name": "Name",
-    "forgotPassword": "Forgot Password?",
+    "namePlaceholder": "Your name",
+    "forgotPassword": "Forgot password?",
     "rememberMe": "Remember me",
-    "orContinueWith": "or continue with",
+    "orContinueWith": "Or continue with",
     "google": "Google",
     "apple": "Apple",
     "noAccount": "Don't have an account?",
@@ -145,7 +204,11 @@
     "invalidCredentials": "Invalid email or password",
     "emailInUse": "This email is already in use",
     "weakPassword": "Password is too weak",
-    "passwordMismatch": "Passwords do not match"
+    "passwordMismatch": "Passwords do not match",
+    "createAccount": "Create Account",
+    "welcomeBack": "Welcome back!",
+    "loginSubtitle": "Login to your account",
+    "registerSubtitle": "Create a new account"
   },
   "profile": {
     "title": "Profile",
@@ -160,6 +223,12 @@
     "deleteAccount": "Delete Account",
     "noListings": "You don't have any listings yet",
     "noFavorites": "You don't have any favorites yet"
+  },
+  "favorites": {
+    "title": "Favorites",
+    "empty": "Favorites is empty",
+    "emptyDescription": "Add cars to favorites by clicking the heart button",
+    "browseCars": "Browse Cars"
   },
   "compare": {
     "title": "Compare",
@@ -176,7 +245,9 @@
     "privacyPolicy": "Privacy Policy",
     "contactUs": "Contact Us",
     "followUs": "Follow Us",
-    "allRights": "All rights reserved"
+    "allRights": "All rights reserved",
+    "links": "Links",
+    "servicesTitle": "Services"
   },
   "admin": {
     "dashboard": "Dashboard",
@@ -187,12 +258,42 @@
     "users": "Users",
     "listings": "Listings",
     "reports": "Reports",
-    "settings": "Settings"
+    "settings": "Settings",
+    "recentListings": "Recent Listings"
+  },
+  "chat": {
+    "title": "Chat",
+    "noMessages": "No messages",
+    "typeMessage": "Type a message...",
+    "send": "Send"
+  },
+  "services": {
+    "title": "Services",
+    "vinCheck": "VIN Check",
+    "insurance": "Insurance",
+    "loan": "Auto Loan",
+    "inspection": "Inspection"
+  },
+  "blog": {
+    "title": "Blog",
+    "readMore": "Read More",
+    "noPosts": "No posts"
+  },
+  "aiSearch": {
+    "title": "AI Search",
+    "description": "Describe what car you want in natural language and AI will find the best options for you",
+    "placeholder": "e.g.: cheap hybrid from 2015 in Tbilisi...",
+    "suggestions": {
+      "cheapHybrid": "Cheap hybrid",
+      "sedan2020": "Sedan 2020+",
+      "electricCar": "Electric car",
+      "familySuv": "Family SUV"
+    }
   },
   "language": {
-    "georgian": "Georgian",
+    "georgian": "ქართული",
     "english": "English",
-    "russian": "Russian",
+    "russian": "Русский",
     "select": "Select Language"
   }
 }

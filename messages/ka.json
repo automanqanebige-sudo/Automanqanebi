@@ -16,7 +16,13 @@
     "previous": "წინა",
     "all": "ყველა",
     "view": "ნახვა",
-    "close": "დახურვა"
+    "close": "დახურვა",
+    "clear": "გასუფთავება",
+    "results": "შედეგი",
+    "unknown": "უცნობი",
+    "negotiable": "შეთანხმებით",
+    "more": "მეტი",
+    "km": "კმ"
   },
   "nav": {
     "home": "მთავარი",
@@ -37,7 +43,8 @@
     "logout": "გასვლა",
     "myCars": "ჩემი მანქანები",
     "settings": "პარამეტრები",
-    "notifications": "შეტყობინებები"
+    "notifications": "შეტყობინებები",
+    "searchPlaceholder": "მოძებნე მარკა, მოდელი..."
   },
   "filters": {
     "title": "ფილტრები",
@@ -63,15 +70,20 @@
     "transmission": "გადაცემათა კოლოფი",
     "automatic": "ავტომატიკა",
     "manual": "მექანიკა",
+    "tiptronic": "ტიპტრონიკი",
+    "variator": "ვარიატორი",
     "petrol": "ბენზინი",
     "diesel": "დიზელი",
     "hybrid": "ჰიბრიდი",
     "electric": "ელექტრო",
     "lpg": "გაზი",
     "hasVin": "VIN კოდით",
-    "has360": "360° ფოტოთი",
-    "negotiable": "ფასი შეთანხმებით",
+    "has360": "360° ფოტო",
+    "priceNegotiable": "ფასი შეთანხმებით",
     "sortBy": "სორტირება",
+    "sortByDate": "თარიღით",
+    "sortByPrice": "ფასით",
+    "sortByMileage": "გარბენით",
     "newest": "უახლესი",
     "oldest": "ძველი",
     "priceAsc": "ფასი: ზრდადი",
@@ -80,8 +92,16 @@
     "mileageDesc": "გარბენი: კლებადი",
     "reset": "გასუფთავება",
     "apply": "ძებნა",
-    "results": "შედეგი",
-    "additionalFilters": "დამატებითი ფილტრები"
+    "moreFilters": "მეტი ფილტრი",
+    "selectBrand": "აირჩიე მარკა",
+    "selectModel": "აირჩიე მოდელი",
+    "selectYear": "აირჩიე წელი",
+    "select": "აირჩიე",
+    "upTo": "-მდე",
+    "tbilisi": "თბილისი",
+    "batumi": "ბათუმი",
+    "kutaisi": "ქუთაისი",
+    "rustavi": "რუსთავი"
   },
   "car": {
     "year": "წელი",
@@ -90,8 +110,9 @@
     "fuel": "საწვავი",
     "transmission": "კოლოფი",
     "location": "მდებარეობა",
+    "place": "ადგილი",
     "price": "ფასი",
-    "negotiable": "შეთანხმებით",
+    "negotiable": "ფასი შეთანხმებით",
     "description": "აღწერა",
     "specifications": "მახასიათებლები",
     "contact": "დაკავშირება",
@@ -103,10 +124,30 @@
     "report": "შეტყობინება პრობლემაზე",
     "vip": "VIP",
     "superVip": "SUPER VIP",
+    "vipPlus": "VIP+",
     "verified": "დამოწმებული"
   },
+  "home": {
+    "allListings": "ყველა განცხადება",
+    "noCarsFound": "ავტომობილები არ მოიძებნა",
+    "tryOtherFilters": "სცადეთ სხვა ფილტრები",
+    "noListingsYet": "ჯერ არცერთი განცხადება არ არის",
+    "addListing": "დაამატე განცხადება",
+    "users": "მომხმარებელი",
+    "listings": "განცხადება",
+    "secure": "დაცული",
+    "support": "მხარდაჭერა",
+    "largestPlatform": "საქართველოს უდიდესი ავტომობილების პლატფორმა."
+  },
+  "vip": {
+    "title": "SUPER VIP",
+    "subtitle": "პრემიუმ განცხადებები",
+    "viewAll": "ყველას ნახვა"
+  },
   "addCar": {
-    "title": "მანქანის დამატება",
+    "title": "განცხადების დამატება",
+    "subtitle": "შეავსეთ ინფორმაცია განცხადების გამოსაქვეყნებლად",
+    "backToHome": "მთავარზე დაბრუნება",
     "basicInfo": "ძირითადი ინფორმაცია",
     "photos": "ფოტოები",
     "details": "დეტალები",
@@ -119,18 +160,36 @@
     "maxPhotos": "მაქსიმუმ 20 ფოტო",
     "mainPhoto": "მთავარი ფოტო",
     "phone": "ტელეფონი",
-    "generateDescription": "AI აღწერის გენერირება",
+    "phonePlaceholder": "+995 5XX XXX XXX",
+    "photoUrl": "ფოტოს URL",
+    "photoUrlPlaceholder": "https://example.com/photo.jpg",
+    "generateDescription": "AI აღწერა",
+    "generating": "გენერირდება...",
+    "descriptionPlaceholder": "ავტომობილის აღწერა...",
     "publish": "გამოქვეყნება",
+    "publishing": "გამოქვეყნება...",
     "saveDraft": "შენახვა მონახაზად",
-    "preview": "წინასწარი ნახვა"
+    "preview": "წინასწარი ნახვა",
+    "requiredFields": "შეავსეთ სავალდებულო ველები",
+    "errorOccurred": "შეცდომა მოხდა, სცადეთ თავიდან",
+    "selectBrandModel": "მიუთითეთ მარკა და მოდელი",
+    "vehicleTypes": {
+      "car": "მანქანა",
+      "moto": "მოტო",
+      "atv": "ATV"
+    }
   },
   "auth": {
     "login": "შესვლა",
     "register": "რეგისტრაცია",
     "email": "ელ-ფოსტა",
+    "emailPlaceholder": "name@example.com",
     "password": "პაროლი",
+    "passwordPlaceholder": "შეიყვანეთ პაროლი",
     "confirmPassword": "გაიმეორეთ პაროლი",
+    "confirmPasswordPlaceholder": "გაიმეორეთ პაროლი",
     "name": "სახელი",
+    "namePlaceholder": "თქვენი სახელი",
     "forgotPassword": "დაგავიწყდა პაროლი?",
     "rememberMe": "დამიმახსოვრე",
     "orContinueWith": "ან გააგრძელეთ",
@@ -145,7 +204,11 @@
     "invalidCredentials": "არასწორი ელ-ფოსტა ან პაროლი",
     "emailInUse": "ეს ელ-ფოსტა უკვე გამოიყენება",
     "weakPassword": "პაროლი ძალიან სუსტია",
-    "passwordMismatch": "პაროლები არ ემთხვევა"
+    "passwordMismatch": "პაროლები არ ემთხვევა",
+    "createAccount": "ანგარიშის შექმნა",
+    "welcomeBack": "გამარჯობა!",
+    "loginSubtitle": "შედით თქვენს ანგარიშზე",
+    "registerSubtitle": "შექმენით ახალი ანგარიში"
   },
   "profile": {
     "title": "პროფილი",
@@ -160,6 +223,12 @@
     "deleteAccount": "ანგარიშის წაშლა",
     "noListings": "თქვენ ჯერ არ გაქვთ განცხადებები",
     "noFavorites": "თქვენ ჯერ არ გაქვთ ფავორიტები"
+  },
+  "favorites": {
+    "title": "რჩეულები",
+    "empty": "ფავორიტები ცარიელია",
+    "emptyDescription": "დაამატეთ მანქანები რჩეულებში გულის ღილაკზე დაჭერით",
+    "browseCars": "მანქანების ნახვა"
   },
   "compare": {
     "title": "შედარება",
@@ -176,7 +245,9 @@
     "privacyPolicy": "კონფიდენციალურობა",
     "contactUs": "კონტაქტი",
     "followUs": "გამოგვყევით",
-    "allRights": "ყველა უფლება დაცულია"
+    "allRights": "ყველა უფლება დაცულია",
+    "links": "ბმულები",
+    "servicesTitle": "სერვისები"
   },
   "admin": {
     "dashboard": "მართვის პანელი",
@@ -187,7 +258,37 @@
     "users": "მომხმარებლები",
     "listings": "განცხადებები",
     "reports": "შეტყობინებები",
-    "settings": "პარამეტრები"
+    "settings": "პარამეტრები",
+    "recentListings": "ბოლო განცხადებები"
+  },
+  "chat": {
+    "title": "ჩატი",
+    "noMessages": "შეტყობინებები არ არის",
+    "typeMessage": "შეიყვანეთ შეტყობინება...",
+    "send": "გაგზავნა"
+  },
+  "services": {
+    "title": "სერვისები",
+    "vinCheck": "VIN შემოწმება",
+    "insurance": "დაზღვევა",
+    "loan": "ავტოსესხი",
+    "inspection": "ტექ. ინსპექცია"
+  },
+  "blog": {
+    "title": "ბლოგი",
+    "readMore": "წაკითხვა",
+    "noPosts": "პოსტები არ არის"
+  },
+  "aiSearch": {
+    "title": "AI ძებნა",
+    "description": "აღწერე რა მანქანა გინდა ბუნებრივი ენით და AI მოძებნის შენთვის საუკეთესო ვარიანტებს",
+    "placeholder": "მაგ: იაფი ჰიბრიდი 2015 წლიდან თბილისში...",
+    "suggestions": {
+      "cheapHybrid": "იაფი ჰიბრიდი",
+      "sedan2020": "სედანი 2020+",
+      "electricCar": "ელექტრო მანქანა",
+      "familySuv": "ოჯახური SUV"
+    }
   },
   "language": {
     "georgian": "ქართული",

@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useState, useMemo } from 'react'
+import { useTranslations } from 'next-intl'
 import CarCard from '@/components/CarCard'
 import Navbar from '@/components/Navbar'
 import FilterBar, { Filters } from '@/components/FilterBar'
@@ -15,19 +16,20 @@ const emptyFilters: Filters = {
   priceFrom: '', priceTo: '', fuelType: '', vehicleType: '', transmission: '',
 }
 
-const stats = [
-  { icon: Users, value: '2.5M+', label: 'მომხმარებელი' },
-  { icon: CarIcon, value: '137K', label: 'განცხადება' },
-  { icon: Shield, value: '100%', label: 'დაცული' },
-  { icon: Clock, value: '24/7', label: 'მხარდაჭერა' },
-]
-
 export default function Home() {
+  const t = useTranslations()
   const [cars, setCars] = useState<Car[]>([])
   const [loading, setLoading] = useState(true)
   const [filters, setFilters] = useState<Filters>(emptyFilters)
   const [aiQuery, setAIQuery] = useState('')
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid')
+
+  const stats = [
+    { icon: Users, value: '2.5M+', label: t('home.users') },
+    { icon: CarIcon, value: '137K', label: t('home.listings') },
+    { icon: Shield, value: '100%', label: t('home.secure') },
+    { icon: Clock, value: '24/7', label: t('home.support') },
+  ]
 
   useEffect(() => {
     setLoading(true)
@@ -93,8 +95,8 @@ export default function Home() {
         <section className="mx-auto max-w-7xl px-4 py-6 lg:px-6">
           <div className="mb-5 flex items-center justify-between">
             <div>
-              <h2 className="text-lg font-bold text-white">ყველა განცხადება</h2>
-              <p className="text-sm text-slate-400">{filteredCars.length.toLocaleString()} შედეგი</p>
+              <h2 className="text-lg font-bold text-white">{t('home.allListings')}</h2>
+              <p className="text-sm text-slate-400">{filteredCars.length.toLocaleString()} {t('common.results')}</p>
             </div>
             <div className="flex items-center gap-3">
               <div className="flex rounded-xl border border-white/10 bg-white/5 p-1">
@@ -103,10 +105,10 @@ export default function Home() {
               </div>
               <div className="relative">
                 <select className="h-11 appearance-none rounded-xl border border-white/10 bg-white/5 pl-4 pr-10 text-sm font-medium text-white focus:border-orange-500/50 focus:outline-none">
-                  <option>თარიღით (ახალი)</option>
-                  <option>ფასით (ზრდადი)</option>
-                  <option>ფასით (კლებადი)</option>
-                  <option>წლით (ახალი)</option>
+                  <option>{t('filters.sortByDate')} ({t('filters.newest')})</option>
+                  <option>{t('filters.priceAsc')}</option>
+                  <option>{t('filters.priceDesc')}</option>
+                  <option>{t('car.year')} ({t('filters.newest')})</option>
                 </select>
                 <ArrowUpDown className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
               </div>
@@ -117,7 +119,7 @@ export default function Home() {
             <div className="flex items-center justify-center py-24">
               <div className="flex flex-col items-center gap-4">
                 <div className="h-12 w-12 animate-spin rounded-full border-4 border-slate-700 border-t-orange-500" />
-                <p className="text-sm text-slate-400">იტვირთება...</p>
+                <p className="text-sm text-slate-400">{t('common.loading')}</p>
               </div>
             </div>
           ) : regularCars.length > 0 ? (
@@ -127,9 +129,9 @@ export default function Home() {
           ) : (
             <div className="flex flex-col items-center justify-center rounded-2xl border border-white/10 bg-[#1e293b] py-24">
               <div className="flex h-20 w-20 items-center justify-center rounded-2xl bg-slate-800"><CarIcon className="h-10 w-10 text-slate-600" /></div>
-              <h3 className="mt-6 text-xl font-bold text-white">ავტომობილები არ მოიძებნა</h3>
-              <p className="mt-2 text-slate-400">{Object.values(filters).some(v => v) ? 'სცადეთ სხვა ფილტრები' : 'ჯერ არცერთი განცხადება არ არის'}</p>
-              <Link href="/add-car" className="mt-8 rounded-xl bg-gradient-to-r from-orange-500 to-orange-600 px-8 py-3.5 text-sm font-bold text-white shadow-lg shadow-orange-500/25">დაამატე განცხადება</Link>
+              <h3 className="mt-6 text-xl font-bold text-white">{t('home.noCarsFound')}</h3>
+              <p className="mt-2 text-slate-400">{Object.values(filters).some(v => v) ? t('home.tryOtherFilters') : t('home.noListingsYet')}</p>
+              <Link href="/add-car" className="mt-8 rounded-xl bg-gradient-to-r from-orange-500 to-orange-600 px-8 py-3.5 text-sm font-bold text-white shadow-lg shadow-orange-500/25">{t('home.addListing')}</Link>
             </div>
           )}
         </section>
@@ -157,27 +159,27 @@ export default function Home() {
           <div className="grid gap-10 md:grid-cols-2 lg:grid-cols-4">
             <div>
               <Image src="/logo.jpg" alt="Automanqanebi.ge" width={120} height={60} className="h-12 w-auto" />
-              <p className="mt-4 text-sm leading-relaxed text-slate-400">საქართველოს უდიდესი ავტომობილების პლატფორმა.</p>
+              <p className="mt-4 text-sm leading-relaxed text-slate-400">{t('home.largestPlatform')}</p>
             </div>
             <div>
-              <h4 className="mb-4 font-bold text-white">ბმულები</h4>
+              <h4 className="mb-4 font-bold text-white">{t('footer.links')}</h4>
               <div className="flex flex-col gap-3">
-                <Link href="/" className="text-sm text-slate-400 hover:text-orange-400">მთავარი</Link>
-                <Link href="/add-car" className="text-sm text-slate-400 hover:text-orange-400">დამატება</Link>
-                <Link href="/services" className="text-sm text-slate-400 hover:text-orange-400">სერვისები</Link>
-                <Link href="/blog" className="text-sm text-slate-400 hover:text-orange-400">ბლოგი</Link>
+                <Link href="/" className="text-sm text-slate-400 hover:text-orange-400">{t('nav.home')}</Link>
+                <Link href="/add-car" className="text-sm text-slate-400 hover:text-orange-400">{t('nav.addCar')}</Link>
+                <Link href="/services" className="text-sm text-slate-400 hover:text-orange-400">{t('nav.services')}</Link>
+                <Link href="/blog" className="text-sm text-slate-400 hover:text-orange-400">{t('blog.title')}</Link>
               </div>
             </div>
             <div>
-              <h4 className="mb-4 font-bold text-white">სერვისები</h4>
+              <h4 className="mb-4 font-bold text-white">{t('footer.servicesTitle')}</h4>
               <div className="flex flex-col gap-3">
-                <Link href="/compare" className="text-sm text-slate-400 hover:text-orange-400">შედარება</Link>
-                <Link href="/favorites" className="text-sm text-slate-400 hover:text-orange-400">რჩეულები</Link>
-                <Link href="/profile" className="text-sm text-slate-400 hover:text-orange-400">პროფილი</Link>
+                <Link href="/compare" className="text-sm text-slate-400 hover:text-orange-400">{t('compare.title')}</Link>
+                <Link href="/favorites" className="text-sm text-slate-400 hover:text-orange-400">{t('nav.favorites')}</Link>
+                <Link href="/profile" className="text-sm text-slate-400 hover:text-orange-400">{t('nav.profile')}</Link>
               </div>
             </div>
             <div>
-              <h4 className="mb-4 font-bold text-white">კონტაქტი</h4>
+              <h4 className="mb-4 font-bold text-white">{t('footer.contactUs')}</h4>
               <div className="flex flex-col gap-3 text-sm text-slate-400">
                 <span>info@automanqanebi.ge</span>
                 <span>+995 555 123 456</span>
@@ -185,7 +187,7 @@ export default function Home() {
             </div>
           </div>
           <div className="mt-10 border-t border-white/10 pt-8 text-center">
-            <p className="text-sm text-slate-500">{"© 2024 AUTOMANQANEBI.GE"}</p>
+            <p className="text-sm text-slate-500">{"© 2024 AUTOMANQANEBI.GE - "}{t('footer.allRights')}</p>
           </div>
         </div>
       </footer>

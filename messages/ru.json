@@ -16,7 +16,13 @@
     "previous": "Назад",
     "all": "Все",
     "view": "Просмотр",
-    "close": "Закрыть"
+    "close": "Закрыть",
+    "clear": "Очистить",
+    "results": "результатов",
+    "unknown": "Неизвестно",
+    "negotiable": "Договорная",
+    "more": "Больше",
+    "km": "км"
   },
   "nav": {
     "home": "Главная",
@@ -37,13 +43,14 @@
     "logout": "Выйти",
     "myCars": "Мои авто",
     "settings": "Настройки",
-    "notifications": "Уведомления"
+    "notifications": "Уведомления",
+    "searchPlaceholder": "Поиск марки, модели..."
   },
   "filters": {
     "title": "Фильтры",
     "aiSearch": "AI Поиск",
-    "new": "Новое",
-    "beta": "Бета",
+    "new": "НОВОЕ",
+    "beta": "БЕТА",
     "buy": "Продажа",
     "rent": "Аренда",
     "category": "Категория",
@@ -63,6 +70,8 @@
     "transmission": "Коробка передач",
     "automatic": "Автомат",
     "manual": "Механика",
+    "tiptronic": "Типтроник",
+    "variator": "Вариатор",
     "petrol": "Бензин",
     "diesel": "Дизель",
     "hybrid": "Гибрид",
@@ -70,8 +79,11 @@
     "lpg": "Газ",
     "hasVin": "С VIN кодом",
     "has360": "360° фото",
-    "negotiable": "Цена договорная",
+    "priceNegotiable": "Цена договорная",
     "sortBy": "Сортировка",
+    "sortByDate": "По дате",
+    "sortByPrice": "По цене",
+    "sortByMileage": "По пробегу",
     "newest": "Новые",
     "oldest": "Старые",
     "priceAsc": "Цена: по возрастанию",
@@ -80,8 +92,16 @@
     "mileageDesc": "Пробег: по убыванию",
     "reset": "Сбросить",
     "apply": "Поиск",
-    "results": "Результаты",
-    "additionalFilters": "Дополнительные фильтры"
+    "moreFilters": "Ещё фильтры",
+    "selectBrand": "Выберите марку",
+    "selectModel": "Выберите модель",
+    "selectYear": "Выберите год",
+    "select": "Выбрать",
+    "upTo": "до",
+    "tbilisi": "Тбилиси",
+    "batumi": "Батуми",
+    "kutaisi": "Кутаиси",
+    "rustavi": "Рустави"
   },
   "car": {
     "year": "Год",
@@ -90,8 +110,9 @@
     "fuel": "Топливо",
     "transmission": "Коробка",
     "location": "Расположение",
+    "place": "Место",
     "price": "Цена",
-    "negotiable": "Договорная",
+    "negotiable": "Цена договорная",
     "description": "Описание",
     "specifications": "Характеристики",
     "contact": "Связаться",
@@ -103,10 +124,30 @@
     "report": "Пожаловаться",
     "vip": "VIP",
     "superVip": "SUPER VIP",
+    "vipPlus": "VIP+",
     "verified": "Проверено"
   },
+  "home": {
+    "allListings": "Все объявления",
+    "noCarsFound": "Автомобили не найдены",
+    "tryOtherFilters": "Попробуйте другие фильтры",
+    "noListingsYet": "Объявлений пока нет",
+    "addListing": "Добавить объявление",
+    "users": "Пользователей",
+    "listings": "Объявлений",
+    "secure": "Безопасно",
+    "support": "Поддержка",
+    "largestPlatform": "Крупнейшая автомобильная платформа Грузии."
+  },
+  "vip": {
+    "title": "SUPER VIP",
+    "subtitle": "Премиум объявления",
+    "viewAll": "Смотреть все"
+  },
   "addCar": {
-    "title": "Добавить авто",
+    "title": "Добавить объявление",
+    "subtitle": "Заполните информацию для публикации объявления",
+    "backToHome": "Вернуться на главную",
     "basicInfo": "Основная информация",
     "photos": "Фотографии",
     "details": "Детали",
@@ -119,21 +160,39 @@
     "maxPhotos": "Максимум 20 фото",
     "mainPhoto": "Главное фото",
     "phone": "Телефон",
-    "generateDescription": "Сгенерировать описание AI",
+    "phonePlaceholder": "+995 5XX XXX XXX",
+    "photoUrl": "URL фото",
+    "photoUrlPlaceholder": "https://example.com/photo.jpg",
+    "generateDescription": "AI Описание",
+    "generating": "Генерация...",
+    "descriptionPlaceholder": "Описание автомобиля...",
     "publish": "Опубликовать",
+    "publishing": "Публикация...",
     "saveDraft": "Сохранить черновик",
-    "preview": "Предпросмотр"
+    "preview": "Предпросмотр",
+    "requiredFields": "Заполните обязательные поля",
+    "errorOccurred": "Произошла ошибка, попробуйте снова",
+    "selectBrandModel": "Укажите марку и модель",
+    "vehicleTypes": {
+      "car": "Автомобиль",
+      "moto": "Мотоцикл",
+      "atv": "Квадроцикл"
+    }
   },
   "auth": {
     "login": "Войти",
     "register": "Регистрация",
     "email": "Эл. почта",
+    "emailPlaceholder": "name@example.com",
     "password": "Пароль",
+    "passwordPlaceholder": "Введите пароль",
     "confirmPassword": "Подтвердите пароль",
+    "confirmPasswordPlaceholder": "Подтвердите пароль",
     "name": "Имя",
+    "namePlaceholder": "Ваше имя",
     "forgotPassword": "Забыли пароль?",
     "rememberMe": "Запомнить меня",
-    "orContinueWith": "или продолжить с",
+    "orContinueWith": "Или продолжить с",
     "google": "Google",
     "apple": "Apple",
     "noAccount": "Нет аккаунта?",
@@ -145,7 +204,11 @@
     "invalidCredentials": "Неверный email или пароль",
     "emailInUse": "Этот email уже используется",
     "weakPassword": "Слишком слабый пароль",
-    "passwordMismatch": "Пароли не совпадают"
+    "passwordMismatch": "Пароли не совпадают",
+    "createAccount": "Создать аккаунт",
+    "welcomeBack": "С возвращением!",
+    "loginSubtitle": "Войдите в свой аккаунт",
+    "registerSubtitle": "Создайте новый аккаунт"
   },
   "profile": {
     "title": "Профиль",
@@ -160,6 +223,12 @@
     "deleteAccount": "Удалить аккаунт",
     "noListings": "У вас пока нет объявлений",
     "noFavorites": "У вас пока нет избранного"
+  },
+  "favorites": {
+    "title": "Избранное",
+    "empty": "Избранное пусто",
+    "emptyDescription": "Добавляйте автомобили в избранное нажатием на сердечко",
+    "browseCars": "Смотреть автомобили"
   },
   "compare": {
     "title": "Сравнение",
@@ -176,7 +245,9 @@
     "privacyPolicy": "Политика конфиденциальности",
     "contactUs": "Связаться с нами",
     "followUs": "Подписывайтесь",
-    "allRights": "Все права защищены"
+    "allRights": "Все права защищены",
+    "links": "Ссылки",
+    "servicesTitle": "Услуги"
   },
   "admin": {
     "dashboard": "Панель управления",
@@ -187,11 +258,41 @@
     "users": "Пользователи",
     "listings": "Объявления",
     "reports": "Жалобы",
-    "settings": "Настройки"
+    "settings": "Настройки",
+    "recentListings": "Последние объявления"
+  },
+  "chat": {
+    "title": "Чат",
+    "noMessages": "Нет сообщений",
+    "typeMessage": "Введите сообщение...",
+    "send": "Отправить"
+  },
+  "services": {
+    "title": "Услуги",
+    "vinCheck": "Проверка VIN",
+    "insurance": "Страхование",
+    "loan": "Автокредит",
+    "inspection": "Техосмотр"
+  },
+  "blog": {
+    "title": "Блог",
+    "readMore": "Читать далее",
+    "noPosts": "Нет публикаций"
+  },
+  "aiSearch": {
+    "title": "AI Поиск",
+    "description": "Опишите какой автомобиль вы хотите на естественном языке и AI найдет лучшие варианты для вас",
+    "placeholder": "напр.: недорогой гибрид с 2015 года в Тбилиси...",
+    "suggestions": {
+      "cheapHybrid": "Недорогой гибрид",
+      "sedan2020": "Седан 2020+",
+      "electricCar": "Электромобиль",
+      "familySuv": "Семейный SUV"
+    }
   },
   "language": {
-    "georgian": "Грузинский",
-    "english": "Английский",
+    "georgian": "ქართული",
+    "english": "English",
     "russian": "Русский",
     "select": "Выберите язык"
   }
