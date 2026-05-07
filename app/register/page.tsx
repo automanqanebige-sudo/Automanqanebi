@@ -4,10 +4,12 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
+import { useTranslations } from "next-intl";
 import { useAuth } from "@/context/AuthContext";
 import { Mail, Lock, Eye, EyeOff, Loader2, User } from "lucide-react";
 
 export default function RegisterPage() {
+  const t = useTranslations();
   const router = useRouter();
   const { registerWithEmail, loginWithGoogle, loginWithApple } = useAuth();
   
@@ -24,12 +26,12 @@ export default function RegisterPage() {
     setError("");
 
     if (password !== confirmPassword) {
-      setError("პაროლები არ ემთხვევა");
+      setError(t('auth.passwordMismatch'));
       return;
     }
 
     if (password.length < 6) {
-      setError("პაროლი უნდა იყოს მინიმუმ 6 სიმბოლო");
+      setError(t('auth.passwordMinLength'));
       return;
     }
 
@@ -40,13 +42,13 @@ export default function RegisterPage() {
       router.push("/profile");
     } catch (err: any) {
       if (err.code === "auth/email-already-in-use") {
-        setError("ეს ელ-ფოსტა უკვე გამოყენებულია");
+        setError(t('auth.emailInUse'));
       } else if (err.code === "auth/weak-password") {
-        setError("პაროლი ძალიან სუსტია");
+        setError(t('auth.weakPassword'));
       } else if (err.code === "auth/invalid-email") {
-        setError("არასწორი ელ-ფოსტის ფორმატი");
+        setError(t('auth.invalidEmail'));
       } else {
-        setError("რეგისტრაცია ვერ მოხერხდა");
+        setError(t('auth.registrationFailed'));
       }
     } finally {
       setLoading(false);
@@ -59,7 +61,7 @@ export default function RegisterPage() {
       await loginWithGoogle();
       router.push("/profile");
     } catch (err) {
-      setError("Google-ით შესვლა ვერ მოხერხდა");
+      setError(t('auth.googleFailed'));
     }
   };
 
@@ -69,7 +71,7 @@ export default function RegisterPage() {
       await loginWithApple();
       router.push("/profile");
     } catch (err) {
-      setError("Apple-ით შესვლა ვერ მოხერხდა");
+      setError(t('auth.appleFailed'));
     }
   };
 
@@ -87,8 +89,8 @@ export default function RegisterPage() {
               className="h-16 w-auto"
             />
           </Link>
-          <h1 className="mt-6 text-2xl font-bold text-white">რეგისტრაცია</h1>
-          <p className="mt-2 text-slate-400">შექმენით ახალი ანგარიში</p>
+          <h1 className="mt-6 text-2xl font-bold text-white">{t('auth.createAccount')}</h1>
+          <p className="mt-2 text-slate-400">{t('auth.registerSubtitle')}</p>
         </div>
 
         {/* Card */}
@@ -104,7 +106,7 @@ export default function RegisterPage() {
           <form onSubmit={handleRegister} className="space-y-4">
             <div>
               <label className="mb-2 block text-sm font-medium text-slate-300">
-                სახელი
+                {t('auth.name')}
               </label>
               <div className="relative">
                 <User className="absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-slate-400" />
@@ -112,7 +114,7 @@ export default function RegisterPage() {
                   type="text"
                   value={name}
                   onChange={(e) => setName(e.target.value)}
-                  placeholder="თქვენი სახელი"
+                  placeholder={t('auth.namePlaceholder')}
                   required
                   className="w-full rounded-xl border border-slate-600 bg-slate-700 py-3 pl-12 pr-4 text-white placeholder:text-slate-400 focus:border-orange-500 focus:outline-none focus:ring-2 focus:ring-orange-500/20"
                 />
@@ -121,7 +123,7 @@ export default function RegisterPage() {
 
             <div>
               <label className="mb-2 block text-sm font-medium text-slate-300">
-                ელ-ფოსტა
+                {t('auth.email')}
               </label>
               <div className="relative">
                 <Mail className="absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-slate-400" />
@@ -129,7 +131,7 @@ export default function RegisterPage() {
                   type="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  placeholder="example@email.com"
+                  placeholder={t('auth.emailPlaceholder')}
                   required
                   className="w-full rounded-xl border border-slate-600 bg-slate-700 py-3 pl-12 pr-4 text-white placeholder:text-slate-400 focus:border-orange-500 focus:outline-none focus:ring-2 focus:ring-orange-500/20"
                 />
@@ -138,7 +140,7 @@ export default function RegisterPage() {
 
             <div>
               <label className="mb-2 block text-sm font-medium text-slate-300">
-                პაროლი
+                {t('auth.password')}
               </label>
               <div className="relative">
                 <Lock className="absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-slate-400" />
@@ -146,7 +148,7 @@ export default function RegisterPage() {
                   type={showPassword ? "text" : "password"}
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  placeholder="მინიმუმ 6 სიმბოლო"
+                  placeholder={t('auth.passwordPlaceholder')}
                   required
                   className="w-full rounded-xl border border-slate-600 bg-slate-700 py-3 pl-12 pr-12 text-white placeholder:text-slate-400 focus:border-orange-500 focus:outline-none focus:ring-2 focus:ring-orange-500/20"
                 />
@@ -158,11 +160,12 @@ export default function RegisterPage() {
                   {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
                 </button>
               </div>
+              <p className="mt-1 text-xs text-slate-500">{t('auth.passwordMinLength')}</p>
             </div>
 
             <div>
               <label className="mb-2 block text-sm font-medium text-slate-300">
-                გაიმეორეთ პაროლი
+                {t('auth.confirmPassword')}
               </label>
               <div className="relative">
                 <Lock className="absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-slate-400" />
@@ -170,21 +173,11 @@ export default function RegisterPage() {
                   type={showPassword ? "text" : "password"}
                   value={confirmPassword}
                   onChange={(e) => setConfirmPassword(e.target.value)}
-                  placeholder="გაიმეორეთ პაროლი"
+                  placeholder={t('auth.confirmPasswordPlaceholder')}
                   required
                   className="w-full rounded-xl border border-slate-600 bg-slate-700 py-3 pl-12 pr-4 text-white placeholder:text-slate-400 focus:border-orange-500 focus:outline-none focus:ring-2 focus:ring-orange-500/20"
                 />
               </div>
-            </div>
-
-            <div className="flex items-start gap-2">
-              <input type="checkbox" required className="mt-1 rounded border-slate-600 bg-slate-700" />
-              <label className="text-sm text-slate-400">
-                ვეთანხმები{" "}
-                <Link href="/terms" className="text-orange-500 hover:underline">
-                  წესებსა და პირობებს
-                </Link>
-              </label>
             </div>
 
             <button
@@ -195,10 +188,10 @@ export default function RegisterPage() {
               {loading ? (
                 <>
                   <Loader2 className="h-5 w-5 animate-spin" />
-                  იტვირთება...
+                  {t('common.loading')}
                 </>
               ) : (
-                "რეგისტრაცია"
+                t('auth.createAccount')
               )}
             </button>
           </form>
@@ -206,7 +199,7 @@ export default function RegisterPage() {
           {/* Divider */}
           <div className="my-6 flex items-center gap-4">
             <div className="h-px flex-1 bg-slate-600" />
-            <span className="text-sm text-slate-400">ან</span>
+            <span className="text-sm text-slate-400">{t('auth.orContinueWith')}</span>
             <div className="h-px flex-1 bg-slate-600" />
           </div>
 
@@ -222,7 +215,7 @@ export default function RegisterPage() {
                 <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
                 <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
               </svg>
-              Google-ით რეგისტრაცია
+              {t('auth.googleRegister')}
             </button>
 
             <button
@@ -232,15 +225,15 @@ export default function RegisterPage() {
               <svg className="h-5 w-5" viewBox="0 0 24 24" fill="currentColor">
                 <path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.81-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M13 3.5c.73-.83 1.94-1.46 2.94-1.5.13 1.17-.34 2.35-1.04 3.19-.69.85-1.83 1.51-2.95 1.42-.15-1.15.41-2.35 1.05-3.11z"/>
               </svg>
-              Apple-ით რეგისტრაცია
+              {t('auth.appleRegister')}
             </button>
           </div>
 
           {/* Login Link */}
           <p className="mt-8 text-center text-sm text-slate-400">
-            უკვე გაქვთ ანგარიში?{" "}
+            {t('auth.haveAccount')}{" "}
             <Link href="/login" className="font-semibold text-orange-500 hover:underline">
-              შესვლა
+              {t('auth.login')}
             </Link>
           </p>
         </div>

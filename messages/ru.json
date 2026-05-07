@@ -12,6 +12,7 @@
     "success": "Успешно",
     "confirm": "Подтвердить",
     "back": "Назад",
+    "backToHome": "На главную",
     "next": "Далее",
     "previous": "Назад",
     "all": "Все",
@@ -22,7 +23,11 @@
     "unknown": "Неизвестно",
     "negotiable": "Договорная",
     "more": "Больше",
-    "km": "км"
+    "km": "км",
+    "or": "или",
+    "required": "Обязательно",
+    "optional": "Необязательно",
+    "select": "Выбрать"
   },
   "nav": {
     "home": "Главная",
@@ -73,6 +78,7 @@
     "tiptronic": "Типтроник",
     "variator": "Вариатор",
     "petrol": "Бензин",
+    "gasoline": "Бензин",
     "diesel": "Дизель",
     "hybrid": "Гибрид",
     "electric": "Электро",
@@ -101,7 +107,9 @@
     "tbilisi": "Тбилиси",
     "batumi": "Батуми",
     "kutaisi": "Кутаиси",
-    "rustavi": "Рустави"
+    "rustavi": "Рустави",
+    "fuelType": "Тип топлива",
+    "engine": "Двигатель"
   },
   "car": {
     "year": "Год",
@@ -125,7 +133,9 @@
     "vip": "VIP",
     "superVip": "SUPER VIP",
     "vipPlus": "VIP+",
-    "verified": "Проверено"
+    "verified": "Проверено",
+    "addCar": "Добавить авто",
+    "parameter": "Параметр"
   },
   "home": {
     "allListings": "Все объявления",
@@ -177,7 +187,11 @@
       "car": "Автомобиль",
       "moto": "Мотоцикл",
       "atv": "Квадроцикл"
-    }
+    },
+    "brand": "Марка",
+    "model": "Модель",
+    "mileage": "Пробег (км)",
+    "mileagePlaceholder": "50000"
   },
   "auth": {
     "login": "Войти",
@@ -186,29 +200,43 @@
     "emailPlaceholder": "name@example.com",
     "password": "Пароль",
     "passwordPlaceholder": "Введите пароль",
+    "passwordMinLength": "Минимум 6 символов",
     "confirmPassword": "Подтвердите пароль",
     "confirmPasswordPlaceholder": "Подтвердите пароль",
     "name": "Имя",
     "namePlaceholder": "Ваше имя",
     "forgotPassword": "Забыли пароль?",
     "rememberMe": "Запомнить меня",
-    "orContinueWith": "Или продолжить с",
+    "orContinueWith": "или",
     "google": "Google",
     "apple": "Apple",
+    "googleLogin": "Войти через Google",
+    "appleLogin": "Войти через Apple",
+    "googleRegister": "Зарегистрироваться через Google",
+    "appleRegister": "Зарегистрироваться через Apple",
     "noAccount": "Нет аккаунта?",
     "haveAccount": "Уже есть аккаунт?",
-    "termsAgree": "Я согласен с условиями",
+    "termsAgree": "Я согласен с",
+    "termsAndConditions": "Условиями использования",
     "loginSuccess": "Успешный вход",
     "registerSuccess": "Успешная регистрация",
     "logoutSuccess": "Успешный выход",
     "invalidCredentials": "Неверный email или пароль",
+    "userNotFound": "Пользователь не найден",
+    "loginFailed": "Ошибка входа",
+    "googleFailed": "Ошибка входа через Google",
+    "appleFailed": "Ошибка входа через Apple",
     "emailInUse": "Этот email уже используется",
     "weakPassword": "Слишком слабый пароль",
+    "invalidEmail": "Неверный формат email",
     "passwordMismatch": "Пароли не совпадают",
+    "registrationFailed": "Ошибка регистрации",
     "createAccount": "Создать аккаунт",
-    "welcomeBack": "С возвращением!",
+    "welcomeBack": "Вход",
     "loginSubtitle": "Войдите в свой аккаунт",
-    "registerSubtitle": "Создайте новый аккаунт"
+    "registerSubtitle": "Создайте новый аккаунт",
+    "loginRequired": "Требуется вход",
+    "loginRequiredDescription": "Войдите в аккаунт, чтобы просмотреть избранное"
   },
   "profile": {
     "title": "Профиль",
@@ -222,22 +250,32 @@
     "currency": "Валюта",
     "deleteAccount": "Удалить аккаунт",
     "noListings": "У вас пока нет объявлений",
-    "noFavorites": "У вас пока нет избранного"
+    "noListingsDescription": "Добавьте своё первое объявление",
+    "noFavorites": "У вас пока нет избранного",
+    "noFavoritesDescription": "Добавляйте объявления в избранное",
+    "user": "Пользователь",
+    "views": "Просмотры",
+    "messages": "Сообщения",
+    "savedListings": "Сохранённые объявления"
   },
   "favorites": {
     "title": "Избранное",
     "empty": "Избранное пусто",
-    "emptyDescription": "Добавляйте автомобили в избранное нажатием на сердечко",
-    "browseCars": "Смотреть автомобили"
+    "emptyDescription": "Пока нет сохранённых объявлений",
+    "browseCars": "Смотреть объявления"
   },
   "compare": {
-    "title": "Сравнение",
+    "title": "Сравнение авто",
+    "subtitle": "Сравните 2-3 автомобиля и выберите лучший",
     "selectCars": "Выберите авто для сравнения",
     "maxCars": "Максимум 3 авто",
-    "noCarsSelected": "Авто не выбраны",
-    "addToCompare": "Добавить к сравнению",
+    "noCarsSelected": "Выберите минимум 2 авто",
+    "noCarsDescription": "Для просмотра таблицы сравнения",
+    "addToCompare": "Добавить авто",
     "removeFromCompare": "Убрать из сравнения",
-    "clear": "Очистить"
+    "clear": "Очистить",
+    "chooseCar": "Выбрать авто",
+    "noCarsFound": "Автомобили не найдены"
   },
   "footer": {
     "aboutUs": "О нас",
@@ -268,16 +306,25 @@
     "send": "Отправить"
   },
   "services": {
-    "title": "Услуги",
+    "title": "Автосервисы",
+    "subtitle": "Все автоуслуги в одном месте — комплексное обслуживание от двигателя до визуала",
     "vinCheck": "Проверка VIN",
     "insurance": "Страхование",
     "loan": "Автокредит",
-    "inspection": "Техосмотр"
+    "inspection": "Техосмотр",
+    "all": "Все",
+    "categories": "Категории услуг",
+    "mechanic": "Двигатель и механика",
+    "detailing": "Детейлинг",
+    "electric": "Электрика",
+    "other": "Другие услуги"
   },
   "blog": {
-    "title": "Блог",
+    "title": "Блог и новости",
+    "subtitle": "Последние новости и полезная информация из мира автомобилей",
     "readMore": "Читать далее",
-    "noPosts": "Нет публикаций"
+    "noPosts": "Нет публикаций",
+    "allArticles": "Все статьи"
   },
   "aiSearch": {
     "title": "AI Поиск",

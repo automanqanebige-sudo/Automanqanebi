@@ -3,13 +3,15 @@
 import { auth, db } from '@/lib/firebase'
 import { useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
+import { useTranslations } from 'next-intl'
 import { collection, query, where, getDocs } from 'firebase/firestore'
 import Navbar from '@/components/Navbar'
 import CarCard from '@/components/CarCard'
-import { User, LogOut, Car, Heart, Settings, Loader2 } from 'lucide-react'
+import { User, LogOut, Car, Heart, Settings, Loader2, Eye, MessageCircle } from 'lucide-react'
 import Link from 'next/link'
 
 export default function ProfilePage() {
+  const t = useTranslations()
   const [user, setUser] = useState<any>(null)
   const [myCars, setMyCars] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
@@ -68,7 +70,7 @@ export default function ProfilePage() {
             {user?.photoURL ? (
               <img
                 src={user.photoURL}
-                alt={user.displayName || 'User'}
+                alt={user.displayName || t('profile.user')}
                 className="h-16 w-16 rounded-full border-2 border-primary/20 object-cover"
               />
             ) : (
@@ -78,7 +80,7 @@ export default function ProfilePage() {
             )}
             <div>
               <h1 className="text-xl font-bold text-foreground">
-                {user?.displayName || 'მომხმარებელი'}
+                {user?.displayName || t('profile.user')}
               </h1>
               <p className="text-sm text-muted-foreground">{user?.email}</p>
             </div>
@@ -90,14 +92,14 @@ export default function ProfilePage() {
               className="flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90"
             >
               <Car className="h-4 w-4" />
-              განცხადების დამატება
+              {t('addCar.title')}
             </Link>
             <button
               onClick={handleSignOut}
               className="flex items-center gap-2 rounded-lg border border-border bg-background px-4 py-2 text-sm font-medium text-foreground transition-colors hover:bg-secondary"
             >
               <LogOut className="h-4 w-4" />
-              გასვლა
+              {t('nav.logout')}
             </button>
           </div>
         </div>
@@ -106,91 +108,88 @@ export default function ProfilePage() {
         <div className="mb-8 grid grid-cols-2 gap-4 sm:grid-cols-4">
           <div className="rounded-xl border border-border bg-card p-4 text-center">
             <p className="text-2xl font-bold text-foreground">{myCars.length}</p>
-            <p className="text-sm text-muted-foreground">განცხადება</p>
+            <p className="text-sm text-muted-foreground">{t('home.listings')}</p>
           </div>
           <div className="rounded-xl border border-border bg-card p-4 text-center">
-            <p className="text-2xl font-bold text-foreground">0</p>
-            <p className="text-sm text-muted-foreground">ნახვა</p>
+            <div className="flex items-center justify-center gap-1">
+              <Eye className="h-4 w-4 text-muted-foreground" />
+              <p className="text-2xl font-bold text-foreground">0</p>
+            </div>
+            <p className="text-sm text-muted-foreground">{t('profile.views')}</p>
           </div>
           <div className="rounded-xl border border-border bg-card p-4 text-center">
-            <p className="text-2xl font-bold text-foreground">0</p>
-            <p className="text-sm text-muted-foreground">ფავორიტი</p>
+            <div className="flex items-center justify-center gap-1">
+              <Heart className="h-4 w-4 text-muted-foreground" />
+              <p className="text-2xl font-bold text-foreground">0</p>
+            </div>
+            <p className="text-sm text-muted-foreground">{t('favorites.title')}</p>
           </div>
           <div className="rounded-xl border border-border bg-card p-4 text-center">
-            <p className="text-2xl font-bold text-foreground">0</p>
-            <p className="text-sm text-muted-foreground">შეტყობინება</p>
+            <div className="flex items-center justify-center gap-1">
+              <MessageCircle className="h-4 w-4 text-muted-foreground" />
+              <p className="text-2xl font-bold text-foreground">0</p>
+            </div>
+            <p className="text-sm text-muted-foreground">{t('profile.messages')}</p>
           </div>
         </div>
 
         {/* Tabs */}
-        <div className="mb-6 flex gap-2 border-b border-border">
+        <div className="mb-6 flex items-center gap-2 rounded-xl bg-card p-1">
           <button
             onClick={() => setActiveTab('listings')}
-            className={`flex items-center gap-2 border-b-2 px-4 py-3 text-sm font-medium transition-colors ${
+            className={`flex items-center gap-2 rounded-lg px-5 py-2.5 text-sm font-medium transition-colors ${
               activeTab === 'listings'
-                ? 'border-primary text-primary'
-                : 'border-transparent text-muted-foreground hover:text-foreground'
+                ? 'bg-primary text-primary-foreground'
+                : 'text-muted-foreground hover:text-foreground'
             }`}
           >
             <Car className="h-4 w-4" />
-            ჩემი განცხადებები
+            {t('profile.myListings')}
           </button>
           <button
             onClick={() => setActiveTab('favorites')}
-            className={`flex items-center gap-2 border-b-2 px-4 py-3 text-sm font-medium transition-colors ${
+            className={`flex items-center gap-2 rounded-lg px-5 py-2.5 text-sm font-medium transition-colors ${
               activeTab === 'favorites'
-                ? 'border-primary text-primary'
-                : 'border-transparent text-muted-foreground hover:text-foreground'
+                ? 'bg-primary text-primary-foreground'
+                : 'text-muted-foreground hover:text-foreground'
             }`}
           >
             <Heart className="h-4 w-4" />
-            ფავორიტები
+            {t('favorites.title')}
           </button>
         </div>
 
         {/* Content */}
-        {activeTab === 'listings' && (
-          <>
-            {myCars.length > 0 ? (
-              <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
-                {myCars.map((car, i) => (
-                  <CarCard key={car.id} car={car} index={i} />
-                ))}
-              </div>
-            ) : (
-              <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-border bg-card/50 py-20">
-                <Car className="h-12 w-12 text-muted-foreground/50" />
-                <h3 className="mt-4 text-lg font-semibold text-foreground">
-                  განცხადებები არ გაქვთ
-                </h3>
-                <p className="mt-1 text-sm text-muted-foreground">
-                  დაამატეთ თქვენი პირველი განცხადება
-                </p>
-                <Link
-                  href="/add-car"
-                  className="mt-6 rounded-lg bg-primary px-5 py-2.5 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90"
-                >
-                  განცხადების დამატება
-                </Link>
-              </div>
-            )}
-          </>
-        )}
-
-        {activeTab === 'favorites' && (
-          <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-border bg-card/50 py-20">
+        {activeTab === 'listings' ? (
+          myCars.length > 0 ? (
+            <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
+              {myCars.map((car: any, i: number) => (
+                <CarCard key={car.id || i} car={car} index={i} />
+              ))}
+            </div>
+          ) : (
+            <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-border bg-card/50 py-16">
+              <Car className="h-12 w-12 text-muted-foreground/50" />
+              <h3 className="mt-4 text-lg font-semibold text-foreground">{t('profile.noListings')}</h3>
+              <p className="mt-1 text-sm text-muted-foreground">{t('profile.noListingsDescription')}</p>
+              <Link
+                href="/add-car"
+                className="mt-6 rounded-lg bg-primary px-5 py-2.5 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90"
+              >
+                {t('addCar.title')}
+              </Link>
+            </div>
+          )
+        ) : (
+          <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-border bg-card/50 py-16">
             <Heart className="h-12 w-12 text-muted-foreground/50" />
-            <h3 className="mt-4 text-lg font-semibold text-foreground">
-              ფავორიტები ცარიელია
-            </h3>
-            <p className="mt-1 text-sm text-muted-foreground">
-              დაამატეთ განცხადებები ფავორიტებში
-            </p>
+            <h3 className="mt-4 text-lg font-semibold text-foreground">{t('profile.noFavorites')}</h3>
+            <p className="mt-1 text-sm text-muted-foreground">{t('profile.noFavoritesDescription')}</p>
             <Link
               href="/"
               className="mt-6 rounded-lg bg-primary px-5 py-2.5 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90"
             >
-              განცხადებების ნახვა
+              {t('favorites.browseCars')}
             </Link>
           </div>
         )}

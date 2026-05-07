@@ -12,6 +12,7 @@
     "success": "წარმატება",
     "confirm": "დადასტურება",
     "back": "უკან",
+    "backToHome": "მთავარზე დაბრუნება",
     "next": "შემდეგი",
     "previous": "წინა",
     "all": "ყველა",
@@ -22,7 +23,14 @@
     "unknown": "უცნობი",
     "negotiable": "შეთანხმებით",
     "more": "მეტი",
-    "km": "კმ"
+    "km": "კმ",
+    "or": "ან",
+    "required": "სავალდებულო",
+    "optional": "არასავალდებულო",
+    "select": "აირჩიე",
+    "today": "დღეს",
+    "yesterday": "გუშინ",
+    "daysAgo": "{count} დღის წინ"
   },
   "nav": {
     "home": "მთავარი",
@@ -73,6 +81,7 @@
     "tiptronic": "ტიპტრონიკი",
     "variator": "ვარიატორი",
     "petrol": "ბენზინი",
+    "gasoline": "ბენზინი",
     "diesel": "დიზელი",
     "hybrid": "ჰიბრიდი",
     "electric": "ელექტრო",
@@ -101,7 +110,9 @@
     "tbilisi": "თბილისი",
     "batumi": "ბათუმი",
     "kutaisi": "ქუთაისი",
-    "rustavi": "რუსთავი"
+    "rustavi": "რუსთავი",
+    "fuelType": "საწვავის ტიპი",
+    "engine": "ძრავი"
   },
   "car": {
     "year": "წელი",
@@ -125,7 +136,9 @@
     "vip": "VIP",
     "superVip": "SUPER VIP",
     "vipPlus": "VIP+",
-    "verified": "დამოწმებული"
+    "verified": "დამოწმებული",
+    "addCar": "მანქანის დამატება",
+    "parameter": "პარამეტრი"
   },
   "home": {
     "allListings": "ყველა განცხადება",
@@ -177,15 +190,20 @@
       "car": "მანქანა",
       "moto": "მოტო",
       "atv": "ATV"
-    }
+    },
+    "brand": "მარკა",
+    "model": "მოდელი",
+    "mileage": "გარბენი (კმ)",
+    "mileagePlaceholder": "50000"
   },
   "auth": {
     "login": "შესვლა",
     "register": "რეგისტრაცია",
     "email": "ელ-ფოსტა",
-    "emailPlaceholder": "name@example.com",
+    "emailPlaceholder": "example@email.com",
     "password": "პაროლი",
     "passwordPlaceholder": "შეიყვანეთ პაროლი",
+    "passwordMinLength": "მინიმუმ 6 სიმბოლო",
     "confirmPassword": "გაიმეორეთ პაროლი",
     "confirmPasswordPlaceholder": "გაიმეორეთ პაროლი",
     "name": "სახელი",
@@ -195,20 +213,33 @@
     "orContinueWith": "ან გააგრძელეთ",
     "google": "Google-ით",
     "apple": "Apple-ით",
+    "googleLogin": "Google-ით შესვლა",
+    "appleLogin": "Apple-ით შესვლა",
+    "googleRegister": "Google-ით რეგისტრაცია",
+    "appleRegister": "Apple-ით რეგისტრაცია",
     "noAccount": "არ გაქვთ ანგარიში?",
     "haveAccount": "უკვე გაქვთ ანგარიში?",
-    "termsAgree": "ვეთანხმები წესებს და პირობებს",
+    "termsAgree": "ვეთანხმები",
+    "termsAndConditions": "წესებსა და პირობებს",
     "loginSuccess": "წარმატებით შეხვედით",
     "registerSuccess": "წარმატებით დარეგისტრირდით",
     "logoutSuccess": "წარმატებით გამოხვედით",
     "invalidCredentials": "არასწორი ელ-ფოსტა ან პაროლი",
-    "emailInUse": "ეს ელ-ფოსტა უკვე გამოიყენება",
+    "userNotFound": "მომხმარებელი ვერ მოიძებნა",
+    "loginFailed": "შესვლა ვერ მოხერხდა",
+    "googleFailed": "Google-ით შესვლა ვერ მოხერხდა",
+    "appleFailed": "Apple-ით შესვლა ვერ მოხერხდა",
+    "emailInUse": "ეს ელ-ფოსტა უკვე გამოყენებულია",
     "weakPassword": "პაროლი ძალიან სუსტია",
+    "invalidEmail": "არასწორი ელ-ფოსტის ფორმატი",
     "passwordMismatch": "პაროლები არ ემთხვევა",
+    "registrationFailed": "რეგისტრაცია ვერ მოხერხდა",
     "createAccount": "ანგარიშის შექმნა",
-    "welcomeBack": "გამარჯობა!",
+    "welcomeBack": "შესვლა",
     "loginSubtitle": "შედით თქვენს ანგარიშზე",
-    "registerSubtitle": "შექმენით ახალი ანგარიში"
+    "registerSubtitle": "შექმენით ახალი ანგარიში",
+    "loginRequired": "შესვლა საჭიროა",
+    "loginRequiredDescription": "ფავორიტების სანახავად გთხოვთ შეხვიდეთ თქვენს ანგარიშში"
   },
   "profile": {
     "title": "პროფილი",
@@ -221,23 +252,33 @@
     "language": "ენა",
     "currency": "ვალუტა",
     "deleteAccount": "ანგარიშის წაშლა",
-    "noListings": "თქვენ ჯერ არ გაქვთ განცხადებები",
-    "noFavorites": "თქვენ ჯერ არ გაქვთ ფავორიტები"
+    "noListings": "განცხადებები არ გაქვთ",
+    "noListingsDescription": "დაამატეთ თქვენი პირველი განცხადება",
+    "noFavorites": "ფავორიტები ცარიელია",
+    "noFavoritesDescription": "დაამატეთ განცხადებები ფავორიტებში",
+    "user": "მომხმარებელი",
+    "views": "ნახვა",
+    "messages": "შეტყობინება",
+    "savedListings": "თქვენი შენახული განცხადებები"
   },
   "favorites": {
-    "title": "რჩეულები",
+    "title": "ფავორიტები",
     "empty": "ფავორიტები ცარიელია",
-    "emptyDescription": "დაამატეთ მანქანები რჩეულებში გულის ღილაკზე დაჭერით",
-    "browseCars": "მანქანების ნახვა"
+    "emptyDescription": "ჯერ არცერთი განცხადება არ გაქვთ შენახული",
+    "browseCars": "განცხადებების ნახვა"
   },
   "compare": {
-    "title": "შედარება",
+    "title": "მანქანების შედარება",
+    "subtitle": "შეადარე 2-3 მანქანა და აირჩიე საუკეთესო",
     "selectCars": "აირჩიეთ მანქანები შესადარებლად",
     "maxCars": "მაქსიმუმ 3 მანქანა",
-    "noCarsSelected": "მანქანები არ არის არჩეული",
-    "addToCompare": "შედარებაში დამატება",
+    "noCarsSelected": "აირჩიე მინიმუმ 2 მანქანა",
+    "noCarsDescription": "შედარების ცხრილის სანახავად",
+    "addToCompare": "მანქანის დამატება",
     "removeFromCompare": "შედარებიდან ამოშლა",
-    "clear": "გასუფთავება"
+    "clear": "გასუფთავება",
+    "chooseCar": "აირჩიე მანქანა",
+    "noCarsFound": "მანქანები ვერ მოიძებნა"
   },
   "footer": {
     "aboutUs": "ჩვენს შესახებ",
@@ -268,16 +309,25 @@
     "send": "გაგზავნა"
   },
   "services": {
-    "title": "სერვისები",
+    "title": "ავტო სერვისები",
+    "subtitle": "ყველა ავტო სერვისი ერთ სივრცეში — სრული მომსახურება ძრავიდან ვიზუალამდე",
     "vinCheck": "VIN შემოწმება",
     "insurance": "დაზღვევა",
     "loan": "ავტოსესხი",
-    "inspection": "ტექ. ინსპექცია"
+    "inspection": "ტექ. ინსპექცია",
+    "all": "ყველა",
+    "categories": "სერვისების კატეგორიები",
+    "mechanic": "ძრავი და მექანიკა",
+    "detailing": "დეტეილინგი",
+    "electric": "ელექტრო სისტემა",
+    "other": "სხვა სერვისები"
   },
   "blog": {
-    "title": "ბლოგი",
-    "readMore": "წაკითხვა",
-    "noPosts": "პოსტები არ არის"
+    "title": "ბლოგი & სიახლეები",
+    "subtitle": "ავტომობილების სამყაროს უახლესი ამბები და სასარგებლო ინფორმაცია",
+    "readMore": "წაიკითხე მეტი",
+    "noPosts": "პოსტები არ არის",
+    "allArticles": "ყველა სტატია"
   },
   "aiSearch": {
     "title": "AI ძებნა",

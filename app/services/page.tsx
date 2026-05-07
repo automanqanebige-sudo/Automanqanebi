@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { useTranslations } from 'next-intl'
 import Navbar from '@/components/Navbar'
 import { Phone, MapPin, Wrench, ChevronRight, ArrowLeft } from 'lucide-react'
 import Link from 'next/link'
@@ -9,6 +10,7 @@ import type { ServiceCategory } from '@/types/car'
 import { serviceCategoryLabels } from '@/types/car'
 
 export default function ServicesPage() {
+  const t = useTranslations()
   const [selectedCategory, setSelectedCategory] = useState<ServiceCategory | 'all'>('all')
 
   const filteredServices = selectedCategory === 'all' 
@@ -26,13 +28,13 @@ export default function ServicesPage() {
           className="mb-6 inline-flex items-center gap-2 text-sm text-muted-foreground transition-colors hover:text-foreground"
         >
           <ArrowLeft className="h-4 w-4" />
-          მთავარზე დაბრუნება
+          {t('common.backToHome')}
         </Link>
 
         {/* Header */}
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-foreground">ავტო სერვისები</h1>
-          <p className="mt-2 text-muted-foreground">ყველა ავტო სერვისი ერთ სივრცეში — სრული მომსახურება ძრავიდან ვიზუალამდე</p>
+          <h1 className="text-3xl font-bold text-foreground">{t('services.title')}</h1>
+          <p className="mt-2 text-muted-foreground">{t('services.subtitle')}</p>
         </div>
 
         {/* Category filter */}
@@ -45,7 +47,7 @@ export default function ServicesPage() {
                 : 'bg-card border border-border text-card-foreground hover:bg-secondary'
             }`}
           >
-            ყველა
+            {t('services.all')}
           </button>
           {serviceCategories.map(cat => (
             <button
@@ -99,7 +101,7 @@ export default function ServicesPage() {
 
         {/* Service categories detail */}
         <div className="space-y-8">
-          <h2 className="text-2xl font-bold text-foreground">სერვისების კატეგორიები</h2>
+          <h2 className="text-2xl font-bold text-foreground">{t('services.categories')}</h2>
 
           {/* Mechanic services */}
           <div className="rounded-2xl border border-border bg-card p-6">
@@ -107,7 +109,7 @@ export default function ServicesPage() {
               <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-blue-500/10">
                 <Wrench className="h-5 w-5 text-blue-500" />
               </div>
-              <h3 className="text-lg font-bold text-foreground">ძრავი და მექანიკა</h3>
+              <h3 className="text-lg font-bold text-foreground">{t('services.mechanic')}</h3>
             </div>
             <div className="grid gap-3 sm:grid-cols-2">
               {serviceSubCategories.mechanic.map((sub, i) => (
@@ -131,7 +133,7 @@ export default function ServicesPage() {
               <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-purple-500/10">
                 <span className="text-lg">✨</span>
               </div>
-              <h3 className="text-lg font-bold text-foreground">დეტეილინგი</h3>
+              <h3 className="text-lg font-bold text-foreground">{t('services.detailing')}</h3>
             </div>
             <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
               {serviceSubCategories.detailing.map((sub, i) => (
@@ -155,7 +157,7 @@ export default function ServicesPage() {
               <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-amber-500/10">
                 <span className="text-lg">⚡</span>
               </div>
-              <h3 className="text-lg font-bold text-foreground">ელექტრო სისტემა</h3>
+              <h3 className="text-lg font-bold text-foreground">{t('services.electric')}</h3>
             </div>
             <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
               {serviceSubCategories.electric.map((sub, i) => (
@@ -179,7 +181,7 @@ export default function ServicesPage() {
               <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-emerald-500/10">
                 <span className="text-lg">🛠️</span>
               </div>
-              <h3 className="text-lg font-bold text-foreground">სხვა სერვისები</h3>
+              <h3 className="text-lg font-bold text-foreground">{t('services.other')}</h3>
             </div>
             <div className="grid gap-3 sm:grid-cols-2">
               {serviceSubCategories.other.map((sub, i) => (

@@ -12,6 +12,7 @@
     "success": "Success",
     "confirm": "Confirm",
     "back": "Back",
+    "backToHome": "Back to Home",
     "next": "Next",
     "previous": "Previous",
     "all": "All",
@@ -22,7 +23,11 @@
     "unknown": "Unknown",
     "negotiable": "Negotiable",
     "more": "More",
-    "km": "km"
+    "km": "km",
+    "or": "or",
+    "required": "Required",
+    "optional": "Optional",
+    "select": "Select"
   },
   "nav": {
     "home": "Home",
@@ -73,6 +78,7 @@
     "tiptronic": "Tiptronic",
     "variator": "CVT",
     "petrol": "Petrol",
+    "gasoline": "Gasoline",
     "diesel": "Diesel",
     "hybrid": "Hybrid",
     "electric": "Electric",
@@ -101,7 +107,9 @@
     "tbilisi": "Tbilisi",
     "batumi": "Batumi",
     "kutaisi": "Kutaisi",
-    "rustavi": "Rustavi"
+    "rustavi": "Rustavi",
+    "fuelType": "Fuel Type",
+    "engine": "Engine"
   },
   "car": {
     "year": "Year",
@@ -125,7 +133,9 @@
     "vip": "VIP",
     "superVip": "SUPER VIP",
     "vipPlus": "VIP+",
-    "verified": "Verified"
+    "verified": "Verified",
+    "addCar": "Add Car",
+    "parameter": "Parameter"
   },
   "home": {
     "allListings": "All Listings",
@@ -177,38 +187,56 @@
       "car": "Car",
       "moto": "Motorcycle",
       "atv": "ATV"
-    }
+    },
+    "brand": "Brand",
+    "model": "Model",
+    "mileage": "Mileage (km)",
+    "mileagePlaceholder": "50000"
   },
   "auth": {
     "login": "Login",
     "register": "Register",
     "email": "Email",
-    "emailPlaceholder": "name@example.com",
+    "emailPlaceholder": "example@email.com",
     "password": "Password",
     "passwordPlaceholder": "Enter password",
+    "passwordMinLength": "Minimum 6 characters",
     "confirmPassword": "Confirm Password",
     "confirmPasswordPlaceholder": "Confirm password",
     "name": "Name",
     "namePlaceholder": "Your name",
     "forgotPassword": "Forgot password?",
     "rememberMe": "Remember me",
-    "orContinueWith": "Or continue with",
+    "orContinueWith": "or",
     "google": "Google",
     "apple": "Apple",
+    "googleLogin": "Login with Google",
+    "appleLogin": "Login with Apple",
+    "googleRegister": "Register with Google",
+    "appleRegister": "Register with Apple",
     "noAccount": "Don't have an account?",
     "haveAccount": "Already have an account?",
-    "termsAgree": "I agree to the Terms and Conditions",
+    "termsAgree": "I agree to the",
+    "termsAndConditions": "Terms and Conditions",
     "loginSuccess": "Successfully logged in",
     "registerSuccess": "Successfully registered",
     "logoutSuccess": "Successfully logged out",
     "invalidCredentials": "Invalid email or password",
+    "userNotFound": "User not found",
+    "loginFailed": "Login failed",
+    "googleFailed": "Google login failed",
+    "appleFailed": "Apple login failed",
     "emailInUse": "This email is already in use",
     "weakPassword": "Password is too weak",
+    "invalidEmail": "Invalid email format",
     "passwordMismatch": "Passwords do not match",
+    "registrationFailed": "Registration failed",
     "createAccount": "Create Account",
-    "welcomeBack": "Welcome back!",
-    "loginSubtitle": "Login to your account",
-    "registerSubtitle": "Create a new account"
+    "welcomeBack": "Login",
+    "loginSubtitle": "Sign in to your account",
+    "registerSubtitle": "Create a new account",
+    "loginRequired": "Login Required",
+    "loginRequiredDescription": "Please login to view your favorites"
   },
   "profile": {
     "title": "Profile",
@@ -221,23 +249,33 @@
     "language": "Language",
     "currency": "Currency",
     "deleteAccount": "Delete Account",
-    "noListings": "You don't have any listings yet",
-    "noFavorites": "You don't have any favorites yet"
+    "noListings": "No listings yet",
+    "noListingsDescription": "Add your first listing",
+    "noFavorites": "No favorites yet",
+    "noFavoritesDescription": "Add listings to favorites",
+    "user": "User",
+    "views": "Views",
+    "messages": "Messages",
+    "savedListings": "Your saved listings"
   },
   "favorites": {
     "title": "Favorites",
     "empty": "Favorites is empty",
-    "emptyDescription": "Add cars to favorites by clicking the heart button",
-    "browseCars": "Browse Cars"
+    "emptyDescription": "No listings saved yet",
+    "browseCars": "Browse Listings"
   },
   "compare": {
-    "title": "Compare",
+    "title": "Compare Cars",
+    "subtitle": "Compare 2-3 cars and choose the best",
     "selectCars": "Select cars to compare",
     "maxCars": "Maximum 3 cars",
-    "noCarsSelected": "No cars selected",
-    "addToCompare": "Add to Compare",
+    "noCarsSelected": "Select at least 2 cars",
+    "noCarsDescription": "To view comparison table",
+    "addToCompare": "Add Car",
     "removeFromCompare": "Remove from Compare",
-    "clear": "Clear"
+    "clear": "Clear",
+    "chooseCar": "Choose Car",
+    "noCarsFound": "No cars found"
   },
   "footer": {
     "aboutUs": "About Us",
@@ -268,16 +306,25 @@
     "send": "Send"
   },
   "services": {
-    "title": "Services",
+    "title": "Auto Services",
+    "subtitle": "All auto services in one place — complete service from engine to visuals",
     "vinCheck": "VIN Check",
     "insurance": "Insurance",
     "loan": "Auto Loan",
-    "inspection": "Inspection"
+    "inspection": "Inspection",
+    "all": "All",
+    "categories": "Service Categories",
+    "mechanic": "Engine & Mechanics",
+    "detailing": "Detailing",
+    "electric": "Electrical System",
+    "other": "Other Services"
   },
   "blog": {
-    "title": "Blog",
+    "title": "Blog & News",
+    "subtitle": "Latest news and useful information from the automotive world",
     "readMore": "Read More",
-    "noPosts": "No posts"
+    "noPosts": "No posts",
+    "allArticles": "All Articles"
   },
   "aiSearch": {
     "title": "AI Search",
@@ -291,9 +338,9 @@
     }
   },
   "language": {
-    "georgian": "ქართული",
+    "georgian": "Georgian",
     "english": "English",
-    "russian": "Русский",
+    "russian": "Russian",
     "select": "Select Language"
   }
 }
