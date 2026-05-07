@@ -6,12 +6,15 @@ import { usePathname } from 'next/navigation'
 import { useState } from 'react'
 import { Search, Plus, User, Menu, X, Heart, Bell, LogOut } from 'lucide-react'
 import { useAuth } from '@/context/AuthContext'
+import { useTranslations } from 'next-intl'
+import LanguageSwitcher from './LanguageSwitcher'
 
 export default function Navbar() {
   const pathname = usePathname()
   const [mobileOpen, setMobileOpen] = useState(false)
   const [profileOpen, setProfileOpen] = useState(false)
   const { user, logout } = useAuth()
+  const t = useTranslations()
 
   const handleLogout = async () => {
     await logout()
@@ -45,7 +48,7 @@ export default function Navbar() {
             <Search className="absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-slate-400" />
             <input
               type="text"
-              placeholder="მოძებნე მარკა, მოდელი ან ID..."
+              placeholder={t('common.search') + '...'}
               className="h-12 w-full rounded-xl border border-white/10 bg-white/5 pl-12 pr-4 text-sm text-white placeholder:text-slate-500 transition-all focus:border-orange-500/50 focus:bg-white/10 focus:outline-none focus:ring-2 focus:ring-orange-500/20"
             />
           </div>
@@ -53,16 +56,23 @@ export default function Navbar() {
 
         {/* Right section */}
         <div className="flex items-center gap-2 lg:gap-3">
+          {/* Language Switcher */}
+          <LanguageSwitcher />
+
           {/* Favorites */}
           <Link
             href="/favorites"
             className="relative flex h-10 w-10 items-center justify-center rounded-xl bg-white/5 text-slate-400 transition-all hover:bg-white/10 hover:text-white lg:h-11 lg:w-11"
+            title={t('nav.favorites')}
           >
             <Heart className="h-5 w-5" />
           </Link>
 
           {/* Notifications */}
-          <button className="relative hidden h-10 w-10 items-center justify-center rounded-xl bg-white/5 text-slate-400 transition-all hover:bg-white/10 hover:text-white sm:flex lg:h-11 lg:w-11">
+          <button 
+            className="relative hidden h-10 w-10 items-center justify-center rounded-xl bg-white/5 text-slate-400 transition-all hover:bg-white/10 hover:text-white sm:flex lg:h-11 lg:w-11"
+            title={t('nav.notifications')}
+          >
             <Bell className="h-5 w-5" />
           </button>
 
@@ -86,7 +96,7 @@ export default function Navbar() {
               {profileOpen && (
                 <div className="absolute right-0 top-14 w-56 rounded-xl border border-white/10 bg-slate-800 p-2 shadow-2xl">
                   <div className="border-b border-white/10 px-3 py-2">
-                    <p className="text-sm font-medium text-white">{user.displayName || 'მომხმარებელი'}</p>
+                    <p className="text-sm font-medium text-white">{user.displayName || t('nav.profile')}</p>
                     <p className="text-xs text-slate-400">{user.email}</p>
                   </div>
                   <div className="mt-2 space-y-1">
@@ -96,7 +106,7 @@ export default function Navbar() {
                       className="flex items-center gap-3 rounded-lg px-3 py-2 text-sm text-slate-300 hover:bg-white/5 hover:text-white"
                     >
                       <User className="h-4 w-4" />
-                      ჩემი პროფილი
+                      {t('nav.profile')}
                     </Link>
                     <Link
                       href="/favorites"
@@ -104,14 +114,14 @@ export default function Navbar() {
                       className="flex items-center gap-3 rounded-lg px-3 py-2 text-sm text-slate-300 hover:bg-white/5 hover:text-white"
                     >
                       <Heart className="h-4 w-4" />
-                      ფავორიტები
+                      {t('nav.favorites')}
                     </Link>
                     <button
                       onClick={handleLogout}
                       className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm text-red-400 hover:bg-red-500/10"
                     >
                       <LogOut className="h-4 w-4" />
-                      გასვლა
+                      {t('nav.logout')}
                     </button>
                   </div>
                 </div>
@@ -121,6 +131,7 @@ export default function Navbar() {
             <Link
               href="/login"
               className="hidden h-10 w-10 items-center justify-center rounded-xl bg-white/5 text-slate-400 transition-all hover:bg-white/10 hover:text-white sm:flex lg:h-11 lg:w-11"
+              title={t('nav.login')}
             >
               <User className="h-5 w-5" />
             </Link>
@@ -132,7 +143,7 @@ export default function Navbar() {
             className="hidden items-center gap-2 rounded-xl bg-gradient-to-r from-orange-500 to-orange-600 px-5 py-2.5 text-sm font-semibold text-white shadow-lg shadow-orange-500/25 transition-all hover:from-orange-600 hover:to-orange-700 hover:shadow-orange-500/40 sm:flex lg:px-6 lg:py-3"
           >
             <Plus className="h-4 w-4" />
-            <span>დამატება</span>
+            <span>{t('nav.addCar')}</span>
           </Link>
 
           {/* Mobile menu button */}
@@ -154,7 +165,7 @@ export default function Navbar() {
               <Search className="absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-slate-400" />
               <input
                 type="text"
-                placeholder="მოძებნე მარკა, მოდელი..."
+                placeholder={t('common.search') + '...'}
                 className="h-12 w-full rounded-xl border border-white/10 bg-white/5 pl-12 pr-4 text-sm text-white placeholder:text-slate-500 focus:border-orange-500/50 focus:outline-none"
               />
             </div>
@@ -169,21 +180,21 @@ export default function Navbar() {
                 pathname === '/' ? 'bg-orange-500/10 text-orange-500' : 'text-slate-300 hover:bg-white/5'
               }`}
             >
-              მანქანები
+              {t('nav.home')}
             </Link>
             <Link
               href="/services"
               onClick={() => setMobileOpen(false)}
               className="flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium text-slate-300 hover:bg-white/5"
             >
-              სერვისები
+              {t('nav.services')}
             </Link>
             <Link
               href="/blog"
               onClick={() => setMobileOpen(false)}
               className="flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium text-slate-300 hover:bg-white/5"
             >
-              ბლოგი
+              {t('nav.catalog')}
             </Link>
           </div>
 
@@ -200,7 +211,7 @@ export default function Navbar() {
                     </div>
                   )}
                   <div>
-                    <p className="text-sm font-medium text-white">{user.displayName || 'მომხმარებელი'}</p>
+                    <p className="text-sm font-medium text-white">{user.displayName || t('nav.profile')}</p>
                     <p className="text-xs text-slate-400">{user.email}</p>
                   </div>
                 </div>
@@ -211,14 +222,14 @@ export default function Navbar() {
                     className="flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-orange-500 to-orange-600 py-3 text-sm font-semibold text-white"
                   >
                     <Plus className="h-4 w-4" />
-                    დამატება
+                    {t('nav.addCar')}
                   </Link>
                   <button
                     onClick={() => { handleLogout(); setMobileOpen(false); }}
                     className="flex items-center justify-center gap-2 rounded-xl border border-white/10 bg-white/5 py-3 text-sm font-medium text-white"
                   >
                     <LogOut className="h-4 w-4" />
-                    გასვლა
+                    {t('nav.logout')}
                   </button>
                 </div>
               </div>
@@ -230,7 +241,7 @@ export default function Navbar() {
                   className="flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-orange-500 to-orange-600 py-3 text-sm font-semibold text-white"
                 >
                   <Plus className="h-4 w-4" />
-                  დამატება
+                  {t('nav.addCar')}
                 </Link>
                 <Link
                   href="/login"
@@ -238,7 +249,7 @@ export default function Navbar() {
                   className="flex items-center justify-center gap-2 rounded-xl border border-white/10 bg-white/5 py-3 text-sm font-medium text-white"
                 >
                   <User className="h-4 w-4" />
-                  შესვლა
+                  {t('nav.login')}
                 </Link>
               </div>
             )}

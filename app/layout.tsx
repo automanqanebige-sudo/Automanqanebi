@@ -3,8 +3,10 @@ import { Inter } from "next/font/google";
 import "./globals.css";
 import { CurrencyProvider } from "../context/CurrencyContext";
 import { AuthProvider } from "../context/AuthContext";
+import { NextIntlClientProvider } from 'next-intl';
+import { getMessages, getLocale } from 'next-intl/server';
 
-const inter = Inter({ subsets: ["latin"], variable: "--font-inter" });
+const inter = Inter({ subsets: ["latin", "cyrillic"], variable: "--font-inter" });
 
 export const metadata: Metadata = {
   title: "AUTOMANQANEBI.GE | ავტომობილების ყიდვა-გაყიდვა",
@@ -17,19 +19,24 @@ export const viewport: Viewport = {
   initialScale: 1,
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
+  const locale = await getLocale();
+  const messages = await getMessages();
+
   return (
-    <html lang="ka" className={`${inter.variable} dark`}>
+    <html lang={locale} className={`${inter.variable} dark`}>
       <body className="min-h-screen bg-background font-sans text-foreground antialiased">
-        <AuthProvider>
-          <CurrencyProvider>
-            {children}
-          </CurrencyProvider>
-        </AuthProvider>
+        <NextIntlClientProvider messages={messages}>
+          <AuthProvider>
+            <CurrencyProvider>
+              {children}
+            </CurrencyProvider>
+          </AuthProvider>
+        </NextIntlClientProvider>
       </body>
     </html>
   );
