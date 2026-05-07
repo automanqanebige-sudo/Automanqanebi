@@ -1,5 +1,6 @@
-import { initializeApp } from "firebase/app";
+import { initializeApp, getApps, getApp } from "firebase/app";
 import { getStorage } from "firebase/storage";
+import { getFirestore, initializeFirestore, terminate } from "firebase/firestore";
 
 const firebaseConfig = {
   apiKey: process.env.FIREBASE_API_KEY,
@@ -10,6 +11,13 @@ const firebaseConfig = {
   appId: process.env.FIREBASE_APP_ID,
 };
 
-const app = initializeApp(firebaseConfig);
+// Next.js-ისთვის მნიშვნელოვანია შევამოწმოთ, უკვე ხომ არ არის აპი ინიციალიზებული
+const app = getApps().length > 0 ? getApp() : initializeApp(firebaseConfig);
 
+// Storage-ისთვის
 export const storage = getStorage(app);
+
+// Firestore-ისთვის (სპეციალური პარამეტრით, რომელიც აგვარებს e.copy შეცდომას)
+export const db = initializeFirestore(app, {
+  experimentalForceLongPolling: true, // ეს აგვარებს კავშირის პრობლემებს Vercel-ზე
+});
