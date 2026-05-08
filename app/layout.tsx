@@ -5,6 +5,7 @@ import { CurrencyProvider } from "../context/CurrencyContext";
 import { AuthProvider } from "../context/AuthContext";
 import { NextIntlClientProvider } from 'next-intl';
 import { getMessages, getLocale } from 'next-intl/server';
+import { Providers } from "@/components/Providers";
 
 const inter = Inter({ subsets: ["latin", "cyrillic"], variable: "--font-inter" });
 
@@ -28,15 +29,17 @@ export default async function RootLayout({
   const messages = await getMessages();
 
   return (
-    <html lang={locale} className={`${inter.variable} dark`}>
+    <html lang={locale} className={inter.variable} suppressHydrationWarning>
       <body className="min-h-screen bg-background font-sans text-foreground antialiased">
-        <NextIntlClientProvider messages={messages}>
-          <AuthProvider>
-            <CurrencyProvider>
-              {children}
-            </CurrencyProvider>
-          </AuthProvider>
-        </NextIntlClientProvider>
+        <Providers>
+          <NextIntlClientProvider messages={messages}>
+            <AuthProvider>
+              <CurrencyProvider>
+                {children}
+              </CurrencyProvider>
+            </AuthProvider>
+          </NextIntlClientProvider>
+        </Providers>
       </body>
     </html>
   );
