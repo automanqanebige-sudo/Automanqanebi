@@ -11,7 +11,7 @@ Next.js marketplace project (this repo targets **automanqanebi1.ge** — separat
 1. Install Node.js (LTS).
 2. Install a package manager (`npm`, `pnpm`, or `yarn`).
 3. Install dependencies:
-   - `npm install` or `pnpm install`
+   - `npm install` (same as Vercel; generate `package-lock.json` if you want locked versions)
 4. Start development server:
    - `npm run dev` or `pnpm dev`
 
