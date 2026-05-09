@@ -1,6 +1,6 @@
 import { initializeApp, getApps, getApp } from "firebase/app";
 import { getAuth } from "firebase/auth";
-import { getFirestore } from "firebase/firestore";
+import { getFirestore, initializeFirestore, persistentLocalCache, persistentMultipleTabManager } from "firebase/firestore";
 import { getStorage } from "firebase/storage";
 
 // შენი Firebase კონფიგურაცია
@@ -18,7 +18,22 @@ const app = getApps().length > 0 ? getApp() : initializeApp(firebaseConfig);
 
 // სერვისების ექსპორტი
 export const auth = getAuth(app);
-export const db = getFirestore(app);
+
+// Firestore with offline persistence
+let firestoreInstance: ReturnType<typeof getFirestore> | null = null;
+export const db = (() => {
+  if (firestoreInstance) return firestoreInstance;
+  try {
+    firestoreInstance = initializeFirestore(app, {
+      localCache: persistentLocalCache({ tabManager: persistentMultipleTabManager() })
+    });
+  } catch {
+    // Already initialized, get existing instance
+    firestoreInstance = getFirestore(app);
+  }
+  return firestoreInstance;
+})();
+
 export const storage = getStorage(app);
 
 export default app;
