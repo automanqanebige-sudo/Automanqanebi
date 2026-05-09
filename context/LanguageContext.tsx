@@ -1,6 +1,7 @@
 'use client'
 
 import { createContext, useContext, useEffect, useMemo, useState } from 'react'
+import { usePathname } from 'next/navigation'
 
 export type Language = 'ka' | 'ru' | 'en'
 
@@ -78,15 +79,30 @@ const messages: Record<Language, Record<string, string>> = {
 
 const LanguageContext = createContext<LanguageContextType | undefined>(undefined)
 
+/** Matches next-intl middleware URLs like /ka/..., /en/add-car (localePrefix: 'always'). */
+function localeFromPathname(pathname: string): Language | null {
+  const first = pathname.split('/').filter(Boolean)[0]
+  if (first === 'ka' || first === 'ru' || first === 'en') return first
+  return null
+}
+
 export function LanguageProvider({ children }: { children: React.ReactNode }) {
+  const pathname = usePathname()
   const [language, setLanguageState] = useState<Language>('ka')
 
+  const urlLocale = localeFromPathname(pathname)
+
   useEffect(() => {
+    if (urlLocale) {
+      setLanguageState(urlLocale)
+      window.localStorage.setItem('language', urlLocale)
+      return
+    }
     const saved = window.localStorage.getItem('language') as Language | null
     if (saved === 'ka' || saved === 'ru' || saved === 'en') {
       setLanguageState(saved)
     }
-  }, [])
+  }, [urlLocale])
 
   const setLanguage = (lang: Language) => {
     setLanguageState(lang)
