@@ -4,6 +4,7 @@ import { useState } from 'react'
 import Link from 'next/link'
 import { Menu, X, Car, Heart, User, MessageCircle, Home, Plus, LogIn, UserPlus } from 'lucide-react'
 import { Language, useLanguage } from '../context/LanguageContext'
+import ThemeToggle from './ThemeToggle'
 
 const navLinks = [
   { href: '/', key: 'nav.home', icon: Home },
@@ -52,6 +53,7 @@ export default function Navbar() {
 
         {/* Desktop Auth Buttons */}
         <div className="hidden items-center gap-3 md:flex">
+          <ThemeToggle />
           <div className="flex items-center gap-1 rounded-lg border border-border bg-background px-2 py-1">
             {languageOptions.map((option) => (
               <button
@@ -103,6 +105,9 @@ export default function Navbar() {
       {isMobileMenuOpen && (
         <div className="border-t border-border bg-card md:hidden">
           <div className="space-y-1 px-4 pb-4 pt-2">
+            <div className="flex items-center justify-end px-3 py-1">
+              <ThemeToggle />
+            </div>
             {navLinks.map((link) => (
               <Link
                 key={link.href}
