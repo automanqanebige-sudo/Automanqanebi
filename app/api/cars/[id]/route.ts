@@ -4,10 +4,11 @@ import { NextResponse } from 'next/server'
 
 export async function GET(
   request: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const carRef = doc(db, 'cars', params.id)
+    const { id } = await params
+    const carRef = doc(db, 'cars', id)
     const carDoc = await getDoc(carRef)
     
     if (!carDoc.exists()) {
