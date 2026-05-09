@@ -2,6 +2,7 @@
 
 import { createContext, useContext, useEffect, useMemo, useState } from 'react'
 import { usePathname } from 'next/navigation'
+import { SITE_DOMAIN } from '@/lib/site'
 
 export type Language = 'ka' | 'ru' | 'en'
 
@@ -21,7 +22,7 @@ const messages: Record<Language, Record<string, string>> = {
     'nav.login': 'შესვლა',
     'nav.register': 'რეგისტრაცია',
     'nav.language': 'ენა',
-    'footer.description': 'საქართველოს ყველაზე დიდი ავტომობილების ონლაინ მარკეტი. იყიდე და გაყიდე მანქანები მარტივად.',
+    'footer.description': `${SITE_DOMAIN} — საქართველოს ყველაზე დიდი ავტომობილების ონლაინ მარკეტი. იყიდე და გაყიდე მანქანები მარტივად.`,
     'footer.marketplace': 'მარკეტი',
     'footer.account': 'ანგარიში',
     'footer.contact': 'კონტაქტი',
@@ -42,7 +43,7 @@ const messages: Record<Language, Record<string, string>> = {
     'nav.login': 'Войти',
     'nav.register': 'Регистрация',
     'nav.language': 'Язык',
-    'footer.description': 'Крупнейший онлайн-рынок автомобилей в Грузии. Покупайте и продавайте машины легко.',
+    'footer.description': `${SITE_DOMAIN} — крупнейший онлайн-рынок автомобилей в Грузии. Покупайте и продавайте машины легко.`,
     'footer.marketplace': 'Маркет',
     'footer.account': 'Аккаунт',
     'footer.contact': 'Контакты',
@@ -63,7 +64,7 @@ const messages: Record<Language, Record<string, string>> = {
     'nav.login': 'Login',
     'nav.register': 'Register',
     'nav.language': 'Language',
-    'footer.description': 'The largest online car marketplace in Georgia. Buy and sell cars with ease.',
+    'footer.description': `${SITE_DOMAIN} — the largest online car marketplace in Georgia. Buy and sell cars with ease.`,
     'footer.marketplace': 'Marketplace',
     'footer.account': 'Account',
     'footer.contact': 'Contact',

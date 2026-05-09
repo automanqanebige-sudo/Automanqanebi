@@ -4,6 +4,7 @@ import { useState, useMemo } from 'react'
 import CarCard, { Car } from '@/components/CarCard'
 import SearchFilters, { FilterState } from '@/components/SearchFilters'
 import VipListingsSection from '@/components/VipListingsSection'
+import { SITE_DOMAIN } from '@/lib/site'
 
 // Sample data for demonstration
 const sampleCars: Car[] = [
@@ -223,11 +224,12 @@ export default function Home() {
       {/* Hero Section */}
       <section className="bg-gradient-to-br from-primary/10 via-background to-background py-10 px-4 sm:px-6 lg:px-8">
         <div className="max-w-7xl mx-auto">
-          <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-foreground text-balance">
+          <p className="text-sm font-semibold uppercase tracking-wide text-primary">{SITE_DOMAIN}</p>
+          <h1 className="mt-2 text-3xl sm:text-4xl lg:text-5xl font-bold text-foreground text-balance">
             Find Your Perfect Car
           </h1>
           <p className="mt-3 text-lg text-muted-foreground max-w-2xl">
-            Browse thousands of quality vehicles from trusted sellers across Georgia
+            Browse thousands of quality vehicles from trusted sellers across Georgia on {SITE_DOMAIN}
           </p>
 
           {/* Search and Filters */}

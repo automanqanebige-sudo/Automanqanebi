@@ -4,6 +4,7 @@ import { useState } from 'react'
 import Link from 'next/link'
 import { Menu, X, Car, Heart, User, MessageCircle, Home, Plus, LogIn, UserPlus } from 'lucide-react'
 import { Language, useLanguage } from '../context/LanguageContext'
+import { SITE_LOGO_MAIN, SITE_LOGO_TLD } from '@/lib/site'
 import ThemeToggle from './ThemeToggle'
 
 const navLinks = [
@@ -33,7 +34,8 @@ export default function Navbar() {
             <Car className="h-5 w-5 text-primary-foreground" />
           </div>
           <span className="text-lg font-bold tracking-tight text-foreground sm:text-xl">
-            AUTOMANQANEBI<span className="text-primary">.GE</span>
+            {SITE_LOGO_MAIN}
+            <span className="text-primary">{SITE_LOGO_TLD}</span>
           </span>
         </Link>
 

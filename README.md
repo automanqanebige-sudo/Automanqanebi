@@ -2,6 +2,8 @@
 
 Next.js marketplace project for car listings.
 
+Production site: **https://automanqanebi.ge**
+
 ## Run locally
 
 1. Install Node.js (LTS).

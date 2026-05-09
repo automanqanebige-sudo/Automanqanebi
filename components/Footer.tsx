@@ -3,6 +3,7 @@
 import Link from 'next/link'
 import { Car, Facebook, Instagram, Youtube, Mail, Phone, MapPin } from 'lucide-react'
 import { useLanguage } from '../context/LanguageContext'
+import { SITE_CONTACT_EMAIL, SITE_LOGO_MAIN, SITE_LOGO_TLD } from '@/lib/site'
 
 const footerLinks = {
   marketplace: [
@@ -37,7 +38,8 @@ export default function Footer() {
                 <Car className="h-5 w-5 text-primary-foreground" />
               </div>
               <span className="text-lg font-bold tracking-tight text-foreground">
-                AUTOMANQANEBI<span className="text-primary">.GE</span>
+                {SITE_LOGO_MAIN}
+                <span className="text-primary">{SITE_LOGO_TLD}</span>
               </span>
             </Link>
             <p className="text-sm leading-relaxed text-muted-foreground">
@@ -108,11 +110,11 @@ export default function Footer() {
             <ul className="space-y-3">
               <li>
                 <a
-                  href="mailto:info@automanqanebi.ge"
+                  href={`mailto:${SITE_CONTACT_EMAIL}`}
                   className="flex items-center gap-2 text-sm text-muted-foreground transition-colors hover:text-primary"
                 >
                   <Mail className="h-4 w-4" />
-                  info@automanqanebi.ge
+                  {SITE_CONTACT_EMAIL}
                 </a>
               </li>
               <li>
@@ -137,7 +139,7 @@ export default function Footer() {
         {/* Bottom Bar */}
         <div className="mt-12 flex flex-col items-center justify-between gap-4 border-t border-border pt-8 md:flex-row">
           <p className="text-sm text-muted-foreground">
-            &copy; {currentYear} AUTOMANQANEBI.GE. {t('footer.allRights')}
+            &copy; {currentYear} {`${SITE_LOGO_MAIN}${SITE_LOGO_TLD}`}. {t('footer.allRights')}
           </p>
           <div className="flex gap-6">
             {footerLinks.info.map((link) => (
