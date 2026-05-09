@@ -1,4 +1,5 @@
 import { initializeApp, getApps, getApp } from "firebase/app";
+import { getAuth } from "firebase/auth";
 import { getStorage } from "firebase/storage";
 import { getFirestore } from "firebase/firestore/lite";
 
@@ -13,6 +14,8 @@ const firebaseConfig = {
 
 // Next.js-ისთვის მნიშვნელოვანია შევამოწმოთ, უკვე ხომ არ არის აპი ინიციალიზებული
 const app = getApps().length > 0 ? getApp() : initializeApp(firebaseConfig);
+
+export const auth = getAuth(app);
 
 // Storage-ისთვის
 export const storage = getStorage(app);
