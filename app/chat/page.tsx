@@ -96,7 +96,7 @@ export default function ChatPage() {
             <div
               key={index}
               style={{
-                background: "#0066ff",
+                background: "#16a34a",
                 padding: 12,
                 borderRadius: 12,
                 marginBottom: 10,
@@ -135,7 +135,7 @@ export default function ChatPage() {
               padding: "14px 20px",
               borderRadius: 12,
               border: "none",
-              background: "#00aa55",
+              background: "#16a34a",
               color: "white",
               fontWeight: "bold",
             }}

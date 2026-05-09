@@ -17,7 +17,7 @@ export default function LoginPage() {
 
   return (
     <div className="flex flex-col items-center justify-center min-h-screen">
-      <button onClick={login} className="bg-white border p-3 rounded-lg shadow flex items-center gap-2">
+      <button type="button" onClick={login} className="flex items-center gap-2 rounded-lg border border-primary/30 bg-primary px-5 py-3 font-medium text-primary-foreground shadow transition-colors hover:bg-primary/90">
         Google-ით შესვლა
       </button>
     </div>
