@@ -1,8 +1,10 @@
-# AUTOMANQANEBI.GE
+# AUTOMANQANEBI1.GE
 
-Next.js marketplace project for car listings.
+Next.js marketplace project (this repo targets **automanqanebi1.ge** — separate from any older **automanqanebi.ge** deployment).
 
-Production site: **https://automanqanebi.ge**
+**Intended production URL:** https://automanqanebi1.ge  
+
+სანამ დომენს და ჰოსტინგს (მაგ. Vercel + DNS) არ მიაბამ, საიტი ამ მისამართზე ინტერნეტში არ გამოჩნდება. ლოკალურად: `npm run dev` → http://localhost:3000
 
 ## Run locally
 

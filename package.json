@@ -2,7 +2,7 @@
 "name": "automanqanebi",
   "version": "0.1.0",
   "private": true,
-  "homepage": "https://automanqanebi.ge",
+  "homepage": "https://automanqanebi1.ge",
 "scripts": {
 "dev": "next dev",
 "build": "next build",
