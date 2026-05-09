@@ -1,6 +1,6 @@
 "use client";
 
-import { auth } from "@/lib/firebase";
+import { auth } from "@/lib/firebase-auth";
 import { signInWithPopup, GoogleAuthProvider } from "firebase/auth";
 import { useRouter } from "next/navigation";
 
