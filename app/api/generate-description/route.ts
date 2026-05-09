@@ -1,9 +1,10 @@
 import { NextResponse } from "next/server";
-import { collection, getDocs, addDoc } from "firebase/firestore/lite";
+import { collection, getDocs } from "firebase/firestore/lite";
 import { getDb } from "@/lib/firebase";
 
 export const runtime = "nodejs";
 
+/** სია / დებაგი — პირდაპირ Firestore-იდან */
 export async function GET() {
   try {
     const querySnapshot = await getDocs(collection(getDb(), "cars"));
@@ -23,23 +24,38 @@ export async function GET() {
   }
 }
 
+/**
+ * AI აღწერის ღილაკი add-car გვერდზე — ტან აგზავნის { brand, model, year }.
+ * (სრული GenAI შეგიძლია მერე დაამატო; ახლა სტაბილური ტექსტი დაბრუნდება.)
+ */
 export async function POST(req: Request) {
   try {
     const body = await req.json();
 
-    if (!body.name || !body.price) {
-      return NextResponse.json({ error: "Name and price are required" }, { status: 400 });
+    const brand = String(body?.brand ?? "").trim();
+    const model = String(body?.model ?? "").trim();
+    const yearRaw = body?.year;
+    const year =
+      yearRaw !== undefined && yearRaw !== null && String(yearRaw).trim() !== ""
+        ? String(yearRaw).trim()
+        : "";
+
+    if (!brand || !model) {
+      return NextResponse.json(
+        { error: "Brand and model are required" },
+        { status: 400 },
+      );
     }
 
-    const docRef = await addDoc(collection(getDb(), "cars"), {
-      name: body.name,
-      price: body.price,
-      createdAt: new Date(),
-    });
+    const description = [
+      `${brand} ${model}${year ? `, ${year} წლის` : ""}. `,
+      "მოკლე შეფასება: გირჩევთ გადაამოწმოთ ტექნიკური მდგომარეობა, სერვისის ისტორია და იურიდიული დოკუმენტები გარიგებამდე. ",
+      "დამატებითი დეტალები და ფოტოები გაზრდის განცხადების სანდოობას.",
+    ].join("");
 
-    return NextResponse.json({ id: docRef.id, message: "Car added successfully" }, { status: 201 });
+    return NextResponse.json({ description });
   } catch (error) {
     console.error("POST ERROR:", error);
-    return NextResponse.json({ error: "Failed to add car" }, { status: 500 });
+    return NextResponse.json({ error: "Failed to generate description" }, { status: 500 });
   }
 }
