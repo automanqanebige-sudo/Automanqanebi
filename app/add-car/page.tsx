@@ -1,8 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import { db, auth } from "../../lib/firebase"; // შეცვლილი იმპორტი
-import { collection, addDoc } from "firebase/firestore";
+import { db } from "../../lib/firebase";
+import { collection, addDoc } from "firebase/firestore/lite";
 import { useRouter } from "next/navigation";
 
 export default function AddCarPage() {

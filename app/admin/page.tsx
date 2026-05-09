@@ -1,8 +1,8 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { db } from "../../lib/firebase"; // შეცვლილი იმპორტი
-import { collection, getDocs, deleteDoc, doc } from "firebase/firestore";
+import { db } from "../../lib/firebase";
+import { collection, getDocs, deleteDoc, doc } from "firebase/firestore/lite";
 
 export default function AdminPage() {
   const [cars, setCars] = useState<any[]>([]);
