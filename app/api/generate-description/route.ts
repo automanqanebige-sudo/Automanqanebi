@@ -1,10 +1,9 @@
 import { NextResponse } from "next/server";
-import { collection, getDocs } from "firebase/firestore/lite";
+import { collection, getDocs, addDoc } from "firebase/firestore/lite";
 import { getDb } from "@/lib/firebase";
 
 export const runtime = "nodejs";
 
-/** სია / დებაგი — პირდაპირ Firestore-იდან */
 export async function GET() {
   try {
     const querySnapshot = await getDocs(collection(getDb(), "cars"));
@@ -24,38 +23,38 @@ export async function GET() {
   }
 }
 
-/**
- * AI აღწერის ღილაკი add-car გვერდზე — ტან აგზავნის { brand, model, year }.
- * (სრული GenAI შეგიძლია მერე დაამატო; ახლა სტაბილური ტექსტი დაბრუნდება.)
- */
 export async function POST(req: Request) {
   try {
     const body = await req.json();
 
-    const brand = String(body?.brand ?? "").trim();
-    const model = String(body?.model ?? "").trim();
-    const yearRaw = body?.year;
-    const year =
-      yearRaw !== undefined && yearRaw !== null && String(yearRaw).trim() !== ""
-        ? String(yearRaw).trim()
-        : "";
+    const brand = typeof body?.brand === "string" ? body.brand.trim() : "";
+    const model = typeof body?.model === "string" ? body.model.trim() : "";
+    const year = body?.year != null && body.year !== "" ? String(body.year).trim() : "";
 
-    if (!brand || !model) {
+    if (brand && model && body?.name === undefined && body?.price === undefined) {
+      const description = `${brand} ${model}${year ? ` (${year})` : ""} — საგამოძახებო კომპლექტაცია; დეტალებისთვის დაგვიკავშირდით.`;
+      return NextResponse.json({ description });
+    }
+
+    const name = typeof body?.name === "string" ? body.name.trim() : "";
+    const price = body?.price;
+
+    if (!name || price === undefined || price === null || price === "") {
       return NextResponse.json(
-        { error: "Brand and model are required" },
+        { error: "Name and price are required" },
         { status: 400 },
       );
     }
 
-    const description = [
-      `${brand} ${model}${year ? `, ${year} წლის` : ""}. `,
-      "მოკლე შეფასება: გირჩევთ გადაამოწმოთ ტექნიკური მდგომარეობა, სერვისის ისტორია და იურიდიული დოკუმენტები გარიგებამდე. ",
-      "დამატებითი დეტალები და ფოტოები გაზრდის განცხადების სანდოობას.",
-    ].join("");
+    const docRef = await addDoc(collection(getDb(), "cars"), {
+      name,
+      price: Number(price),
+      createdAt: new Date(),
+    });
 
-    return NextResponse.json({ description });
+    return NextResponse.json({ id: docRef.id, message: "Car added successfully" }, { status: 201 });
   } catch (error) {
     console.error("POST ERROR:", error);
-    return NextResponse.json({ error: "Failed to generate description" }, { status: 500 });
+    return NextResponse.json({ error: "Failed to add car" }, { status: 500 });
   }
 }

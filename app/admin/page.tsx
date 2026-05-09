@@ -10,7 +10,9 @@ export default function AdminPage() {
   useEffect(() => {
     const fetchCars = async () => {
       const querySnapshot = await getDocs(collection(getDb(), "cars"));
-      setCars(querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })));
+      setCars(
+        querySnapshot.docs.map((d) => ({ id: d.id, ...d.data() })),
+      );
     };
     fetchCars();
   }, []);
