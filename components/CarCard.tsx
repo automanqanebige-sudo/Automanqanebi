@@ -1,149 +1,129 @@
 'use client'
 
-import Link from 'next/link'
-import { useTranslations } from 'next-intl'
-import { MapPin, Gauge, Heart, Fuel, Calendar } from 'lucide-react'
-import type { Car } from '@/types/car'
-import { useCurrency } from '@/context/CurrencyContext'
 import { useState } from 'react'
+import Link from 'next/link'
+import Image from 'next/image'
+import { Heart, MapPin, Gauge, Fuel, Crown } from 'lucide-react'
 
-const tierConfig: Record<string, { gradient: string; labelKey: string }> = {
-  platinum: { gradient: 'from-violet-600 to-purple-600', labelKey: 'superVip' },
-  gold: { gradient: 'from-amber-500 to-orange-500', labelKey: 'vip' },
-  silver: { gradient: 'from-slate-400 to-slate-500', labelKey: 'vipPlus' },
+export type Car = {
+  id: string
+  image: string
+  price: number
+  year: number
+  brand: string
+  model: string
+  location: string
+  mileage: number
+  fuelType: string
+  transmission?: string
+  isVip?: boolean
+  isFavorite?: boolean
 }
 
-export default function CarCard({ car, index = 0 }: { car?: Car; index?: number }) {
-  const t = useTranslations()
-  const { currency, convertPrice } = useCurrency()
-  const [isFavorite, setIsFavorite] = useState(false)
+interface CarCardProps {
+  car: Car
+  onFavoriteToggle?: (id: string) => void
+}
 
-  if (!car) return null
+export default function CarCard({ car, onFavoriteToggle }: CarCardProps) {
+  const [isFavorite, setIsFavorite] = useState(car.isFavorite || false)
+  const [imageError, setImageError] = useState(false)
 
-  const title = car.year 
-    ? `${car.year} ${car.brand || ''} ${car.model || ''}`.trim()
-    : car.name || `${car.brand || ''} ${car.model || ''}`.trim() || t('common.unknown')
-  
-  const price = car.price ? convertPrice(car.price) : null
-  const priceText = price 
-    ? `${price.toLocaleString()} ${currency === 'GEL' ? '₾' : '$'}` 
-    : t('car.negotiable')
-  
-  const tier = car.tier && car.tier !== 'standard' ? tierConfig[car.tier] : null
+  const handleFavoriteClick = (e: React.MouseEvent) => {
+    e.preventDefault()
+    e.stopPropagation()
+    setIsFavorite(!isFavorite)
+    onFavoriteToggle?.(car.id)
+  }
+
+  const formatPrice = (price: number) => {
+    return new Intl.NumberFormat('en-US', {
+      style: 'currency',
+      currency: 'USD',
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 0,
+    }).format(price)
+  }
+
+  const formatMileage = (mileage: number) => {
+    return new Intl.NumberFormat('en-US').format(mileage) + ' km'
+  }
 
   return (
-    <div
-      className="animate-fade-in-up card-hover group overflow-hidden rounded-2xl border border-white/10 bg-[#1e293b]"
-      style={{ animationDelay: `${(index || 0) * 60}ms` }}
-    >
-      <Link href={`/car/${car.id || ''}`} className="block">
-        {/* Image section */}
-        <div className="relative aspect-[4/3] overflow-hidden bg-slate-800">
-          {car.image ? (
-            <img
+    <Link href={`/car/${car.id}`} className="block group">
+      <article className="relative bg-card rounded-xl overflow-hidden shadow-md hover:shadow-xl transition-all duration-300 group-hover:-translate-y-1 border border-border">
+        {/* Image Container */}
+        <div className="relative aspect-[4/3] overflow-hidden bg-muted">
+          {!imageError ? (
+            <Image
               src={car.image}
-              alt={title}
-              className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+              alt={`${car.year} ${car.brand} ${car.model}`}
+              fill
+              className="object-cover transition-transform duration-300 group-hover:scale-105"
+              onError={() => setImageError(true)}
+              sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
             />
           ) : (
-            <div className="flex h-full items-center justify-center bg-gradient-to-br from-slate-700 to-slate-800">
-              <Gauge className="h-16 w-16 text-slate-600" />
+            <div className="absolute inset-0 flex items-center justify-center bg-muted">
+              <span className="text-muted-foreground text-sm">No image</span>
             </div>
           )}
-
-          {/* Dark gradient overlay */}
-          <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
 
           {/* VIP Badge */}
-          {tier && (
-            <div className={`absolute left-3 top-3 rounded-lg bg-gradient-to-r ${tier.gradient} px-3 py-1.5 text-xs font-bold text-white shadow-lg`}>
-              {t(`car.${tier.labelKey}`)}
+          {car.isVip && (
+            <div className="absolute top-3 left-3 flex items-center gap-1.5 bg-green-500 text-white px-2.5 py-1 rounded-full text-xs font-semibold shadow-lg">
+              <Crown className="h-3.5 w-3.5" />
+              <span>VIP</span>
             </div>
           )}
 
-          {/* Favorite button */}
+          {/* Favorite Button */}
           <button
-            onClick={(e) => {
-              e.preventDefault()
-              e.stopPropagation()
-              setIsFavorite(!isFavorite)
-            }}
-            className={`absolute right-3 top-3 flex h-10 w-10 items-center justify-center rounded-full backdrop-blur-md transition-all duration-200 ${
-              isFavorite
-                ? 'bg-red-500 text-white scale-110'
-                : 'bg-black/40 text-white hover:bg-red-500 hover:scale-110'
-            }`}
+            onClick={handleFavoriteClick}
+            className="absolute top-3 right-3 p-2 rounded-full bg-white/90 hover:bg-white shadow-md transition-all duration-200 hover:scale-110"
+            aria-label={isFavorite ? 'Remove from favorites' : 'Add to favorites'}
           >
-            <Heart className={`h-5 w-5 ${isFavorite ? 'fill-current' : ''}`} />
+            <Heart
+              className={`h-5 w-5 transition-colors ${
+                isFavorite
+                  ? 'fill-red-500 text-red-500'
+                  : 'text-muted-foreground hover:text-red-500'
+              }`}
+            />
           </button>
 
-          {/* Price badge on image */}
-          <div className="absolute bottom-3 left-3">
-            <span className="rounded-lg bg-orange-500 px-4 py-2 text-lg font-bold text-white shadow-lg">
-              {priceText}
-            </span>
+          {/* Price Tag */}
+          <div className="absolute bottom-3 left-3 bg-primary text-primary-foreground px-3 py-1.5 rounded-lg shadow-lg">
+            <span className="text-lg font-bold">{formatPrice(car.price)}</span>
           </div>
         </div>
 
-        {/* Content section */}
+        {/* Content */}
         <div className="p-4">
           {/* Title */}
-          <h3 className="mb-3 line-clamp-1 text-lg font-semibold text-white transition-colors group-hover:text-orange-400">
-            {title}
+          <h3 className="text-lg font-semibold text-card-foreground line-clamp-1 group-hover:text-primary transition-colors">
+            {car.year} {car.brand} {car.model}
           </h3>
 
-          {/* Details grid */}
-          <div className="grid grid-cols-2 gap-3">
-            {car.mileage !== undefined && (
-              <div className="flex items-center gap-2">
-                <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-white/5">
-                  <Gauge className="h-4 w-4 text-slate-400" />
-                </div>
-                <div>
-                  <p className="text-xs text-slate-500">{t('car.mileage')}</p>
-                  <p className="text-sm font-medium text-white">{car.mileage.toLocaleString()} {t('common.km')}</p>
-                </div>
-              </div>
-            )}
+          {/* Location */}
+          <div className="flex items-center gap-1.5 mt-2 text-muted-foreground">
+            <MapPin className="h-4 w-4 flex-shrink-0" />
+            <span className="text-sm truncate">{car.location}</span>
+          </div>
 
-            {car.fuelType && (
-              <div className="flex items-center gap-2">
-                <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-white/5">
-                  <Fuel className="h-4 w-4 text-slate-400" />
-                </div>
-                <div>
-                  <p className="text-xs text-slate-500">{t('car.fuel')}</p>
-                  <p className="text-sm font-medium text-white">{t(`filters.${car.fuelType.toLowerCase()}`)}</p>
-                </div>
-              </div>
-            )}
-
-            {car.year && (
-              <div className="flex items-center gap-2">
-                <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-white/5">
-                  <Calendar className="h-4 w-4 text-slate-400" />
-                </div>
-                <div>
-                  <p className="text-xs text-slate-500">{t('car.year')}</p>
-                  <p className="text-sm font-medium text-white">{car.year}</p>
-                </div>
-              </div>
-            )}
-
-            {car.location && (
-              <div className="flex items-center gap-2">
-                <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-white/5">
-                  <MapPin className="h-4 w-4 text-slate-400" />
-                </div>
-                <div>
-                  <p className="text-xs text-slate-500">{t('car.place')}</p>
-                  <p className="text-sm font-medium text-white truncate">{car.location}</p>
-                </div>
-              </div>
-            )}
+          {/* Specs Row */}
+          <div className="flex items-center gap-4 mt-3 pt-3 border-t border-border">
+            <div className="flex items-center gap-1.5 text-muted-foreground">
+              <Gauge className="h-4 w-4 flex-shrink-0" />
+              <span className="text-sm">{formatMileage(car.mileage)}</span>
+            </div>
+            <div className="flex items-center gap-1.5 text-muted-foreground">
+              <Fuel className="h-4 w-4 flex-shrink-0" />
+              <span className="text-sm">{car.fuelType}</span>
+            </div>
           </div>
         </div>
-      </Link>
-    </div>
+      </article>
+    </Link>
   )
 }

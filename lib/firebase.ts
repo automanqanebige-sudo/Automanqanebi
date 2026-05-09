@@ -1,39 +1,21 @@
 import { initializeApp, getApps, getApp } from "firebase/app";
-import { getAuth } from "firebase/auth";
-import { getFirestore, initializeFirestore, persistentLocalCache, persistentMultipleTabManager } from "firebase/firestore";
 import { getStorage } from "firebase/storage";
+import { getFirestore } from "firebase/firestore";
 
-// შენი Firebase კონფიგურაცია
 const firebaseConfig = {
-  apiKey: "AIzaSyBbN4ROdD_TAmmd4BmmzW6OLf8B3sv8S2M",
-  authDomain: "aauuttooo-9c5e6.firebaseapp.com",
-  projectId: "aauuttooo-9c5e6",
-  storageBucket: "aauuttooo-9c5e6.firebasestorage.app",
-  messagingSenderId: "212304817546",
-  appId: "1:212304817546:web:7fecc147ca2cc43639ec73",
+  apiKey: process.env.FIREBASE_API_KEY,
+  authDomain: process.env.FIREBASE_AUTH_DOMAIN,
+  projectId: process.env.FIREBASE_PROJECT_ID,
+  storageBucket: process.env.FIREBASE_STORAGE_BUCKET,
+  messagingSenderId: process.env.FIREBASE_MESSAGING_SENDER_ID,
+  appId: process.env.FIREBASE_APP_ID,
 };
 
-// ინიციალიზაცია (ამოწმებს უკვე ჩართულია თუ არა აპლიკაცია)
+// Next.js-ისთვის მნიშვნელოვანია შევამოწმოთ, უკვე ხომ არ არის აპი ინიციალიზებული
 const app = getApps().length > 0 ? getApp() : initializeApp(firebaseConfig);
 
-// სერვისების ექსპორტი
-export const auth = getAuth(app);
-
-// Firestore with offline persistence
-let firestoreInstance: ReturnType<typeof getFirestore> | null = null;
-export const db = (() => {
-  if (firestoreInstance) return firestoreInstance;
-  try {
-    firestoreInstance = initializeFirestore(app, {
-      localCache: persistentLocalCache({ tabManager: persistentMultipleTabManager() })
-    });
-  } catch {
-    // Already initialized, get existing instance
-    firestoreInstance = getFirestore(app);
-  }
-  return firestoreInstance;
-})();
-
+// Storage-ისთვის
 export const storage = getStorage(app);
 
-export default app;
+// Keep client-side Firestore simple/stable across environments.
+export const db = getFirestore(app);

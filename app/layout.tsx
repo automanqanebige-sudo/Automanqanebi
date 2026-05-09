@@ -1,45 +1,46 @@
 import type { Metadata, Viewport } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
+import Navbar from "../components/Navbar";
+import Footer from "../components/Footer";
 import { CurrencyProvider } from "../context/CurrencyContext";
-import { AuthProvider } from "../context/AuthContext";
-import { NextIntlClientProvider } from 'next-intl';
-import { getMessages, getLocale } from 'next-intl/server';
-import { Providers } from "@/components/Providers";
+import { LanguageProvider } from "../context/LanguageContext";
 
-const inter = Inter({ subsets: ["latin", "cyrillic"], variable: "--font-inter" });
+const inter = Inter({ 
+  subsets: ["latin"],
+  variable: "--font-inter",
+});
 
 export const metadata: Metadata = {
-  title: "AUTOMANQANEBI.GE | ავტომობილების ყიდვა-გაყიდვა",
-  description: "იყიდე და გაყიდე ავტომობილები საუკეთესო ფასად საქართველოში",
+  title: "AUTOMANQANEBI.GE | ავტომობილების მარკეტი",
+  description: "საქართველოს ყველაზე დიდი ავტომობილების ონლაინ მარკეტი. იყიდე და გაყიდე მანქანები მარტივად და სწრაფად.",
+  keywords: ["ავტომობილები", "მანქანები", "გაყიდვა", "ყიდვა", "საქართველო", "თბილისი"],
 };
 
 export const viewport: Viewport = {
-  themeColor: "#0f172a",
+  themeColor: "#16a34a",
   width: "device-width",
   initialScale: 1,
+  maximumScale: 5,
 };
 
-export default async function RootLayout({
+export default function RootLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  const locale = await getLocale();
-  const messages = await getMessages();
-
   return (
-    <html lang={locale} className={inter.variable} suppressHydrationWarning>
-      <body className="min-h-screen bg-background font-sans text-foreground antialiased">
-        <Providers>
-          <NextIntlClientProvider messages={messages}>
-            <AuthProvider>
-              <CurrencyProvider>
-                {children}
-              </CurrencyProvider>
-            </AuthProvider>
-          </NextIntlClientProvider>
-        </Providers>
+    <html lang="ka" className={`${inter.variable} bg-background`}>
+      <body className="flex min-h-screen flex-col font-sans antialiased">
+        <LanguageProvider>
+          <CurrencyProvider>
+            <Navbar />
+            <main className="flex-1">
+              {children}
+            </main>
+            <Footer />
+          </CurrencyProvider>
+        </LanguageProvider>
       </body>
     </html>
   );
