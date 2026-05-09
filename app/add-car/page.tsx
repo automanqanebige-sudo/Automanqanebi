@@ -24,13 +24,7 @@ export default function AddCarPage() {
         body: JSON.stringify({ brand, model, year }),
       });
       const data = await res.json();
-      if (!res.ok) {
-        console.error(data?.error ?? "AI request failed");
-        return;
-      }
-      if (typeof data.description === "string") {
-        setDescription(data.description);
-      }
+      setDescription(data.description);
     } catch (e) {
       console.error(e);
     } finally {
