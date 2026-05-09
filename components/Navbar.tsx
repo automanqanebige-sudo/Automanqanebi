@@ -3,17 +3,25 @@
 import { useState } from 'react'
 import Link from 'next/link'
 import { Menu, X, Car, Heart, User, MessageCircle, Home, Plus, LogIn, UserPlus } from 'lucide-react'
+import { Language, useLanguage } from '../context/LanguageContext'
 
 const navLinks = [
-  { href: '/', label: 'მთავარი', labelEn: 'Home', icon: Home },
-  { href: '/add-car', label: 'დამატება', labelEn: 'Add Car', icon: Plus },
-  { href: '/favorites', label: 'ფავორიტები', labelEn: 'Favorites', icon: Heart },
-  { href: '/profile', label: 'პროფილი', labelEn: 'Profile', icon: User },
-  { href: '/chat', label: 'ჩატი', labelEn: 'Chat', icon: MessageCircle },
+  { href: '/', key: 'nav.home', icon: Home },
+  { href: '/add-car', key: 'nav.addCar', icon: Plus },
+  { href: '/favorites', key: 'nav.favorites', icon: Heart },
+  { href: '/profile', key: 'nav.profile', icon: User },
+  { href: '/chat', key: 'nav.chat', icon: MessageCircle },
 ]
 
 export default function Navbar() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
+  const { language, setLanguage, t } = useLanguage()
+
+  const languageOptions: { code: Language; flag: string; label: string }[] = [
+    { code: 'ka', flag: '🇬🇪', label: 'ქართული' },
+    { code: 'ru', flag: '🇷🇺', label: 'Русский' },
+    { code: 'en', flag: '🇺🇸', label: 'English' },
+  ]
 
   return (
     <header className="sticky top-0 z-50 w-full border-b border-border bg-card/95 backdrop-blur supports-[backdrop-filter]:bg-card/80">
@@ -37,26 +45,41 @@ export default function Navbar() {
               className="flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
             >
               <link.icon className="h-4 w-4" />
-              {link.label}
+              {t(link.key)}
             </Link>
           ))}
         </div>
 
         {/* Desktop Auth Buttons */}
         <div className="hidden items-center gap-3 md:flex">
+          <div className="flex items-center gap-1 rounded-lg border border-border bg-background px-2 py-1">
+            {languageOptions.map((option) => (
+              <button
+                key={option.code}
+                onClick={() => setLanguage(option.code)}
+                className={`rounded-md px-2 py-1 text-sm transition-colors ${
+                  language === option.code ? 'bg-primary/15 text-foreground' : 'text-muted-foreground hover:bg-secondary'
+                }`}
+                aria-label={option.label}
+                title={option.label}
+              >
+                {option.flag}
+              </button>
+            ))}
+          </div>
           <Link
             href="/login"
             className="flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-medium text-foreground transition-colors hover:bg-secondary"
           >
             <LogIn className="h-4 w-4" />
-            შესვლა
+            {t('nav.login')}
           </Link>
           <Link
             href="/login"
             className="flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90"
           >
             <UserPlus className="h-4 w-4" />
-            რეგისტრაცია
+            {t('nav.register')}
           </Link>
         </div>
 
@@ -88,9 +111,25 @@ export default function Navbar() {
                 onClick={() => setIsMobileMenuOpen(false)}
               >
                 <link.icon className="h-5 w-5" />
-                {link.label}
+                {t(link.key)}
               </Link>
             ))}
+            <div className="flex items-center gap-2 rounded-lg px-3 py-2">
+              <span className="text-sm text-muted-foreground">{t('nav.language')}:</span>
+              {languageOptions.map((option) => (
+                <button
+                  key={option.code}
+                  onClick={() => setLanguage(option.code)}
+                  className={`rounded-md px-2 py-1 text-sm transition-colors ${
+                    language === option.code ? 'bg-primary/15 text-foreground' : 'text-muted-foreground hover:bg-secondary'
+                  }`}
+                  aria-label={option.label}
+                  title={option.label}
+                >
+                  {option.flag}
+                </button>
+              ))}
+            </div>
             <div className="my-3 border-t border-border" />
             <Link
               href="/login"
@@ -98,7 +137,7 @@ export default function Navbar() {
               onClick={() => setIsMobileMenuOpen(false)}
             >
               <LogIn className="h-5 w-5" />
-              შესვლა
+              {t('nav.login')}
             </Link>
             <Link
               href="/login"
@@ -106,7 +145,7 @@ export default function Navbar() {
               onClick={() => setIsMobileMenuOpen(false)}
             >
               <UserPlus className="h-5 w-5" />
-              რეგისტრაცია
+              {t('nav.register')}
             </Link>
           </div>
         </div>

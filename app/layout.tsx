@@ -4,6 +4,7 @@ import "./globals.css";
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
 import { CurrencyProvider } from "../context/CurrencyContext";
+import { LanguageProvider } from "../context/LanguageContext";
 
 const inter = Inter({ 
   subsets: ["latin"],
@@ -31,13 +32,15 @@ export default function RootLayout({
   return (
     <html lang="ka" className={`${inter.variable} bg-background`}>
       <body className="flex min-h-screen flex-col font-sans antialiased">
-        <CurrencyProvider>
-          <Navbar />
-          <main className="flex-1">
-            {children}
-          </main>
-          <Footer />
-        </CurrencyProvider>
+        <LanguageProvider>
+          <CurrencyProvider>
+            <Navbar />
+            <main className="flex-1">
+              {children}
+            </main>
+            <Footer />
+          </CurrencyProvider>
+        </LanguageProvider>
       </body>
     </html>
   );

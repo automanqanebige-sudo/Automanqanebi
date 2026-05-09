@@ -1,6 +1,6 @@
 import { initializeApp, getApps, getApp } from "firebase/app";
 import { getStorage } from "firebase/storage";
-import { getFirestore, initializeFirestore, terminate } from "firebase/firestore";
+import { getFirestore } from "firebase/firestore";
 
 const firebaseConfig = {
   apiKey: process.env.FIREBASE_API_KEY,
@@ -17,7 +17,5 @@ const app = getApps().length > 0 ? getApp() : initializeApp(firebaseConfig);
 // Storage-ისთვის
 export const storage = getStorage(app);
 
-// Firestore-ისთვის (სპეციალური პარამეტრით, რომელიც აგვარებს e.copy შეცდომას)
-export const db = initializeFirestore(app, {
-  experimentalForceLongPolling: true, // ეს აგვარებს კავშირის პრობლემებს Vercel-ზე
-});
+// Keep client-side Firestore simple/stable across environments.
+export const db = getFirestore(app);

@@ -37,12 +37,12 @@ export default function VipCarCard({ car, onFavoriteToggle }: VipCarCardProps) {
 
   return (
     <Link href={`/car/${car.id}`} className="block group flex-shrink-0">
-      <article className="relative w-80 sm:w-96 bg-gradient-to-br from-amber-50 via-card to-amber-50/50 rounded-2xl overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-500 group-hover:-translate-y-2 group-hover:scale-[1.02] border-2 border-amber-200/60">
+      <article className="relative w-80 sm:w-96 bg-gradient-to-br from-green-50 via-card to-green-50/50 rounded-2xl overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-500 group-hover:-translate-y-2 group-hover:scale-[1.02] border-2 border-green-200/60">
         {/* Premium Glow Effect */}
-        <div className="absolute inset-0 bg-gradient-to-br from-amber-400/10 via-transparent to-amber-400/5 pointer-events-none" />
+        <div className="absolute inset-0 bg-gradient-to-br from-green-400/10 via-transparent to-green-400/5 pointer-events-none" />
         
         {/* Decorative Corner Accent */}
-        <div className="absolute top-0 right-0 w-24 h-24 bg-gradient-to-bl from-amber-400/20 to-transparent pointer-events-none" />
+        <div className="absolute top-0 right-0 w-24 h-24 bg-gradient-to-bl from-green-400/20 to-transparent pointer-events-none" />
 
         {/* Image Container - Larger aspect ratio for VIP */}
         <div className="relative aspect-[16/10] overflow-hidden bg-muted">
@@ -65,7 +65,7 @@ export default function VipCarCard({ car, onFavoriteToggle }: VipCarCardProps) {
           <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/10 to-transparent" />
 
           {/* VIP Badge - Premium Design */}
-          <div className="absolute top-4 left-4 flex items-center gap-2 bg-gradient-to-r from-amber-500 to-amber-600 text-white px-4 py-2 rounded-full text-sm font-bold shadow-xl shadow-amber-500/30">
+          <div className="absolute top-4 left-4 flex items-center gap-2 bg-gradient-to-r from-green-500 to-green-600 text-white px-4 py-2 rounded-full text-sm font-bold shadow-xl shadow-green-500/30">
             <Crown className="h-4 w-4" />
             <span>VIP</span>
             <Sparkles className="h-3.5 w-3.5" />
@@ -108,7 +108,7 @@ export default function VipCarCard({ car, onFavoriteToggle }: VipCarCardProps) {
           </div>
 
           {/* Specs Row - Enhanced styling */}
-          <div className="flex items-center gap-5 mt-4 pt-4 border-t border-amber-200/60">
+          <div className="flex items-center gap-5 mt-4 pt-4 border-t border-green-200/60">
             <div className="flex items-center gap-2 text-muted-foreground">
               <div className="p-1.5 rounded-lg bg-secondary">
                 <Gauge className="h-4 w-4 flex-shrink-0 text-primary" />

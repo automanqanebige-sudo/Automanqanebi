@@ -71,7 +71,7 @@ export default function CarCard({ car, onFavoriteToggle }: CarCardProps) {
 
           {/* VIP Badge */}
           {car.isVip && (
-            <div className="absolute top-3 left-3 flex items-center gap-1.5 bg-amber-500 text-white px-2.5 py-1 rounded-full text-xs font-semibold shadow-lg">
+            <div className="absolute top-3 left-3 flex items-center gap-1.5 bg-green-500 text-white px-2.5 py-1 rounded-full text-xs font-semibold shadow-lg">
               <Crown className="h-3.5 w-3.5" />
               <span>VIP</span>
             </div>

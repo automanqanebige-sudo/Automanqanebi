@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { initializeApp, getApps, getApp } from "firebase/app";
-import { getFirestore, collection, getDocs, addDoc } from "firebase/firestore";
+import { getFirestore, collection, getDocs, addDoc } from "firebase/firestore/lite";
 
 // ❗ ეს აუცილებელია Firebase-ისთვის
 export const runtime = "nodejs";
