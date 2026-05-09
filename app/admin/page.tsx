@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { db } from "../../lib/firebase";
+import { getDb } from "@/lib/firebase";
 import { collection, getDocs, deleteDoc, doc } from "firebase/firestore/lite";
 
 export default function AdminPage() {
@@ -16,7 +16,7 @@ export default function AdminPage() {
   }, []);
 
   const deleteCar = async (id: string) => {
-    await deleteDoc(doc(db, "cars", id));
+    await deleteDoc(doc(getDb(), "cars", id));
     setCars(cars.filter(car => car.id !== id));
   };
 

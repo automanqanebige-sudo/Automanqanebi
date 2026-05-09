@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { db } from "../../lib/firebase";
+import { getDb } from "@/lib/firebase";
 import { collection, addDoc } from "firebase/firestore/lite";
 import { useRouter } from "next/navigation";
 
@@ -35,7 +35,7 @@ export default function AddCarPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      await addDoc(collection(db, "cars"), {
+      await addDoc(collection(getDb(), "cars"), {
         brand, model, price: Number(price), year: Number(year), image, description,
         createdAt: new Date(),
       });

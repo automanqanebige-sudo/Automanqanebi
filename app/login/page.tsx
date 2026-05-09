@@ -1,6 +1,6 @@
 "use client";
 
-import { auth } from "@/lib/firebase-auth";
+import { getFirebaseAuth } from "@/lib/firebase-auth";
 import { signInWithPopup, GoogleAuthProvider } from "firebase/auth";
 import { useRouter } from "next/navigation";
 
@@ -10,7 +10,7 @@ export default function LoginPage() {
   const login = async () => {
     const provider = new GoogleAuthProvider();
     try {
-      await signInWithPopup(auth, provider);
+      await signInWithPopup(getFirebaseAuth(), provider);
       router.push("/profile");
     } catch (err) { console.error(err); }
   };

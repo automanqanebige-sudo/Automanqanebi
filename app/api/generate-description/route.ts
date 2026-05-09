@@ -1,12 +1,12 @@
 import { NextResponse } from "next/server";
 import { collection, getDocs, addDoc } from "firebase/firestore/lite";
-import { db } from "@/lib/firebase";
+import { getDb } from "@/lib/firebase";
 
 export const runtime = "nodejs";
 
 export async function GET() {
   try {
-    const querySnapshot = await getDocs(collection(db, "cars"));
+    const querySnapshot = await getDocs(collection(getDb(), "cars"));
     const cars: unknown[] = [];
 
     querySnapshot.forEach((docSnap) => {
@@ -31,7 +31,7 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Name and price are required" }, { status: 400 });
     }
 
-    const docRef = await addDoc(collection(db, "cars"), {
+    const docRef = await addDoc(collection(getDb(), "cars"), {
       name: body.name,
       price: body.price,
       createdAt: new Date(),

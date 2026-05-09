@@ -1,6 +1,6 @@
 "use client";
 
-import { auth } from "@/lib/firebase-auth";
+import { getFirebaseAuth } from "@/lib/firebase-auth";
 import { onAuthStateChanged, signOut } from "firebase/auth";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
@@ -10,7 +10,7 @@ export default function ProfilePage() {
   const router = useRouter();
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (u) => {
+    const unsubscribe = onAuthStateChanged(getFirebaseAuth(), (u) => {
       if (u) setUser(u);
       else router.push("/login");
     });
@@ -25,7 +25,7 @@ export default function ProfilePage() {
           <h1 className="mt-4 text-xl font-bold">{user.displayName}</h1>
           <button
             type="button"
-            onClick={() => signOut(auth)}
+            onClick={() => signOut(getFirebaseAuth())}
             className="mt-4 text-red-500 underline"
           >
             გასვლა
