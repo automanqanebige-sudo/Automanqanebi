@@ -1,22 +1,24 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { db } from "../../lib/firebase"; // შეცვლილი იმპორტი
-import { collection, getDocs, deleteDoc, doc } from "firebase/firestore";
+import { getDb } from "@/lib/firebase";
+import { collection, getDocs, deleteDoc, doc } from "firebase/firestore/lite";
 
 export default function AdminPage() {
   const [cars, setCars] = useState<any[]>([]);
 
   useEffect(() => {
     const fetchCars = async () => {
-      const querySnapshot = await getDocs(collection(db, "cars"));
-      setCars(querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })));
+      const querySnapshot = await getDocs(collection(getDb(), "cars"));
+      setCars(
+        querySnapshot.docs.map((d) => ({ id: d.id, ...d.data() })),
+      );
     };
     fetchCars();
   }, []);
 
   const deleteCar = async (id: string) => {
-    await deleteDoc(doc(db, "cars", id));
+    await deleteDoc(doc(getDb(), "cars", id));
     setCars(cars.filter(car => car.id !== id));
   };
 

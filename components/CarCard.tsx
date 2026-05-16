@@ -4,6 +4,7 @@ import { useState } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
 import { Heart, MapPin, Gauge, Fuel, Crown } from 'lucide-react'
+import { useLanguage } from '@/context/LanguageContext'
 
 export type Car = {
   id: string
@@ -26,8 +27,11 @@ interface CarCardProps {
 }
 
 export default function CarCard({ car, onFavoriteToggle }: CarCardProps) {
+  const { t } = useLanguage()
   const [isFavorite, setIsFavorite] = useState(car.isFavorite || false)
   const [imageError, setImageError] = useState(false)
+
+  const fuelLabel = t(`fuel.${car.fuelType}`) !== `fuel.${car.fuelType}` ? t(`fuel.${car.fuelType}`) : car.fuelType
 
   const handleFavoriteClick = (e: React.MouseEvent) => {
     e.preventDefault()
@@ -65,7 +69,7 @@ export default function CarCard({ car, onFavoriteToggle }: CarCardProps) {
             />
           ) : (
             <div className="absolute inset-0 flex items-center justify-center bg-muted">
-              <span className="text-muted-foreground text-sm">No image</span>
+              <span className="text-muted-foreground text-sm">{t('car.noImage')}</span>
             </div>
           )}
 
@@ -119,7 +123,7 @@ export default function CarCard({ car, onFavoriteToggle }: CarCardProps) {
             </div>
             <div className="flex items-center gap-1.5 text-muted-foreground">
               <Fuel className="h-4 w-4 flex-shrink-0" />
-              <span className="text-sm">{car.fuelType}</span>
+              <span className="text-sm">{fuelLabel}</span>
             </div>
           </div>
         </div>

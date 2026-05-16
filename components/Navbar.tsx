@@ -4,6 +4,9 @@ import { useState } from 'react'
 import Link from 'next/link'
 import { Menu, X, Car, Heart, User, MessageCircle, Home, Plus, LogIn, UserPlus } from 'lucide-react'
 import { Language, useLanguage } from '../context/LanguageContext'
+import { useAuth } from '@/context/AuthContext'
+import { SITE_LOGO_MAIN, SITE_LOGO_TLD } from '@/lib/site'
+import ThemeToggle from './ThemeToggle'
 
 const navLinks = [
   { href: '/', key: 'nav.home', icon: Home },
@@ -16,6 +19,7 @@ const navLinks = [
 export default function Navbar() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
   const { language, setLanguage, t } = useLanguage()
+  const { user, loading: authLoading, logout } = useAuth()
 
   const languageOptions: { code: Language; flag: string; label: string }[] = [
     { code: 'ka', flag: '🇬🇪', label: 'ქართული' },
@@ -32,7 +36,8 @@ export default function Navbar() {
             <Car className="h-5 w-5 text-primary-foreground" />
           </div>
           <span className="text-lg font-bold tracking-tight text-foreground sm:text-xl">
-            AUTOMANQANEBI<span className="text-primary">.GE</span>
+            {SITE_LOGO_MAIN}
+            <span className="text-primary">{SITE_LOGO_TLD}</span>
           </span>
         </Link>
 
@@ -52,6 +57,7 @@ export default function Navbar() {
 
         {/* Desktop Auth Buttons */}
         <div className="hidden items-center gap-3 md:flex">
+          <ThemeToggle />
           <div className="flex items-center gap-1 rounded-lg border border-border bg-background px-2 py-1">
             {languageOptions.map((option) => (
               <button
@@ -67,20 +73,43 @@ export default function Navbar() {
               </button>
             ))}
           </div>
-          <Link
-            href="/login"
-            className="flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-medium text-foreground transition-colors hover:bg-secondary"
-          >
-            <LogIn className="h-4 w-4" />
-            {t('nav.login')}
-          </Link>
-          <Link
-            href="/login"
-            className="flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90"
-          >
-            <UserPlus className="h-4 w-4" />
-            {t('nav.register')}
-          </Link>
+          {!authLoading && user ? (
+            <>
+              <Link
+                href="/profile"
+                className="flex max-w-[140px] items-center gap-2 truncate rounded-lg px-3 py-2 text-sm font-medium text-foreground transition-colors hover:bg-secondary"
+              >
+                <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary text-xs font-bold text-primary-foreground">
+                  {(user.displayName || user.email || '?').charAt(0).toUpperCase()}
+                </span>
+                <span className="truncate">{user.displayName || user.email}</span>
+              </Link>
+              <button
+                type="button"
+                onClick={() => logout()}
+                className="rounded-lg px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
+              >
+                {t('auth.logout')}
+              </button>
+            </>
+          ) : (
+            <>
+              <Link
+                href="/login"
+                className="flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-medium text-foreground transition-colors hover:bg-secondary"
+              >
+                <LogIn className="h-4 w-4" />
+                {t('nav.login')}
+              </Link>
+              <Link
+                href="/register"
+                className="flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90"
+              >
+                <UserPlus className="h-4 w-4" />
+                {t('nav.register')}
+              </Link>
+            </>
+          )}
         </div>
 
         {/* Mobile Menu Button */}
@@ -103,6 +132,9 @@ export default function Navbar() {
       {isMobileMenuOpen && (
         <div className="border-t border-border bg-card md:hidden">
           <div className="space-y-1 px-4 pb-4 pt-2">
+            <div className="flex items-center justify-end px-3 py-1">
+              <ThemeToggle />
+            </div>
             {navLinks.map((link) => (
               <Link
                 key={link.href}
@@ -131,22 +163,48 @@ export default function Navbar() {
               ))}
             </div>
             <div className="my-3 border-t border-border" />
-            <Link
-              href="/login"
-              className="flex items-center gap-3 rounded-lg px-3 py-3 text-base font-medium text-foreground transition-colors hover:bg-secondary"
-              onClick={() => setIsMobileMenuOpen(false)}
-            >
-              <LogIn className="h-5 w-5" />
-              {t('nav.login')}
-            </Link>
-            <Link
-              href="/login"
-              className="flex items-center justify-center gap-2 rounded-lg bg-primary px-4 py-3 text-base font-medium text-primary-foreground transition-colors hover:bg-primary/90"
-              onClick={() => setIsMobileMenuOpen(false)}
-            >
-              <UserPlus className="h-5 w-5" />
-              {t('nav.register')}
-            </Link>
+            {!authLoading && user ? (
+              <>
+                <Link
+                  href="/profile"
+                  className="flex items-center gap-3 rounded-lg px-3 py-3 text-base font-medium text-foreground"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                >
+                  <User className="h-5 w-5" />
+                  {user.displayName || user.email}
+                </Link>
+                <button
+                  type="button"
+                  onClick={() => {
+                    logout()
+                    setIsMobileMenuOpen(false)
+                  }}
+                  className="flex w-full items-center gap-3 rounded-lg px-3 py-3 text-base font-medium text-muted-foreground hover:bg-secondary"
+                >
+                  <LogIn className="h-5 w-5" />
+                  {t('auth.logout')}
+                </button>
+              </>
+            ) : (
+              <>
+                <Link
+                  href="/login"
+                  className="flex items-center gap-3 rounded-lg px-3 py-3 text-base font-medium text-foreground transition-colors hover:bg-secondary"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                >
+                  <LogIn className="h-5 w-5" />
+                  {t('nav.login')}
+                </Link>
+                <Link
+                  href="/register"
+                  className="flex items-center justify-center gap-2 rounded-lg bg-primary px-4 py-3 text-base font-medium text-primary-foreground transition-colors hover:bg-primary/90"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                >
+                  <UserPlus className="h-5 w-5" />
+                  {t('nav.register')}
+                </Link>
+              </>
+            )}
           </div>
         </div>
       )}
