@@ -4,6 +4,7 @@ import { useRef } from 'react'
 import { ChevronLeft, ChevronRight, Crown, Sparkles } from 'lucide-react'
 import VipCarCard from './VipCarCard'
 import { Car } from './CarCard'
+import { useLanguage } from '@/context/LanguageContext'
 
 interface VipListingsSectionProps {
   cars: Car[]
@@ -11,6 +12,7 @@ interface VipListingsSectionProps {
 }
 
 export default function VipListingsSection({ cars, onFavoriteToggle }: VipListingsSectionProps) {
+  const { t } = useLanguage()
   const scrollContainerRef = useRef<HTMLDivElement>(null)
 
   const scroll = (direction: 'left' | 'right') => {
@@ -47,10 +49,10 @@ export default function VipListingsSection({ cars, onFavoriteToggle }: VipListin
             </div>
             <div>
               <h2 className="text-2xl sm:text-3xl font-bold text-foreground flex items-center gap-2">
-                VIP Listings
+                {t('vip.title')}
                 <Sparkles className="h-5 w-5 text-green-500" />
               </h2>
-              <p className="text-muted-foreground mt-0.5">Premium vehicles from verified sellers</p>
+              <p className="text-muted-foreground mt-0.5">{t('vip.subtitle')}</p>
             </div>
           </div>
 
@@ -104,7 +106,7 @@ export default function VipListingsSection({ cars, onFavoriteToggle }: VipListin
         <div className="mt-8 text-center">
           <button className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-gradient-to-r from-green-500 to-green-600 text-white font-semibold shadow-lg shadow-green-500/25 hover:shadow-xl hover:shadow-green-500/30 transition-all duration-300 hover:-translate-y-0.5">
             <Crown className="h-4 w-4" />
-            View All VIP Listings
+            {t('vip.viewAll')}
             <ChevronRight className="h-4 w-4" />
           </button>
         </div>

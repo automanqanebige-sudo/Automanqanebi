@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { Search, ChevronDown, X, RotateCcw } from 'lucide-react'
+import { useLanguage } from '@/context/LanguageContext'
 
 export interface FilterState {
   search: string
@@ -20,42 +21,9 @@ interface SearchFiltersProps {
   onReset: () => void
 }
 
-const priceOptions = [
-  { value: '', label: 'Any' },
-  { value: '5000', label: '$5,000' },
-  { value: '10000', label: '$10,000' },
-  { value: '15000', label: '$15,000' },
-  { value: '20000', label: '$20,000' },
-  { value: '30000', label: '$30,000' },
-  { value: '50000', label: '$50,000' },
-  { value: '75000', label: '$75,000' },
-  { value: '100000', label: '$100,000' },
-]
+const priceValues = ['', '5000', '10000', '15000', '20000', '30000', '50000', '75000', '100000']
 
 const currentYear = new Date().getFullYear()
-const yearOptions = [
-  { value: '', label: 'Any' },
-  ...Array.from({ length: 30 }, (_, i) => ({
-    value: String(currentYear - i),
-    label: String(currentYear - i),
-  })),
-]
-
-const fuelTypeOptions = [
-  { value: '', label: 'All Fuel Types' },
-  { value: 'petrol', label: 'Petrol' },
-  { value: 'diesel', label: 'Diesel' },
-  { value: 'hybrid', label: 'Hybrid' },
-  { value: 'electric', label: 'Electric' },
-  { value: 'lpg', label: 'LPG' },
-]
-
-const transmissionOptions = [
-  { value: '', label: 'All Transmissions' },
-  { value: 'automatic', label: 'Automatic' },
-  { value: 'manual', label: 'Manual' },
-  { value: 'semi-automatic', label: 'Semi-Automatic' },
-]
 
 interface SelectDropdownProps {
   label: string
@@ -68,9 +36,9 @@ interface SelectDropdownProps {
 function SelectDropdown({ label, value, options, onChange, className = '' }: SelectDropdownProps) {
   return (
     <div className={`relative ${className}`}>
-      <label className="block text-xs font-medium text-muted-foreground mb-1.5">
-        {label}
-      </label>
+      {label ? (
+        <label className="block text-xs font-medium text-muted-foreground mb-1.5">{label}</label>
+      ) : null}
       <div className="relative">
         <select
           value={value}
@@ -90,18 +58,48 @@ function SelectDropdown({ label, value, options, onChange, className = '' }: Sel
 }
 
 export default function SearchFilters({ filters, onFiltersChange, onSearch, onReset }: SearchFiltersProps) {
+  const { t } = useLanguage()
   const [isExpanded, setIsExpanded] = useState(false)
 
   const updateFilter = (key: keyof FilterState, value: string) => {
     onFiltersChange({ ...filters, [key]: value })
   }
 
-  const hasActiveFilters = 
-    filters.priceMin || 
-    filters.priceMax || 
-    filters.yearMin || 
-    filters.yearMax || 
-    filters.fuelType || 
+  const priceOptions = priceValues.map((value) => ({
+    value,
+    label: value ? `$${Number(value).toLocaleString()}` : t('search.any'),
+  }))
+
+  const yearOptions = [
+    { value: '', label: t('search.any') },
+    ...Array.from({ length: 30 }, (_, i) => ({
+      value: String(currentYear - i),
+      label: String(currentYear - i),
+    })),
+  ]
+
+  const fuelTypeOptions = [
+    { value: '', label: t('search.allFuel') },
+    { value: 'petrol', label: t('fuel.Petrol') },
+    { value: 'diesel', label: t('fuel.Diesel') },
+    { value: 'hybrid', label: t('fuel.Hybrid') },
+    { value: 'electric', label: t('fuel.Electric') },
+    { value: 'lpg', label: t('fuel.LPG') },
+  ]
+
+  const transmissionOptions = [
+    { value: '', label: t('search.allTransmission') },
+    { value: 'automatic', label: t('transmission.Automatic') },
+    { value: 'manual', label: t('transmission.Manual') },
+    { value: 'semi-automatic', label: t('transmission.Semi-Automatic') },
+  ]
+
+  const hasActiveFilters =
+    filters.priceMin ||
+    filters.priceMax ||
+    filters.yearMin ||
+    filters.yearMax ||
+    filters.fuelType ||
     filters.transmission
 
   const activeFilterCount = [
@@ -113,15 +111,13 @@ export default function SearchFilters({ filters, onFiltersChange, onSearch, onRe
 
   return (
     <div className="bg-card border border-border rounded-2xl shadow-sm overflow-hidden">
-      {/* Main Search Bar */}
       <div className="p-4 sm:p-6">
         <div className="flex flex-col lg:flex-row gap-4">
-          {/* Search Input */}
           <div className="flex-1 relative">
             <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
             <input
               type="text"
-              placeholder="Search by brand or model (e.g., BMW, Mercedes, Camry)..."
+              placeholder={t('search.placeholder')}
               value={filters.search}
               onChange={(e) => updateFilter('search', e.target.value)}
               className="w-full pl-12 pr-4 py-3 rounded-xl border border-input bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all"
@@ -131,19 +127,21 @@ export default function SearchFilters({ filters, onFiltersChange, onSearch, onRe
               <button
                 onClick={() => updateFilter('search', '')}
                 className="absolute right-4 top-1/2 -translate-y-1/2 p-1 rounded-full hover:bg-secondary transition-colors"
-                aria-label="Clear search"
+                aria-label={t('search.reset')}
               >
                 <X className="h-4 w-4 text-muted-foreground" />
               </button>
             )}
           </div>
 
-          {/* Quick Filters - Desktop */}
           <div className="hidden lg:flex items-end gap-3">
             <SelectDropdown
-              label="Price Range"
+              label={t('search.priceRange')}
               value={filters.priceMin}
-              options={priceOptions.map(o => ({ ...o, label: o.value ? `From ${o.label}` : 'Min Price' }))}
+              options={priceOptions.map((o) => ({
+                ...o,
+                label: o.value ? `${t('search.from')} ${o.label}` : t('search.minPrice'),
+              }))}
               onChange={(value) => updateFilter('priceMin', value)}
               className="w-36"
             />
@@ -151,29 +149,30 @@ export default function SearchFilters({ filters, onFiltersChange, onSearch, onRe
             <SelectDropdown
               label=""
               value={filters.priceMax}
-              options={priceOptions.map(o => ({ ...o, label: o.value ? `To ${o.label}` : 'Max Price' }))}
+              options={priceOptions.map((o) => ({
+                ...o,
+                label: o.value ? `${t('search.to')} ${o.label}` : t('search.maxPrice'),
+              }))}
               onChange={(value) => updateFilter('priceMax', value)}
               className="w-36 mt-5"
             />
           </div>
 
-          {/* Search Button */}
           <button
             onClick={onSearch}
             className="flex items-center justify-center gap-2 px-8 py-3 bg-primary text-primary-foreground rounded-xl font-semibold hover:bg-primary/90 transition-all hover:shadow-lg hover:shadow-primary/25 active:scale-[0.98]"
           >
             <Search className="h-5 w-5" />
-            <span>Search</span>
+            <span>{t('search.button')}</span>
           </button>
         </div>
 
-        {/* Expand Filters Toggle */}
         <button
           onClick={() => setIsExpanded(!isExpanded)}
           className="mt-4 flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors"
         >
           <ChevronDown className={`h-4 w-4 transition-transform duration-200 ${isExpanded ? 'rotate-180' : ''}`} />
-          <span>{isExpanded ? 'Hide filters' : 'Show more filters'}</span>
+          <span>{isExpanded ? t('search.hideMore') : t('search.showMore')}</span>
           {activeFilterCount > 0 && (
             <span className="px-2 py-0.5 bg-primary text-primary-foreground text-xs font-medium rounded-full">
               {activeFilterCount}
@@ -182,7 +181,6 @@ export default function SearchFilters({ filters, onFiltersChange, onSearch, onRe
         </button>
       </div>
 
-      {/* Expanded Filters */}
       <div
         className={`grid transition-all duration-300 ease-in-out ${
           isExpanded ? 'grid-rows-[1fr] opacity-100' : 'grid-rows-[0fr] opacity-0'
@@ -191,10 +189,9 @@ export default function SearchFilters({ filters, onFiltersChange, onSearch, onRe
         <div className="overflow-hidden">
           <div className="px-4 sm:px-6 pb-6 pt-2 border-t border-border">
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mt-4">
-              {/* Price Range - Mobile */}
               <div className="lg:hidden sm:col-span-2">
                 <label className="block text-xs font-medium text-muted-foreground mb-1.5">
-                  Price Range
+                  {t('search.priceRange')}
                 </label>
                 <div className="flex items-center gap-2">
                   <select
@@ -204,7 +201,7 @@ export default function SearchFilters({ filters, onFiltersChange, onSearch, onRe
                   >
                     {priceOptions.map((option) => (
                       <option key={option.value} value={option.value}>
-                        {option.value ? `From ${option.label}` : 'Min Price'}
+                        {option.value ? `${t('search.from')} ${option.label}` : t('search.minPrice')}
                       </option>
                     ))}
                   </select>
@@ -216,17 +213,16 @@ export default function SearchFilters({ filters, onFiltersChange, onSearch, onRe
                   >
                     {priceOptions.map((option) => (
                       <option key={option.value} value={option.value}>
-                        {option.value ? `To ${option.label}` : 'Max Price'}
+                        {option.value ? `${t('search.to')} ${option.label}` : t('search.maxPrice')}
                       </option>
                     ))}
                   </select>
                 </div>
               </div>
 
-              {/* Year Range */}
               <div className="sm:col-span-2 lg:col-span-1">
                 <label className="block text-xs font-medium text-muted-foreground mb-1.5">
-                  Year
+                  {t('search.year')}
                 </label>
                 <div className="flex items-center gap-2">
                   <select
@@ -236,7 +232,7 @@ export default function SearchFilters({ filters, onFiltersChange, onSearch, onRe
                   >
                     {yearOptions.map((option) => (
                       <option key={option.value} value={option.value}>
-                        {option.value ? `From ${option.label}` : 'Min Year'}
+                        {option.value ? `${t('search.from')} ${option.label}` : t('search.minYear')}
                       </option>
                     ))}
                   </select>
@@ -248,30 +244,27 @@ export default function SearchFilters({ filters, onFiltersChange, onSearch, onRe
                   >
                     {yearOptions.map((option) => (
                       <option key={option.value} value={option.value}>
-                        {option.value ? `To ${option.label}` : 'Max Year'}
+                        {option.value ? `${t('search.to')} ${option.label}` : t('search.maxYear')}
                       </option>
                     ))}
                   </select>
                 </div>
               </div>
 
-              {/* Fuel Type */}
               <SelectDropdown
-                label="Fuel Type"
+                label={t('search.fuelType')}
                 value={filters.fuelType}
                 options={fuelTypeOptions}
                 onChange={(value) => updateFilter('fuelType', value)}
               />
 
-              {/* Transmission */}
               <SelectDropdown
-                label="Transmission"
+                label={t('search.transmission')}
                 value={filters.transmission}
                 options={transmissionOptions}
                 onChange={(value) => updateFilter('transmission', value)}
               />
 
-              {/* Reset Button */}
               <div className="flex items-end">
                 <button
                   onClick={onReset}
@@ -279,7 +272,7 @@ export default function SearchFilters({ filters, onFiltersChange, onSearch, onRe
                   className="flex items-center justify-center gap-2 px-4 py-2.5 w-full rounded-lg border border-input bg-background text-foreground text-sm font-medium hover:bg-secondary transition-all disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   <RotateCcw className="h-4 w-4" />
-                  <span>Reset Filters</span>
+                  <span>{t('search.reset')}</span>
                 </button>
               </div>
             </div>
