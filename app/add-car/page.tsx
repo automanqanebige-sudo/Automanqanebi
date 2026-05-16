@@ -4,8 +4,10 @@ import { useState } from "react";
 import { getDb } from "@/lib/firebase";
 import { collection, addDoc } from "firebase/firestore/lite";
 import { useRouter } from "next/navigation";
+import RequireAuth from "@/components/RequireAuth";
+import { useAuth } from "@/context/AuthContext";
 
-export default function AddCarPage() {
+function AddCarForm() {
   const [brand, setBrand] = useState("");
   const [model, setModel] = useState("");
   const [price, setPrice] = useState("");
@@ -14,6 +16,7 @@ export default function AddCarPage() {
   const [description, setDescription] = useState("");
   const [loadingAI, setLoadingAI] = useState(false);
   const router = useRouter();
+  const { user } = useAuth();
 
   const generateAIDescription = async () => {
     if (!brand || !model) return alert("მიუთითეთ მარკა და მოდელი");
@@ -37,6 +40,8 @@ export default function AddCarPage() {
     try {
       await addDoc(collection(getDb(), "cars"), {
         brand, model, price: Number(price), year: Number(year), image, description,
+        userId: user?.uid ?? null,
+        userEmail: user?.email ?? null,
         createdAt: new Date(),
       });
       router.push("/");
@@ -63,5 +68,13 @@ export default function AddCarPage() {
         <button type="submit" className="w-full rounded-lg bg-primary py-3 font-bold text-primary-foreground transition-colors hover:bg-primary/90">გამოქვეყნება</button>
       </form>
     </div>
+  );
+}
+
+export default function AddCarPage() {
+  return (
+    <RequireAuth>
+      <AddCarForm />
+    </RequireAuth>
   );
 }

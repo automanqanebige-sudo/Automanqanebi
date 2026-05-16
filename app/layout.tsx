@@ -5,6 +5,7 @@ import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
 import { CurrencyProvider } from "../context/CurrencyContext";
 import { LanguageProvider } from "../context/LanguageContext";
+import { AuthProvider } from "../context/AuthContext";
 import { SITE_DOMAIN, SITE_LOGO_MAIN, SITE_LOGO_TLD, SITE_URL } from "../lib/site";
 
 const inter = Inter({ 
@@ -54,13 +55,15 @@ export default function RootLayout({
     <html lang="ka" className={`${inter.variable} bg-background`}>
       <body className="flex min-h-screen flex-col font-sans antialiased">
         <LanguageProvider>
-          <CurrencyProvider>
-            <Navbar />
-            <main className="flex-1">
-              {children}
-            </main>
-            <Footer />
-          </CurrencyProvider>
+          <AuthProvider>
+            <CurrencyProvider>
+              <Navbar />
+              <main className="flex-1">
+                {children}
+              </main>
+              <Footer />
+            </CurrencyProvider>
+          </AuthProvider>
         </LanguageProvider>
       </body>
     </html>

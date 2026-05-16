@@ -4,6 +4,7 @@ import { useState } from 'react'
 import Link from 'next/link'
 import { Menu, X, Car, Heart, User, MessageCircle, Home, Plus, LogIn, UserPlus } from 'lucide-react'
 import { Language, useLanguage } from '../context/LanguageContext'
+import { useAuth } from '@/context/AuthContext'
 import { SITE_LOGO_MAIN, SITE_LOGO_TLD } from '@/lib/site'
 import ThemeToggle from './ThemeToggle'
 
@@ -18,6 +19,7 @@ const navLinks = [
 export default function Navbar() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
   const { language, setLanguage, t } = useLanguage()
+  const { user, loading: authLoading, logout } = useAuth()
 
   const languageOptions: { code: Language; flag: string; label: string }[] = [
     { code: 'ka', flag: '🇬🇪', label: 'ქართული' },
@@ -71,20 +73,43 @@ export default function Navbar() {
               </button>
             ))}
           </div>
-          <Link
-            href="/login"
-            className="flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-medium text-foreground transition-colors hover:bg-secondary"
-          >
-            <LogIn className="h-4 w-4" />
-            {t('nav.login')}
-          </Link>
-          <Link
-            href="/login"
-            className="flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90"
-          >
-            <UserPlus className="h-4 w-4" />
-            {t('nav.register')}
-          </Link>
+          {!authLoading && user ? (
+            <>
+              <Link
+                href="/profile"
+                className="flex max-w-[140px] items-center gap-2 truncate rounded-lg px-3 py-2 text-sm font-medium text-foreground transition-colors hover:bg-secondary"
+              >
+                <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary text-xs font-bold text-primary-foreground">
+                  {(user.displayName || user.email || '?').charAt(0).toUpperCase()}
+                </span>
+                <span className="truncate">{user.displayName || user.email}</span>
+              </Link>
+              <button
+                type="button"
+                onClick={() => logout()}
+                className="rounded-lg px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
+              >
+                {t('auth.logout')}
+              </button>
+            </>
+          ) : (
+            <>
+              <Link
+                href="/login"
+                className="flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-medium text-foreground transition-colors hover:bg-secondary"
+              >
+                <LogIn className="h-4 w-4" />
+                {t('nav.login')}
+              </Link>
+              <Link
+                href="/register"
+                className="flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90"
+              >
+                <UserPlus className="h-4 w-4" />
+                {t('nav.register')}
+              </Link>
+            </>
+          )}
         </div>
 
         {/* Mobile Menu Button */}
@@ -138,22 +163,48 @@ export default function Navbar() {
               ))}
             </div>
             <div className="my-3 border-t border-border" />
-            <Link
-              href="/login"
-              className="flex items-center gap-3 rounded-lg px-3 py-3 text-base font-medium text-foreground transition-colors hover:bg-secondary"
-              onClick={() => setIsMobileMenuOpen(false)}
-            >
-              <LogIn className="h-5 w-5" />
-              {t('nav.login')}
-            </Link>
-            <Link
-              href="/login"
-              className="flex items-center justify-center gap-2 rounded-lg bg-primary px-4 py-3 text-base font-medium text-primary-foreground transition-colors hover:bg-primary/90"
-              onClick={() => setIsMobileMenuOpen(false)}
-            >
-              <UserPlus className="h-5 w-5" />
-              {t('nav.register')}
-            </Link>
+            {!authLoading && user ? (
+              <>
+                <Link
+                  href="/profile"
+                  className="flex items-center gap-3 rounded-lg px-3 py-3 text-base font-medium text-foreground"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                >
+                  <User className="h-5 w-5" />
+                  {user.displayName || user.email}
+                </Link>
+                <button
+                  type="button"
+                  onClick={() => {
+                    logout()
+                    setIsMobileMenuOpen(false)
+                  }}
+                  className="flex w-full items-center gap-3 rounded-lg px-3 py-3 text-base font-medium text-muted-foreground hover:bg-secondary"
+                >
+                  <LogIn className="h-5 w-5" />
+                  {t('auth.logout')}
+                </button>
+              </>
+            ) : (
+              <>
+                <Link
+                  href="/login"
+                  className="flex items-center gap-3 rounded-lg px-3 py-3 text-base font-medium text-foreground transition-colors hover:bg-secondary"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                >
+                  <LogIn className="h-5 w-5" />
+                  {t('nav.login')}
+                </Link>
+                <Link
+                  href="/register"
+                  className="flex items-center justify-center gap-2 rounded-lg bg-primary px-4 py-3 text-base font-medium text-primary-foreground transition-colors hover:bg-primary/90"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                >
+                  <UserPlus className="h-5 w-5" />
+                  {t('nav.register')}
+                </Link>
+              </>
+            )}
           </div>
         </div>
       )}

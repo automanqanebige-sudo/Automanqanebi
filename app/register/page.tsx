@@ -6,7 +6,7 @@ import AuthForm from '@/components/AuthForm'
 import { useAuth } from '@/context/AuthContext'
 import { useLanguage } from '@/context/LanguageContext'
 
-function LoginContent() {
+function RegisterContent() {
   const { user, loading } = useAuth()
   const { t } = useLanguage()
   const router = useRouter()
@@ -25,16 +25,16 @@ function LoginContent() {
     )
   }
 
-  return <AuthForm mode="login" />
+  return <AuthForm mode="register" />
 }
 
-export default function LoginPage() {
+export default function RegisterPage() {
   const { t } = useLanguage()
 
   return (
     <div className="flex min-h-[calc(100vh-8rem)] items-center justify-center px-4 py-12">
       <Suspense fallback={<div className="text-muted-foreground">{t('auth.loading')}</div>}>
-        <LoginContent />
+        <RegisterContent />
       </Suspense>
     </div>
   )
