@@ -2,14 +2,17 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
-import { Menu, X, Car, Heart, User, MessageCircle, Home, Plus, LogIn, UserPlus } from 'lucide-react'
+import Image from 'next/image'
+import { Menu, X, Heart, User, MessageCircle, Home, Plus, LogIn, UserPlus, Wrench } from 'lucide-react'
 import { Language, useLanguage } from '../context/LanguageContext'
 import { useAuth } from '@/context/AuthContext'
 import { SITE_LOGO_MAIN, SITE_LOGO_TLD } from '@/lib/site'
 import ThemeToggle from './ThemeToggle'
+import CurrencyToggle from './CurrencyToggle'
 
 const navLinks = [
   { href: '/', key: 'nav.home', icon: Home },
+  { href: '/services', key: 'nav.services', icon: Wrench },
   { href: '/add-car', key: 'nav.addCar', icon: Plus },
   { href: '/favorites', key: 'nav.favorites', icon: Heart },
   { href: '/profile', key: 'nav.profile', icon: User },
@@ -32,9 +35,14 @@ export default function Navbar() {
       <nav className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
         {/* Logo */}
         <Link href="/" className="flex items-center gap-2">
-          <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary">
-            <Car className="h-5 w-5 text-primary-foreground" />
-          </div>
+          <Image
+            src="/logo.png"
+            alt={`${SITE_LOGO_MAIN}${SITE_LOGO_TLD}`}
+            width={40}
+            height={40}
+            className="h-10 w-10 rounded-full object-contain"
+            priority
+          />
           <span className="text-lg font-bold tracking-tight text-foreground sm:text-xl">
             {SITE_LOGO_MAIN}
             <span className="text-primary">{SITE_LOGO_TLD}</span>
@@ -58,6 +66,7 @@ export default function Navbar() {
         {/* Desktop Auth Buttons */}
         <div className="hidden items-center gap-3 md:flex">
           <ThemeToggle />
+          <CurrencyToggle compact />
           <div className="flex items-center gap-1 rounded-lg border border-border bg-background px-2 py-1">
             {languageOptions.map((option) => (
               <button
@@ -132,8 +141,9 @@ export default function Navbar() {
       {isMobileMenuOpen && (
         <div className="border-t border-border bg-card md:hidden">
           <div className="space-y-1 px-4 pb-4 pt-2">
-            <div className="flex items-center justify-end px-3 py-1">
+            <div className="flex items-center justify-between px-3 py-2">
               <ThemeToggle />
+              <CurrencyToggle compact />
             </div>
             {navLinks.map((link) => (
               <Link

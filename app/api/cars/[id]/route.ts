@@ -1,11 +1,11 @@
 import { NextResponse } from 'next/server'
-import { getCarById } from '@/data/cars'
+import { getSampleCarById } from '@/lib/cars-mapper'
 
 export async function GET(
   _request: Request,
   { params }: { params: { id: string } }
 ) {
-  const car = getCarById(params.id)
+  const car = getSampleCarById(params.id)
   if (!car) {
     return NextResponse.json({ error: 'Not found' }, { status: 404 })
   }

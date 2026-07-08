@@ -1,6 +1,7 @@
 'use client'
 
 import { useRef } from 'react'
+import Link from 'next/link'
 import { ChevronLeft, ChevronRight, Crown, Sparkles } from 'lucide-react'
 import VipCarCard from './VipCarCard'
 import { Car } from './CarCard'
@@ -104,11 +105,14 @@ export default function VipListingsSection({ cars, onFavoriteToggle }: VipListin
 
         {/* View All Button */}
         <div className="mt-8 text-center">
-          <button className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-gradient-to-r from-green-500 to-green-600 text-white font-semibold shadow-lg shadow-green-500/25 hover:shadow-xl hover:shadow-green-500/30 transition-all duration-300 hover:-translate-y-0.5">
+          <Link
+            href="/#listings"
+            className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-gradient-to-r from-green-500 to-green-600 text-white font-semibold shadow-lg shadow-green-500/25 hover:shadow-xl hover:shadow-green-500/30 transition-all duration-300 hover:-translate-y-0.5"
+          >
             <Crown className="h-4 w-4" />
             {t('vip.viewAll')}
             <ChevronRight className="h-4 w-4" />
-          </button>
+          </Link>
         </div>
       </div>
     </section>

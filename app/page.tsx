@@ -1,36 +1,28 @@
 'use client'
 
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useEffect } from 'react'
 import CarCard, { Car } from '@/components/CarCard'
-import SearchFilters, { FilterState } from '@/components/SearchFilters'
+import SearchFilters, { initialFilters } from '@/components/SearchFilters'
 import VipListingsSection from '@/components/VipListingsSection'
+import CurrencyToggle from '@/components/CurrencyToggle'
 import { SITE_DOMAIN } from '@/lib/site'
-import { sampleCars } from '@/data/cars'
+import { loadAllCars } from '@/lib/cars-firestore'
+import { applyCarFilters } from '@/lib/apply-car-filters'
 import { useLanguage } from '@/context/LanguageContext'
-
-const initialFilters: FilterState = {
-  search: '',
-  priceMin: '',
-  priceMax: '',
-  yearMin: '',
-  yearMax: '',
-  fuelType: '',
-  transmission: '',
-}
 
 export default function Home() {
   const { t } = useLanguage()
-  const [cars, setCars] = useState<Car[]>(sampleCars)
-  const [filters, setFilters] = useState<FilterState>(initialFilters)
+  const [cars, setCars] = useState<Car[]>([])
+  const [loadingCars, setLoadingCars] = useState(true)
+  const [filters, setFilters] = useState(initialFilters)
   const [sortBy, setSortBy] = useState('newest')
 
-  const handleFavoriteToggle = (id: string) => {
-    setCars((prevCars) =>
-      prevCars.map((car) =>
-        car.id === id ? { ...car, isFavorite: !car.isFavorite } : car
-      )
-    )
-  }
+  useEffect(() => {
+    loadAllCars()
+      .then(setCars)
+      .catch(() => setCars([]))
+      .finally(() => setLoadingCars(false))
+  }, [])
 
   const handleReset = () => {
     setFilters(initialFilters)
@@ -39,29 +31,7 @@ export default function Home() {
   const vipCars = useMemo(() => cars.filter((car) => car.isVip), [cars])
 
   const filteredAndSortedCars = useMemo(() => {
-    let result = cars.filter((car) => {
-      if (filters.search) {
-        const searchLower = filters.search.toLowerCase()
-        const matchesSearch =
-          car.brand.toLowerCase().includes(searchLower) ||
-          car.model.toLowerCase().includes(searchLower)
-        if (!matchesSearch) return false
-      }
-
-      if (filters.priceMin && car.price < Number(filters.priceMin)) return false
-      if (filters.priceMax && car.price > Number(filters.priceMax)) return false
-      if (filters.yearMin && car.year < Number(filters.yearMin)) return false
-      if (filters.yearMax && car.year > Number(filters.yearMax)) return false
-      if (filters.fuelType && car.fuelType.toLowerCase() !== filters.fuelType.toLowerCase())
-        return false
-      if (
-        filters.transmission &&
-        car.transmission?.toLowerCase() !== filters.transmission.toLowerCase()
-      )
-        return false
-
-      return true
-    })
+    let result = applyCarFilters(cars, filters)
 
     switch (sortBy) {
       case 'price-low':
@@ -107,20 +77,24 @@ export default function Home() {
               onFiltersChange={setFilters}
               onSearch={() => {}}
               onReset={handleReset}
+              resultCount={filteredAndSortedCars.length}
             />
           </div>
         </div>
       </section>
 
-      <VipListingsSection cars={vipCars} onFavoriteToggle={handleFavoriteToggle} />
+      <VipListingsSection cars={vipCars} />
 
-      <section className="py-8 px-4 sm:px-6 lg:px-8">
+      <section id="listings" className="py-8 px-4 sm:px-6 lg:px-8">
         <div className="max-w-7xl mx-auto">
           <div className="flex items-center gap-3 mb-6">
             <h2 className="text-2xl font-bold text-foreground">{t('home.allListings')}</h2>
             <span className="px-3 py-1 text-sm font-medium bg-secondary text-secondary-foreground rounded-full">
               {filteredAndSortedCars.length} {countLabel}
             </span>
+            {loadingCars && (
+              <span className="text-sm text-muted-foreground">{t('car.loading')}</span>
+            )}
           </div>
 
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
@@ -128,32 +102,35 @@ export default function Home() {
               <span className="font-semibold text-foreground">{filteredAndSortedCars.length}</span>{' '}
               {countLabel} {t('home.found')}
             </p>
-            <div className="flex items-center gap-2">
-              <label htmlFor="sort" className="text-sm text-muted-foreground">
-                {t('home.sortBy')}:
-              </label>
-              <select
-                id="sort"
-                value={sortBy}
-                onChange={(e) => setSortBy(e.target.value)}
-                className="px-4 py-2 rounded-lg border border-input bg-card text-foreground text-sm focus:outline-none focus:ring-2 focus:ring-primary cursor-pointer"
-              >
-                <option value="newest">{t('home.sort.featured')}</option>
-                <option value="price-low">{t('home.sort.priceLow')}</option>
-                <option value="price-high">{t('home.sort.priceHigh')}</option>
-                <option value="mileage">{t('home.sort.mileage')}</option>
-                <option value="year">{t('home.sort.year')}</option>
-              </select>
+            <div className="flex flex-wrap items-center gap-3">
+              <CurrencyToggle compact />
+              <div className="flex items-center gap-2">
+                <label htmlFor="sort" className="text-sm text-muted-foreground">
+                  {t('home.sortBy')}:
+                </label>
+                <select
+                  id="sort"
+                  value={sortBy}
+                  onChange={(e) => setSortBy(e.target.value)}
+                  className="cursor-pointer rounded-lg border border-input bg-card px-4 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+                >
+                  <option value="newest">{t('home.sort.featured')}</option>
+                  <option value="price-low">{t('home.sort.priceLow')}</option>
+                  <option value="price-high">{t('home.sort.priceHigh')}</option>
+                  <option value="mileage">{t('home.sort.mileage')}</option>
+                  <option value="year">{t('home.sort.year')}</option>
+                </select>
+              </div>
             </div>
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
             {filteredAndSortedCars.map((car) => (
-              <CarCard key={car.id} car={car} onFavoriteToggle={handleFavoriteToggle} />
+              <CarCard key={car.id} car={car} />
             ))}
           </div>
 
-          {filteredAndSortedCars.length === 0 && (
+          {filteredAndSortedCars.length === 0 && !loadingCars && (
             <div className="text-center py-16 px-4">
               <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-secondary flex items-center justify-center">
                 <svg className="w-8 h-8 text-muted-foreground" fill="none" viewBox="0 0 24 24" stroke="currentColor">

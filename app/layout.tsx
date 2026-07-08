@@ -5,6 +5,7 @@ import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
 import { CurrencyProvider } from "../context/CurrencyContext";
 import { LanguageProvider } from "../context/LanguageContext";
+import { FavoritesProvider } from "../context/FavoritesContext";
 import { AuthProvider } from "../context/AuthContext";
 import { SITE_DOMAIN, SITE_LOGO_MAIN, SITE_LOGO_TLD, SITE_URL } from "../lib/site";
 
@@ -30,6 +31,11 @@ export const metadata: Metadata = {
     "თბილისი",
   ],
   applicationName: siteTitle,
+  icons: {
+    icon: "/logo.png",
+    shortcut: "/logo.png",
+    apple: "/logo.png",
+  },
   openGraph: {
     type: "website",
     locale: "ka_GE",
@@ -57,11 +63,13 @@ export default function RootLayout({
         <LanguageProvider>
           <AuthProvider>
             <CurrencyProvider>
-              <Navbar />
-              <main className="flex-1">
-                {children}
-              </main>
-              <Footer />
+              <FavoritesProvider>
+                <Navbar />
+                <main className="flex-1">
+                  {children}
+                </main>
+                <Footer />
+              </FavoritesProvider>
             </CurrencyProvider>
           </AuthProvider>
         </LanguageProvider>

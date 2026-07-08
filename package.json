@@ -2,7 +2,7 @@
   "name": "automanqanebi",
   "version": "0.1.0",
   "private": true,
-  "homepage": "https://automanqanebi1.ge",
+  "homepage": "https://automanqanebi.ge",
   "packageManager": "pnpm@10.6.4",
   "scripts": {
     "dev": "next dev",
@@ -11,7 +11,7 @@
     "lint": "next lint"
   },
   "engines": {
-    "node": "20.x"
+    "node": "24.x"
   },
   "dependencies": {
     "next": "14.2.3",

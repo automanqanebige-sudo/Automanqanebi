@@ -1,0 +1,28 @@
+{
+  "apphosting": {
+    "backendId": "automanqanebi",
+    "rootDir": "/",
+    "ignore": ["node_modules", ".git", ".next", "AUTOGE-CLEAN", "*.zip", "firebase-debug.log"]
+  },
+  "firestore": {
+    "rules": "firestore.rules"
+  },
+  "storage": {
+    "rules": "storage.rules"
+  },
+  "auth": {
+    "providers": {
+      "emailPassword": true,
+      "googleSignIn": {
+        "oAuthBrandDisplayName": "Automanqanebi",
+        "supportEmail": "info@automanqanebi.ge",
+        "authorizedRedirectUris": [
+          "http://localhost",
+          "https://automanqanebi.ge",
+          "https://*.vercel.app"
+        ]
+      }
+    },
+    "authorizedDomains": ["localhost", "automanqanebi.ge", "vercel.app"]
+  }
+}

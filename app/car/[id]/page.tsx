@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useMemo } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
 import {
@@ -11,47 +11,51 @@ import {
   Heart,
   MapPin,
   MessageCircle,
+  Phone,
   Settings2,
   Calendar,
 } from 'lucide-react'
+import { useRouter } from 'next/navigation'
+import { useAuth } from '@/context/AuthContext'
 import type { Car } from '@/components/CarCard'
 import { getCarById } from '@/data/cars'
+import { fetchFirestoreCarById } from '@/lib/cars-firestore'
 import { useLanguage } from '@/context/LanguageContext'
+import { useCurrency } from '@/context/CurrencyContext'
+import { useFavorites } from '@/context/FavoritesContext'
 
 export default function CarPage({ params }: { params: { id: string } }) {
   const { t } = useLanguage()
+  const { formatPrice } = useCurrency()
+  const { isFavorite, toggleFavorite } = useFavorites()
+  const { user } = useAuth()
+  const router = useRouter()
   const [car, setCar] = useState<Car | null>(null)
   const [loading, setLoading] = useState(true)
-  const [isFavorite, setIsFavorite] = useState(false)
   const [imageError, setImageError] = useState(false)
+
+  const favorited = car ? isFavorite(car.id) : false
 
   useEffect(() => {
     const found = getCarById(params.id)
     if (found) {
       setCar(found)
-      setIsFavorite(Boolean(found.isFavorite))
       setLoading(false)
       return
     }
 
     fetch(`/api/cars/${params.id}`)
       .then((res) => (res.ok ? res.json() : null))
-      .then((data) => {
+      .then(async (data) => {
         if (data) {
           setCar(data)
-          setIsFavorite(Boolean(data.isFavorite))
+          return
         }
+        const fromDb = await fetchFirestoreCarById(params.id)
+        if (fromDb) setCar(fromDb)
       })
       .finally(() => setLoading(false))
   }, [params.id])
-
-  const formatPrice = (price: number) =>
-    new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: 'USD',
-      minimumFractionDigits: 0,
-      maximumFractionDigits: 0,
-    }).format(price)
 
   const formatMileage = (mileage: number) =>
     new Intl.NumberFormat('en-US').format(mileage) + ' km'
@@ -62,6 +66,12 @@ export default function CarPage({ params }: { params: { id: string } }) {
     const translated = t(key)
     return translated !== key ? translated : value
   }
+
+  const phoneHref = useMemo(() => {
+    if (!car?.phone) return null
+    const digits = car.phone.replace(/\D/g, '')
+    return digits ? `tel:+${digits.startsWith('995') ? digits : `995${digits}`}` : `tel:${car.phone}`
+  }, [car?.phone])
 
   if (loading) {
     return (
@@ -137,19 +147,28 @@ export default function CarPage({ params }: { params: { id: string } }) {
             </div>
             <button
               type="button"
-              onClick={() => setIsFavorite(!isFavorite)}
+              onClick={() => toggleFavorite(car.id)}
               className="flex items-center gap-2 rounded-xl border border-border bg-card px-4 py-2.5 text-sm font-medium transition-colors hover:bg-secondary"
             >
               <Heart
-                className={`h-5 w-5 ${isFavorite ? 'fill-red-500 text-red-500' : 'text-muted-foreground'}`}
+                className={`h-5 w-5 ${favorited ? 'fill-red-500 text-red-500' : 'text-muted-foreground'}`}
               />
-              {isFavorite ? t('car.removeFavorite') : t('car.addFavorite')}
+              {favorited ? t('car.removeFavorite') : t('car.addFavorite')}
             </button>
           </div>
 
           <p className="mt-6 text-4xl font-bold text-primary">{formatPrice(car.price)}</p>
 
-          <div className="mt-8 rounded-2xl border border-border bg-card p-6">
+          {car.description && (
+            <div className="mt-6 rounded-2xl border border-border bg-card p-5">
+              <h2 className="mb-2 text-sm font-semibold text-muted-foreground">
+                {t('car.description')}
+              </h2>
+              <p className="whitespace-pre-wrap text-foreground leading-relaxed">{car.description}</p>
+            </div>
+          )}
+
+          <div className="mt-6 rounded-2xl border border-border bg-card p-6">
             <h2 className="mb-4 flex items-center gap-2 text-lg font-semibold text-foreground">
               <Settings2 className="h-5 w-5 text-primary" />
               {t('car.specs')}
@@ -199,13 +218,35 @@ export default function CarPage({ params }: { params: { id: string } }) {
           </div>
 
           <div className="mt-6 flex flex-col gap-3 sm:flex-row">
-            <Link
-              href="/chat"
-              className="inline-flex flex-1 items-center justify-center gap-2 rounded-xl bg-primary px-6 py-3.5 font-semibold text-primary-foreground transition-colors hover:bg-primary/90"
-            >
-              <MessageCircle className="h-5 w-5" />
-              {t('car.contact')}
-            </Link>
+            {phoneHref ? (
+              <a
+                href={phoneHref}
+                className="inline-flex flex-1 items-center justify-center gap-2 rounded-xl bg-primary px-6 py-3.5 font-semibold text-primary-foreground transition-colors hover:bg-primary/90"
+              >
+                <Phone className="h-5 w-5" />
+                {t('car.callSeller')}
+              </a>
+            ) : (
+              <p className="rounded-xl border border-dashed border-border px-4 py-3 text-sm text-muted-foreground">
+                {t('car.noPhone')}
+              </p>
+            )}
+            {car.userId && user?.uid !== car.userId && (
+              <button
+                type="button"
+                onClick={() => {
+                  if (!user) {
+                    router.push(`/login?redirect=/car/${car.id}`)
+                    return
+                  }
+                  router.push(`/chat?car=${car.id}&seller=${car.userId}`)
+                }}
+                className="inline-flex flex-1 items-center justify-center gap-2 rounded-xl border border-primary/40 bg-primary/10 px-6 py-3.5 font-semibold text-primary transition-colors hover:bg-primary/15"
+              >
+                <MessageCircle className="h-5 w-5" />
+                {t('car.messageSeller')}
+              </button>
+            )}
           </div>
         </div>
       </div>

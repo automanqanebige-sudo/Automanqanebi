@@ -8,19 +8,18 @@ import {
   useMemo,
   useState,
 } from 'react'
+import { onAuthStateChanged, type User } from 'firebase/auth'
 import {
-  GoogleAuthProvider,
-  createUserWithEmailAndPassword,
-  onAuthStateChanged,
-  sendPasswordResetEmail,
-  signInWithEmailAndPassword,
-  signInWithPopup,
-  signOut,
-  updateProfile,
-  type User,
-} from 'firebase/auth'
-import { getFirebaseAuth } from '@/lib/firebase-auth'
-import { isFirebaseConfigured } from '@/lib/firebase-app'
+  getFirebaseAuth,
+  isFirebaseConfigured,
+} from '@/lib/firebase'
+import {
+  logout as authLogout,
+  registerWithEmail as authRegister,
+  resetPassword as authResetPassword,
+  signInWithEmail as authSignIn,
+  signInWithGoogle as authSignInGoogle,
+} from '@/lib/auth'
 
 type AuthContextType = {
   user: User | null
@@ -39,17 +38,11 @@ type AuthContextType = {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined)
 
-function requireAuth() {
-  if (!isFirebaseConfigured()) {
-    throw new Error('FIREBASE_NOT_CONFIGURED')
-  }
-  return getFirebaseAuth()
-}
-
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const configured = isFirebaseConfigured()
   const [user, setUser] = useState<User | null>(null)
-  const [loading, setLoading] = useState(configured)
+  // Always start loading on server + first client paint to avoid hydration mismatch.
+  const [loading, setLoading] = useState(true)
 
   useEffect(() => {
     if (!configured) {
@@ -57,46 +50,18 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       return
     }
 
-    const auth = getFirebaseAuth()
-    const unsubscribe = onAuthStateChanged(auth, (nextUser) => {
+    const unsubscribe = onAuthStateChanged(getFirebaseAuth(), (nextUser) => {
       setUser(nextUser)
       setLoading(false)
     })
     return () => unsubscribe()
   }, [configured])
 
-  const signInWithEmail = useCallback(async (email: string, password: string) => {
-    await signInWithEmailAndPassword(requireAuth(), email.trim(), password)
-  }, [])
-
-  const registerWithEmail = useCallback(
-    async (email: string, password: string, displayName?: string) => {
-      const auth = requireAuth()
-      const credential = await createUserWithEmailAndPassword(
-        auth,
-        email.trim(),
-        password
-      )
-      const name = displayName?.trim()
-      if (name) {
-        await updateProfile(credential.user, { displayName: name })
-      }
-    },
-    []
-  )
-
-  const signInWithGoogle = useCallback(async () => {
-    await signInWithPopup(requireAuth(), new GoogleAuthProvider())
-  }, [])
-
-  const resetPassword = useCallback(async (email: string) => {
-    await sendPasswordResetEmail(requireAuth(), email.trim())
-  }, [])
-
-  const logout = useCallback(async () => {
-    if (!configured) return
-    await signOut(getFirebaseAuth())
-  }, [configured])
+  const signInWithEmail = useCallback(authSignIn, [])
+  const registerWithEmail = useCallback(authRegister, [])
+  const signInWithGoogle = useCallback(authSignInGoogle, [])
+  const resetPassword = useCallback(authResetPassword, [])
+  const logout = useCallback(authLogout, [])
 
   const value = useMemo(
     () => ({

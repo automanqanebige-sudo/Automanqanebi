@@ -1,13 +1,15 @@
 'use client'
 
 import Link from 'next/link'
-import { Car, Facebook, Instagram, Youtube, Mail, Phone, MapPin } from 'lucide-react'
+import Image from 'next/image'
+import { Facebook, Instagram, Youtube, Mail, Phone, MapPin } from 'lucide-react'
 import { useLanguage } from '../context/LanguageContext'
 import { SITE_CONTACT_EMAIL, SITE_LOGO_MAIN, SITE_LOGO_TLD } from '@/lib/site'
 
 const footerLinks = {
   marketplace: [
     { href: '/', key: 'nav.home' },
+    { href: '/services', key: 'nav.services' },
     { href: '/add-car', key: 'footer.addCar' },
     { href: '/favorites', key: 'nav.favorites' },
   ],
@@ -17,9 +19,9 @@ const footerLinks = {
     { href: '/login', key: 'nav.login' },
   ],
   info: [
-    { href: '#', key: 'footer.about' },
-    { href: '#', key: 'footer.privacy' },
-    { href: '#', key: 'footer.terms' },
+    { href: '/about', key: 'footer.about' },
+    { href: '/privacy', key: 'footer.privacy' },
+    { href: '/terms', key: 'footer.terms' },
   ],
 }
 
@@ -34,9 +36,13 @@ export default function Footer() {
           {/* Brand */}
           <div className="space-y-4">
             <Link href="/" className="flex items-center gap-2">
-              <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary">
-                <Car className="h-5 w-5 text-primary-foreground" />
-              </div>
+              <Image
+                src="/logo.png"
+                alt={`${SITE_LOGO_MAIN}${SITE_LOGO_TLD}`}
+                width={40}
+                height={40}
+                className="h-10 w-10 rounded-full object-contain"
+              />
               <span className="text-lg font-bold tracking-tight text-foreground">
                 {SITE_LOGO_MAIN}
                 <span className="text-primary">{SITE_LOGO_TLD}</span>

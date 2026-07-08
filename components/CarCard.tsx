@@ -5,6 +5,8 @@ import Link from 'next/link'
 import Image from 'next/image'
 import { Heart, MapPin, Gauge, Fuel, Crown } from 'lucide-react'
 import { useLanguage } from '@/context/LanguageContext'
+import { useCurrency } from '@/context/CurrencyContext'
+import { useFavorites } from '@/context/FavoritesContext'
 
 export type Car = {
   id: string
@@ -19,6 +21,21 @@ export type Car = {
   transmission?: string
   isVip?: boolean
   isFavorite?: boolean
+  category?: string
+  bodyType?: string
+  driveType?: string
+  steering?: string
+  engineVolume?: number
+  cylinders?: number
+  doors?: number
+  color?: string
+  listingType?: 'vip' | 'vip_plus' | 'super_vip' | 'dealer' | 'salon' | 'standard'
+  importRegion?: string
+  customsStatus?: string
+  features?: string[]
+  description?: string
+  phone?: string
+  userId?: string
 }
 
 interface CarCardProps {
@@ -28,7 +45,9 @@ interface CarCardProps {
 
 export default function CarCard({ car, onFavoriteToggle }: CarCardProps) {
   const { t } = useLanguage()
-  const [isFavorite, setIsFavorite] = useState(car.isFavorite || false)
+  const { formatPrice } = useCurrency()
+  const { isFavorite, toggleFavorite } = useFavorites()
+  const favorited = isFavorite(car.id)
   const [imageError, setImageError] = useState(false)
 
   const fuelLabel = t(`fuel.${car.fuelType}`) !== `fuel.${car.fuelType}` ? t(`fuel.${car.fuelType}`) : car.fuelType
@@ -36,17 +55,8 @@ export default function CarCard({ car, onFavoriteToggle }: CarCardProps) {
   const handleFavoriteClick = (e: React.MouseEvent) => {
     e.preventDefault()
     e.stopPropagation()
-    setIsFavorite(!isFavorite)
+    toggleFavorite(car.id)
     onFavoriteToggle?.(car.id)
-  }
-
-  const formatPrice = (price: number) => {
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: 'USD',
-      minimumFractionDigits: 0,
-      maximumFractionDigits: 0,
-    }).format(price)
   }
 
   const formatMileage = (mileage: number) => {
@@ -89,7 +99,7 @@ export default function CarCard({ car, onFavoriteToggle }: CarCardProps) {
           >
             <Heart
               className={`h-5 w-5 transition-colors ${
-                isFavorite
+                favorited
                   ? 'fill-red-500 text-red-500'
                   : 'text-muted-foreground hover:text-red-500'
               }`}

@@ -5,6 +5,8 @@ import Link from 'next/link'
 import Image from 'next/image'
 import { Heart, MapPin, Gauge, Fuel, Crown, Sparkles } from 'lucide-react'
 import { Car } from './CarCard'
+import { useCurrency } from '@/context/CurrencyContext'
+import { useFavorites } from '@/context/FavoritesContext'
 
 interface VipCarCardProps {
   car: Car
@@ -12,23 +14,16 @@ interface VipCarCardProps {
 }
 
 export default function VipCarCard({ car, onFavoriteToggle }: VipCarCardProps) {
-  const [isFavorite, setIsFavorite] = useState(car.isFavorite || false)
+  const { formatPrice } = useCurrency()
+  const { isFavorite, toggleFavorite } = useFavorites()
+  const favorited = isFavorite(car.id)
   const [imageError, setImageError] = useState(false)
 
   const handleFavoriteClick = (e: React.MouseEvent) => {
     e.preventDefault()
     e.stopPropagation()
-    setIsFavorite(!isFavorite)
+    toggleFavorite(car.id)
     onFavoriteToggle?.(car.id)
-  }
-
-  const formatPrice = (price: number) => {
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: 'USD',
-      minimumFractionDigits: 0,
-      maximumFractionDigits: 0,
-    }).format(price)
   }
 
   const formatMileage = (mileage: number) => {
@@ -75,11 +70,11 @@ export default function VipCarCard({ car, onFavoriteToggle }: VipCarCardProps) {
           <button
             onClick={handleFavoriteClick}
             className="absolute top-4 right-4 p-3 rounded-full bg-white/95 hover:bg-white shadow-xl transition-all duration-300 hover:scale-110 group/heart"
-            aria-label={isFavorite ? 'Remove from favorites' : 'Add to favorites'}
+            aria-label={favorited ? 'Remove from favorites' : 'Add to favorites'}
           >
             <Heart
               className={`h-6 w-6 transition-all duration-300 ${
-                isFavorite
+                favorited
                   ? 'fill-red-500 text-red-500 scale-110'
                   : 'text-muted-foreground group-hover/heart:text-red-500'
               }`}
