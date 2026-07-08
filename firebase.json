@@ -19,10 +19,16 @@
         "authorizedRedirectUris": [
           "http://localhost",
           "https://automanqanebi.ge",
-          "https://*.vercel.app"
+          "https://automanqanebi1.web.app",
+          "https://automanqanebi1.firebaseapp.com"
         ]
       }
     },
-    "authorizedDomains": ["localhost", "automanqanebi.ge", "vercel.app"]
+    "authorizedDomains": [
+      "localhost",
+      "automanqanebi.ge",
+      "automanqanebi1.web.app",
+      "automanqanebi1.firebaseapp.com"
+    ]
   }
 }

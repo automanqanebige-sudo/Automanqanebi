@@ -15,7 +15,11 @@ pnpm-debug.log*
 
 .DS_Store
 Thumbs.db
-.vercel
+
+# Firebase
+.firebase/
+firebase-debug.log
+*firebase-debug.log
 
 # Legacy copy and archives (not part of the app)
 AUTOGE-CLEAN/
