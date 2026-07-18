@@ -4,14 +4,36 @@ import { useEffect, useState } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import { Car, LogOut, Mail, Trash2, ExternalLink, Pencil, Wrench } from 'lucide-react'
+import {
+  ArrowUp,
+  Car,
+  Crown,
+  LogOut,
+  Mail,
+  Trash2,
+  ExternalLink,
+  Pencil,
+  Wrench,
+  Settings,
+} from 'lucide-react'
 import { deleteDoc, doc } from 'firebase/firestore/lite'
 import { useAuth } from '@/context/AuthContext'
 import { useLanguage } from '@/context/LanguageContext'
 import { useCurrency } from '@/context/CurrencyContext'
 import { fetchUserCars } from '@/lib/cars-firestore'
+import { createAndMaybeFulfillPayment } from '@/lib/payments'
+import {
+  daysUntilExpiry,
+  formatListingDate,
+  isVipListingType,
+  isVipRenewalDue,
+} from '@/lib/listing-lifecycle'
 import { deleteService, fetchUserServices } from '@/lib/services-firestore'
 import { getDb } from '@/lib/firebase-db'
+import ProfileSettings from '@/components/profile/ProfileSettings'
+import VipMonetizationPanel from '@/components/VipMonetizationPanel'
+import DealerProfileSettings from '@/components/profile/DealerProfileSettings'
+import { ProfileRowSkeleton } from '@/components/ui/Skeleton'
 import type { Car as CarType } from '@/components/CarCard'
 import type { Service } from '@/types/service'
 
@@ -24,6 +46,10 @@ export default function ProfilePage() {
   const [myServices, setMyServices] = useState<Service[]>([])
   const [loadingCars, setLoadingCars] = useState(true)
   const [loadingServices, setLoadingServices] = useState(true)
+  const [showSettings, setShowSettings] = useState(false)
+  const [showVipPanel, setShowVipPanel] = useState(false)
+  const [bumpingId, setBumpingId] = useState<string | null>(null)
+  const [vipCarId, setVipCarId] = useState<string | undefined>()
 
   useEffect(() => {
     if (!loading && configured && !user) {
@@ -69,6 +95,34 @@ export default function ProfilePage() {
     }
   }
 
+  const handleBump = async (id: string) => {
+    if (!user) return
+    if (!confirm(t('profile.bumpConfirm'))) return
+    setBumpingId(id)
+    try {
+      const data = await createAndMaybeFulfillPayment({
+        kind: 'bump',
+        carId: id,
+        userId: user.uid,
+      })
+      if (data.status !== 'paid') throw new Error('bump pending')
+      setMyCars((prev) =>
+        prev.map((c) =>
+          c.id === id ? { ...c, bumpedAt: new Date().toISOString() } : c
+        )
+      )
+    } catch (err) {
+      console.error(err)
+      alert(t('profile.bumpError'))
+    } finally {
+      setBumpingId(null)
+    }
+  }
+
+  const vipDueCars = myCars.filter(
+    (c) => isVipListingType(c.listingType) && isVipRenewalDue(c)
+  )
+
   if (loading) {
     return (
       <div className="flex min-h-[40vh] items-center justify-center text-muted-foreground">
@@ -108,6 +162,11 @@ export default function ProfilePage() {
             {user.email}
           </p>
         )}
+        {user.email && !user.emailVerified && (
+          <p className="mt-3 rounded-lg border border-amber-500/40 bg-amber-500/10 px-3 py-2 text-sm text-amber-800 dark:text-amber-200">
+            {t('auth.verifyEmailSent')}
+          </p>
+        )}
 
         <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:justify-center">
           <Link
@@ -126,6 +185,14 @@ export default function ProfilePage() {
           </Link>
           <button
             type="button"
+            onClick={() => setShowSettings((v) => !v)}
+            className="inline-flex items-center justify-center gap-2 rounded-lg border border-border px-5 py-2.5 font-medium text-foreground transition-colors hover:bg-secondary"
+          >
+            <Settings className="h-4 w-4" />
+            {t('profile.settings.title')}
+          </button>
+          <button
+            type="button"
             onClick={() => logout().then(() => router.push('/'))}
             className="inline-flex items-center justify-center gap-2 rounded-lg border border-border px-5 py-2.5 font-medium text-foreground transition-colors hover:bg-secondary"
           >
@@ -135,11 +202,70 @@ export default function ProfilePage() {
         </div>
       </div>
 
+      {showSettings && (
+        <section className="mt-8 space-y-6">
+          <ProfileSettings />
+          <DealerProfileSettings />
+        </section>
+      )}
+
+      {vipDueCars.length > 0 && (
+        <div className="mt-8 rounded-xl border border-amber-500/40 bg-amber-500/10 p-4">
+          <p className="font-semibold text-foreground">{t('profile.vipRenewBanner')}</p>
+          <ul className="mt-2 space-y-2">
+            {vipDueCars.map((car) => (
+              <li key={car.id} className="flex flex-wrap items-center justify-between gap-2 text-sm">
+                <span>
+                  {car.year} {car.brand} {car.model}
+                </span>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setVipCarId(car.id)
+                    setShowVipPanel(true)
+                  }}
+                  className="rounded-lg bg-primary px-3 py-1.5 text-primary-foreground"
+                >
+                  {t('profile.renewVip')}
+                </button>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+
+      <div className="mt-6 flex flex-wrap gap-2">
+        <button
+          type="button"
+          onClick={() => setShowVipPanel((v) => !v)}
+          className="inline-flex items-center gap-2 rounded-lg border border-primary/30 px-4 py-2 text-sm font-medium text-primary hover:bg-primary/10"
+        >
+          <Crown className="h-4 w-4" />
+          {t('vip.packagesTitle')}
+        </button>
+      </div>
+
+      {showVipPanel && (
+        <section className="mt-6">
+          <VipMonetizationPanel
+            carId={vipCarId || myCars[0]?.id}
+            onRenewed={() => {
+              if (!user) return
+              fetchUserCars(user.uid).then(setMyCars).catch(() => {})
+            }}
+          />
+        </section>
+      )}
+
       <section className="mt-10">
         <h2 className="mb-4 text-xl font-bold text-foreground">{t('profile.myListings')}</h2>
 
         {loadingCars ? (
-          <p className="text-muted-foreground">{t('car.loading')}</p>
+          <ul className="space-y-3">
+            {Array.from({ length: 3 }, (_, i) => (
+              <ProfileRowSkeleton key={i} />
+            ))}
+          </ul>
         ) : myCars.length === 0 ? (
           <div className="rounded-xl border border-dashed border-border bg-card px-6 py-10 text-center">
             <p className="text-muted-foreground">{t('profile.noListings')}</p>
@@ -164,8 +290,41 @@ export default function ProfilePage() {
                   </p>
                   <p className="text-sm text-primary font-medium">{formatPrice(car.price)}</p>
                   <p className="text-xs text-muted-foreground">{car.location}</p>
+                  {car.createdAt && (
+                    <p className="mt-1 text-xs text-muted-foreground">
+                      {t('car.postedDate')}: {formatListingDate(car.createdAt)}
+                    </p>
+                  )}
+                  {daysUntilExpiry(car) != null && (
+                    <p className="mt-1 text-xs text-muted-foreground">
+                      {t('profile.expiresIn').replace('{n}', String(daysUntilExpiry(car)))}
+                    </p>
+                  )}
                 </div>
                 <div className="flex flex-wrap gap-2">
+                  <button
+                    type="button"
+                    disabled={bumpingId === car.id}
+                    onClick={() => handleBump(car.id)}
+                    className="inline-flex items-center gap-1.5 rounded-lg border border-primary/30 px-3 py-2 text-sm text-primary hover:bg-primary/10 disabled:opacity-50"
+                    title={t('profile.bumpHint')}
+                  >
+                    <ArrowUp className="h-4 w-4" />
+                    {bumpingId === car.id ? t('auth.loading') : t('profile.bump')}
+                  </button>
+                  {isVipListingType(car.listingType) && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setVipCarId(car.id)
+                        setShowVipPanel(true)
+                      }}
+                      className="inline-flex items-center gap-1.5 rounded-lg border border-amber-500/40 px-3 py-2 text-sm text-amber-700 hover:bg-amber-500/10"
+                    >
+                      <Crown className="h-4 w-4" />
+                      VIP
+                    </button>
+                  )}
                   <Link
                     href={`/car/${car.id}`}
                     className="inline-flex items-center gap-1.5 rounded-lg border border-border px-3 py-2 text-sm hover:bg-secondary"
@@ -199,7 +358,11 @@ export default function ProfilePage() {
         <h2 className="mb-4 text-xl font-bold text-foreground">{t('profile.myServices')}</h2>
 
         {loadingServices ? (
-          <p className="text-muted-foreground">{t('car.loading')}</p>
+          <ul className="space-y-3">
+            {Array.from({ length: 2 }, (_, i) => (
+              <ProfileRowSkeleton key={i} />
+            ))}
+          </ul>
         ) : myServices.length === 0 ? (
           <div className="rounded-xl border border-dashed border-border bg-card px-6 py-10 text-center">
             <p className="text-muted-foreground">{t('profile.noServices')}</p>
@@ -223,14 +386,30 @@ export default function ProfilePage() {
                   <p className="text-sm text-muted-foreground">{service.location}</p>
                   <p className="text-xs text-muted-foreground">{service.phone}</p>
                 </div>
-                <button
-                  type="button"
-                  onClick={() => handleDeleteService(service.id)}
-                  className="inline-flex items-center gap-1.5 rounded-lg border border-destructive/30 px-3 py-2 text-sm text-destructive hover:bg-destructive/10"
-                >
-                  <Trash2 className="h-4 w-4" />
-                  {t('profile.delete')}
-                </button>
+                <div className="flex flex-wrap gap-2">
+                  <Link
+                    href={`/services/${service.id}`}
+                    className="inline-flex items-center gap-1.5 rounded-lg border border-border px-3 py-2 text-sm hover:bg-secondary"
+                  >
+                    <ExternalLink className="h-4 w-4" />
+                    {t('profile.view')}
+                  </Link>
+                  <Link
+                    href={`/services/edit/${service.id}`}
+                    className="inline-flex items-center gap-1.5 rounded-lg border border-primary/30 px-3 py-2 text-sm text-primary hover:bg-primary/10"
+                  >
+                    <Pencil className="h-4 w-4" />
+                    {t('profile.edit')}
+                  </Link>
+                  <button
+                    type="button"
+                    onClick={() => handleDeleteService(service.id)}
+                    className="inline-flex items-center gap-1.5 rounded-lg border border-destructive/30 px-3 py-2 text-sm text-destructive hover:bg-destructive/10"
+                  >
+                    <Trash2 className="h-4 w-4" />
+                    {t('profile.delete')}
+                  </button>
+                </div>
               </li>
             ))}
           </ul>

@@ -1,67 +1,52 @@
-export type ServiceCategory =
-  | 'tires'
-  | 'locksmith'
-  | 'electric'
-  | 'chemical'
-  | 'towing'
-  | 'importer'
-  | 'mechanic'
-  | 'carwash'
-  | 'glass'
-  | 'insurance'
-  | 'diagnostics'
-  | 'detailing'
-  | 'tuning'
-  | 'mobile'
-  | 'accessories'
-  | 'other'
+export type { ServiceCategory } from '@/types/service-category'
+export {
+  SERVICE_CATEGORIES,
+  SERVICE_CATEGORY_ICONS,
+  normalizeServiceCategory,
+} from '@/types/service-category'
 
-export const SERVICE_CATEGORIES: ServiceCategory[] = [
-  'tires',
-  'locksmith',
-  'electric',
-  'chemical',
-  'towing',
-  'importer',
-  'mechanic',
-  'carwash',
-  'glass',
-  'insurance',
-  'diagnostics',
-  'detailing',
-  'tuning',
-  'mobile',
-  'accessories',
-  'other',
-]
+export type DayKey = 'mon' | 'tue' | 'wed' | 'thu' | 'fri' | 'sat' | 'sun'
 
-export const SERVICE_CATEGORY_ICONS: Record<ServiceCategory, string> = {
-  tires: '🔘',
-  locksmith: '🔑',
-  electric: '⚡',
-  chemical: '🧴',
-  towing: '🚛',
-  importer: '🚢',
-  mechanic: '🔧',
-  carwash: '🚿',
-  glass: '🪟',
-  insurance: '📋',
-  diagnostics: '🔍',
-  detailing: '✨',
-  tuning: '🏎️',
-  mobile: '🚐',
-  accessories: '🎛️',
-  other: '📦',
+export type DaySchedule = {
+  closed: boolean
+  open: string
+  close: string
 }
+
+export type WorkSchedule = Record<DayKey, DaySchedule>
+
+export type { RentalTransportType, RentalSubService } from '@/types/rental-transport'
+
+export const WORK_DAY_KEYS: DayKey[] = ['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun']
 
 export interface Service {
   id: string
   name: string
-  category: ServiceCategory
+  category: import('@/types/service-category').ServiceCategory
   location: string
   phone: string
   description?: string
+  bio?: string
+  image?: string
+  /** Gallery URLs (first = cover). Legacy docs may only have `image`. */
+  images?: string[]
+  price?: number
+  oldPrice?: number
+  newPrice?: number
+  promoUntil?: string
+  latitude?: number
+  longitude?: number
+  workSchedule?: WorkSchedule
+  open24Hours?: boolean
   userId?: string
+  /** Rental-only: vehicle types offered */
+  rentalTransportTypes?: import('@/types/rental-transport').RentalTransportType[]
+  /** Rental-only: sub-service types (carRental, vanRental, etc.) */
+  rentalSubServices?: import('@/types/rental-transport').RentalSubService[]
+  rentalPricePerDay?: number
+  rentalPricePerMonth?: number
+  rentalMinDays?: number
+  withDriver?: boolean
 }
 
 export type ServiceSubCategory = {
@@ -69,74 +54,15 @@ export type ServiceSubCategory = {
   descKey: string
 }
 
-export const SERVICE_SUB_SECTIONS: {
-  key: 'mechanic' | 'detailing' | 'electric' | 'mobile' | 'accessories' | 'other'
-  icon: string
-  colorClass: string
-  items: ServiceSubCategory[]
-}[] = [
-  {
-    key: 'mechanic',
-    icon: '🔧',
-    colorClass: 'bg-blue-500/10 text-blue-500',
-    items: [
-      { nameKey: 'services.sub.engineDiag', descKey: 'services.sub.engineDiagDesc' },
-      { nameKey: 'services.sub.engineRepair', descKey: 'services.sub.engineRepairDesc' },
-      { nameKey: 'services.sub.transmission', descKey: 'services.sub.transmissionDesc' },
-      { nameKey: 'services.sub.suspension', descKey: 'services.sub.suspensionDesc' },
-    ],
-  },
-  {
-    key: 'detailing',
-    icon: '✨',
-    colorClass: 'bg-purple-500/10 text-purple-500',
-    items: [
-      { nameKey: 'services.sub.polish', descKey: 'services.sub.polishDesc' },
-      { nameKey: 'services.sub.chemClean', descKey: 'services.sub.chemCleanDesc' },
-      { nameKey: 'services.sub.ceramic', descKey: 'services.sub.ceramicDesc' },
-    ],
-  },
-  {
-    key: 'electric',
-    icon: '⚡',
-    colorClass: 'bg-amber-500/10 text-amber-500',
-    items: [
-      { nameKey: 'services.sub.battery', descKey: 'services.sub.batteryDesc' },
-      { nameKey: 'services.sub.sensors', descKey: 'services.sub.sensorsDesc' },
-      { nameKey: 'services.sub.ac', descKey: 'services.sub.acDesc' },
-    ],
-  },
-  {
-    key: 'mobile',
-    icon: '🚐',
-    colorClass: 'bg-sky-500/10 text-sky-500',
-    items: [
-      { nameKey: 'services.sub.mobileMechanic', descKey: 'services.sub.mobileMechanicDesc' },
-      { nameKey: 'services.sub.mobileWash', descKey: 'services.sub.mobileWashDesc' },
-      { nameKey: 'services.sub.mobileTires', descKey: 'services.sub.mobileTiresDesc' },
-      { nameKey: 'services.sub.mobileDiag', descKey: 'services.sub.mobileDiagDesc' },
-    ],
-  },
-  {
-    key: 'accessories',
-    icon: '🎛️',
-    colorClass: 'bg-rose-500/10 text-rose-500',
-    items: [
-      { nameKey: 'services.sub.interiorAcc', descKey: 'services.sub.interiorAccDesc' },
-      { nameKey: 'services.sub.exteriorAcc', descKey: 'services.sub.exteriorAccDesc' },
-      { nameKey: 'services.sub.audioAcc', descKey: 'services.sub.audioAccDesc' },
-      { nameKey: 'services.sub.partsAcc', descKey: 'services.sub.partsAccDesc' },
-    ],
-  },
-  {
-    key: 'other',
-    icon: '🛠️',
-    colorClass: 'bg-emerald-500/10 text-emerald-500',
-    items: [
-      { nameKey: 'services.sub.disassembly', descKey: 'services.sub.disassemblyDesc' },
-      { nameKey: 'services.sub.bodywork', descKey: 'services.sub.bodyworkDesc' },
-      { nameKey: 'services.sub.towingSub', descKey: 'services.sub.towingSubDesc' },
-      { nameKey: 'services.sub.inspection', descKey: 'services.sub.inspectionDesc' },
-    ],
-  },
-]
+export type { ServiceSectionKey } from '@/data/auto-service-catalog'
+export {
+  AUTO_SERVICE_CATALOG,
+  catalogToSubSections,
+  catalogSectionsForCategory,
+  MOBILE_SERVICE_ITEM_IDS,
+  SECTION_TO_CATEGORY,
+} from '@/data/auto-service-catalog'
+
+import { catalogToSubSections } from '@/data/auto-service-catalog'
+
+export const SERVICE_SUB_SECTIONS = catalogToSubSections()

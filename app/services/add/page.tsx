@@ -1,69 +1,74 @@
 'use client'
 
-import { FormEvent, useMemo, useState } from 'react'
+import { useState } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { ArrowLeft, PlusCircle } from 'lucide-react'
 import RequireAuth from '@/components/RequireAuth'
+import ServiceListingForm from '@/components/ServiceListingForm'
+import type { ImageSlot } from '@/components/CarImagesUpload'
 import { useAuth } from '@/context/AuthContext'
 import { useLanguage } from '@/context/LanguageContext'
-import {
-  SERVICE_CATEGORIES,
-  SERVICE_CATEGORY_ICONS,
-  type ServiceCategory,
-} from '@/types/service'
 import { createService } from '@/lib/services-firestore'
-
-function inputClass() {
-  return 'w-full rounded-lg border border-input bg-background px-3 py-2.5 text-foreground outline-none transition-all focus:ring-2 focus:ring-primary'
-}
+import { logAnalyticsEvent } from '@/lib/analytics-firestore'
+import { serviceFormValuesToPayload } from '@/lib/service-listing'
+import type { ServiceListingFormValues } from '@/lib/service-listing'
+import { resolveServiceImageSlots } from '@/lib/resolve-service-images'
 
 function AddServiceForm() {
   const { t } = useLanguage()
   const router = useRouter()
   const { user } = useAuth()
 
-  const [name, setName] = useState('')
-  const [category, setCategory] = useState<ServiceCategory>('other')
-  const [location, setLocation] = useState('')
-  const [phone, setPhone] = useState('')
-  const [description, setDescription] = useState('')
   const [submitting, setSubmitting] = useState(false)
+  const [uploading, setUploading] = useState(false)
   const [error, setError] = useState('')
 
-  const canSubmit = useMemo(
-    () => Boolean(name.trim() && location.trim() && phone.trim()),
-    [name, location, phone]
-  )
-
-  const handleSubmit = async (e: FormEvent) => {
-    e.preventDefault()
+  const handleSubmit = async (values: ServiceListingFormValues, imageSlots: ImageSlot[]) => {
     setError('')
 
-    if (!canSubmit || !user) {
+    if (!user) {
       setError(t('services.formRequired'))
       return
     }
 
     setSubmitting(true)
     try {
-      await createService(
-        {
-          name: name.trim(),
-          category,
-          location: location.trim(),
-          phone: phone.trim(),
-          description: description.trim(),
-        },
-        user.uid,
-        user.email
-      )
+      let imageUrls: string[] = []
+      if (imageSlots.length > 0) {
+        setUploading(true)
+        try {
+          imageUrls = await resolveServiceImageSlots(imageSlots, user.uid)
+        } catch (uploadErr) {
+          console.error('[AddService] upload', uploadErr)
+          const code = (uploadErr as { code?: string } | null)?.code
+          if (code === 'storage/unauthorized') {
+            setError(t('services.formUploadDenied'))
+          } else if (uploadErr instanceof Error && uploadErr.message) {
+            setError(uploadErr.message)
+          } else {
+            setError(t('services.formUploadError'))
+          }
+          return
+        } finally {
+          setUploading(false)
+        }
+      }
+
+      await createService(serviceFormValuesToPayload(values, imageUrls), user.uid, user.email)
+      logAnalyticsEvent('listing_service', { category: values.category, name: values.name }, user.uid)
       router.push('/services')
     } catch (err) {
-      console.error(err)
-      setError(t('services.formError'))
+      console.error('[AddService]', err)
+      const code = (err as { code?: string } | null)?.code
+      if (code === 'permission-denied') {
+        setError(t('services.formPermissionDenied'))
+      } else {
+        setError(t('services.formError'))
+      }
     } finally {
       setSubmitting(false)
+      setUploading(false)
     }
   }
 
@@ -86,90 +91,13 @@ function AddServiceForm() {
         </div>
         <p className="mb-6 text-sm text-muted-foreground">{t('services.addSubtitle')}</p>
 
-        <form className="space-y-4" onSubmit={handleSubmit}>
-          <div>
-            <label className="mb-1.5 block text-xs font-medium text-muted-foreground">
-              {t('services.formName')} *
-            </label>
-            <input
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              className={inputClass()}
-              placeholder={t('services.formNamePlaceholder')}
-              required
-            />
-          </div>
-
-          <div>
-            <label className="mb-1.5 block text-xs font-medium text-muted-foreground">
-              {t('services.formCategory')} *
-            </label>
-            <select
-              value={category}
-              onChange={(e) => setCategory(e.target.value as ServiceCategory)}
-              className={inputClass()}
-            >
-              {SERVICE_CATEGORIES.map((cat) => (
-                <option key={cat} value={cat}>
-                  {SERVICE_CATEGORY_ICONS[cat]} {t(`services.cat.${cat}`)}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          <div>
-            <label className="mb-1.5 block text-xs font-medium text-muted-foreground">
-              {t('services.formLocation')} *
-            </label>
-            <input
-              value={location}
-              onChange={(e) => setLocation(e.target.value)}
-              className={inputClass()}
-              placeholder={t('services.formLocationPlaceholder')}
-              required
-            />
-          </div>
-
-          <div>
-            <label className="mb-1.5 block text-xs font-medium text-muted-foreground">
-              {t('services.formPhone')} *
-            </label>
-            <input
-              value={phone}
-              onChange={(e) => setPhone(e.target.value)}
-              type="tel"
-              className={inputClass()}
-              placeholder={t('services.formPhonePlaceholder')}
-              required
-            />
-          </div>
-
-          <div>
-            <label className="mb-1.5 block text-xs font-medium text-muted-foreground">
-              {t('services.formDescription')}
-            </label>
-            <textarea
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
-              className={`${inputClass()} min-h-[120px]`}
-              placeholder={t('services.formDescriptionPlaceholder')}
-            />
-          </div>
-
-          {error && (
-            <p className="rounded-lg border border-destructive/30 bg-destructive/10 px-3 py-2 text-sm text-destructive">
-              {error}
-            </p>
-          )}
-
-          <button
-            type="submit"
-            disabled={submitting || !canSubmit}
-            className="w-full rounded-xl bg-primary py-3 font-semibold text-primary-foreground transition-colors hover:bg-primary/90 disabled:opacity-60"
-          >
-            {submitting ? t('services.formSubmitting') : t('services.formSubmit')}
-          </button>
-        </form>
+        <ServiceListingForm
+          mode="create"
+          submitting={submitting}
+          uploading={uploading}
+          error={error}
+          onSubmit={handleSubmit}
+        />
       </div>
     </div>
   )

@@ -19,6 +19,8 @@
     --border: 220 14% 90%;
     --input: 220 14% 90%;
     --ring: 142 76% 36%;
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 100%;
     --radius: 0.5rem;
   }
 
@@ -38,6 +40,8 @@
     --border: 217 26% 24%;
     --input: 217 26% 24%;
     --ring: 142 70% 45%;
+    --destructive: 0 62% 50%;
+    --destructive-foreground: 0 0% 100%;
   }
 
   * {
@@ -62,5 +66,56 @@
   .scrollbar-hide {
     -ms-overflow-style: none;
     scrollbar-width: none;
+  }
+
+  .hero-bg-image {
+    animation: hero-zoom 22s ease-in-out infinite alternate;
+  }
+
+  .hero-grid {
+    background-image:
+      linear-gradient(hsl(var(--primary) / 0.06) 1px, transparent 1px),
+      linear-gradient(90deg, hsl(var(--primary) / 0.06) 1px, transparent 1px);
+    background-size: 48px 48px;
+    mask-image: linear-gradient(to bottom, black 40%, transparent 100%);
+  }
+
+  @keyframes hero-zoom {
+    from {
+      transform: scale(1.05);
+    }
+    to {
+      transform: scale(1.12);
+    }
+  }
+
+  .hero-car-float {
+    animation: hero-car-float 7s ease-in-out infinite;
+  }
+
+  .hero-car-float-delayed {
+    animation: hero-car-float 8s ease-in-out infinite;
+    animation-delay: 1.5s;
+  }
+
+  @keyframes hero-car-float {
+    0%,
+    100% {
+      transform: translateY(0);
+    }
+    50% {
+      transform: translateY(-14px);
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .hero-bg-image {
+      animation: none;
+    }
+
+    .hero-car-float,
+    .hero-car-float-delayed {
+      animation: none;
+    }
   }
 }

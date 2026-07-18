@@ -1,223 +1,172 @@
 'use client'
 
-import { useState } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
-import { Menu, X, Heart, User, MessageCircle, Home, Plus, LogIn, UserPlus, Wrench } from 'lucide-react'
-import { Language, useLanguage } from '../context/LanguageContext'
+import type { User } from 'firebase/auth'
+import { LogIn, UserPlus, Shield, LogOut } from 'lucide-react'
+import { useLanguage } from '../context/LanguageContext'
 import { useAuth } from '@/context/AuthContext'
-import { SITE_LOGO_MAIN, SITE_LOGO_TLD } from '@/lib/site'
+import { isAdminEmail, SITE_LOGO_MAIN, SITE_LOGO_TLD } from '@/lib/site'
+import { navLinks } from '@/lib/nav-links'
+import NotificationBell from './NotificationBell'
 import ThemeToggle from './ThemeToggle'
 import CurrencyToggle from './CurrencyToggle'
+import LanguageSwitcher from './LanguageSwitcher'
+import MobileNavMenu from './MobileNavMenu'
 
-const navLinks = [
-  { href: '/', key: 'nav.home', icon: Home },
-  { href: '/services', key: 'nav.services', icon: Wrench },
-  { href: '/add-car', key: 'nav.addCar', icon: Plus },
-  { href: '/favorites', key: 'nav.favorites', icon: Heart },
-  { href: '/profile', key: 'nav.profile', icon: User },
-  { href: '/chat', key: 'nav.chat', icon: MessageCircle },
-]
+const navBtn =
+  'flex shrink-0 items-center gap-1 rounded-md px-1 py-1 text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground sm:px-1.5 lg:px-2'
+
+function UserAvatar({ user, size = 'sm' }: { user: User; size?: 'sm' | 'md' }) {
+  const initial = (user.displayName || user.email || '?').charAt(0).toUpperCase()
+  const dims = size === 'md' ? 'h-8 w-8 text-xs' : 'h-7 w-7 text-[10px]'
+
+  if (user.photoURL) {
+    return (
+      <Image
+        src={user.photoURL}
+        alt=""
+        width={size === 'md' ? 32 : 28}
+        height={size === 'md' ? 32 : 28}
+        className={`${dims} shrink-0 rounded-full object-cover ring-2 ring-primary/25`}
+      />
+    )
+  }
+
+  return (
+    <span
+      className={`${dims} flex shrink-0 items-center justify-center rounded-full bg-primary font-bold text-primary-foreground`}
+    >
+      {initial}
+    </span>
+  )
+}
 
 export default function Navbar() {
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
-  const { language, setLanguage, t } = useLanguage()
+  const { t } = useLanguage()
   const { user, loading: authLoading, logout } = useAuth()
-
-  const languageOptions: { code: Language; flag: string; label: string }[] = [
-    { code: 'ka', flag: '🇬🇪', label: 'ქართული' },
-    { code: 'ru', flag: '🇷🇺', label: 'Русский' },
-    { code: 'en', flag: '🇺🇸', label: 'English' },
-  ]
+  const showAdmin = !authLoading && user && isAdminEmail(user.email)
 
   return (
     <header className="sticky top-0 z-50 w-full border-b border-border bg-card/95 backdrop-blur supports-[backdrop-filter]:bg-card/80">
-      <nav className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
-        {/* Logo */}
-        <Link href="/" className="flex items-center gap-2">
+      <nav className="mx-auto flex h-14 max-w-7xl items-center gap-1 px-1.5 sm:h-[4.25rem] sm:gap-1.5 sm:px-3 lg:px-4">
+        <Link href="/" className="flex shrink-0 items-center gap-1 pr-0.5 sm:gap-1.5">
           <Image
             src="/logo.png"
             alt={`${SITE_LOGO_MAIN}${SITE_LOGO_TLD}`}
-            width={40}
-            height={40}
-            className="h-10 w-10 rounded-full object-contain"
+            width={48}
+            height={48}
+            className="h-10 w-10 shrink-0 rounded-full object-contain sm:h-11 sm:w-11 lg:h-12 lg:w-12"
             priority
           />
-          <span className="text-lg font-bold tracking-tight text-foreground sm:text-xl">
+          <span className="hidden font-bold tracking-tight text-foreground 2xl:inline 2xl:text-lg">
             {SITE_LOGO_MAIN}
             <span className="text-primary">{SITE_LOGO_TLD}</span>
           </span>
         </Link>
 
-        {/* Desktop Navigation */}
-        <div className="hidden items-center gap-1 md:flex">
-          {navLinks.map((link) => (
-            <Link
-              key={link.href}
-              href={link.href}
-              className="flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
-            >
-              <link.icon className="h-4 w-4" />
-              {t(link.key)}
-            </Link>
-          ))}
+        {/* Desktop nav links */}
+        <div className="relative hidden min-w-0 flex-1 items-center md:flex">
+          <div className="flex min-w-0 flex-1 items-center overflow-x-auto scrollbar-hide">
+            <div className="flex items-center gap-0 pr-4 lg:gap-px lg:pr-2">
+              {navLinks.map((link) => (
+                <Link
+                  key={link.href}
+                  href={link.href}
+                  prefetch
+                  className={navBtn}
+                  title={t(link.key)}
+                >
+                  <link.icon className="h-3.5 w-3.5 shrink-0 sm:h-4 sm:w-4" />
+                  <span className="hidden whitespace-nowrap text-[11px] font-medium leading-none lg:inline xl:text-xs">
+                    {t(link.key)}
+                  </span>
+                </Link>
+              ))}
+            </div>
+          </div>
+          <div
+            className="pointer-events-none absolute right-0 top-0 h-full w-6 bg-gradient-to-l from-card/95 to-transparent lg:w-4"
+            aria-hidden
+          />
         </div>
 
-        {/* Desktop Auth Buttons */}
-        <div className="hidden items-center gap-3 md:flex">
+        <div className="flex-1 md:hidden" aria-hidden />
+
+        {/* Desktop utilities */}
+        <div className="hidden shrink-0 items-center gap-0.5 sm:gap-1 md:flex">
+          {showAdmin && (
+            <Link
+              href="/admin"
+              className="inline-flex shrink-0 items-center gap-1.5 rounded-lg border border-primary/40 bg-primary px-2 py-1.5 text-xs font-semibold text-primary-foreground shadow-sm transition-colors hover:bg-primary/90 sm:px-2.5"
+              title={t('nav.admin')}
+            >
+              <Shield className="h-3.5 w-3.5 shrink-0 sm:h-4 sm:w-4" />
+              <span className="whitespace-nowrap">{t('nav.admin')}</span>
+            </Link>
+          )}
+          <NotificationBell />
           <ThemeToggle />
           <CurrencyToggle compact />
-          <div className="flex items-center gap-1 rounded-lg border border-border bg-background px-2 py-1">
-            {languageOptions.map((option) => (
-              <button
-                key={option.code}
-                onClick={() => setLanguage(option.code)}
-                className={`rounded-md px-2 py-1 text-sm transition-colors ${
-                  language === option.code ? 'bg-primary/15 text-foreground' : 'text-muted-foreground hover:bg-secondary'
-                }`}
-                aria-label={option.label}
-                title={option.label}
-              >
-                {option.flag}
-              </button>
-            ))}
-          </div>
+          <LanguageSwitcher />
+
           {!authLoading && user ? (
             <>
               <Link
                 href="/profile"
-                className="flex max-w-[140px] items-center gap-2 truncate rounded-lg px-3 py-2 text-sm font-medium text-foreground transition-colors hover:bg-secondary"
+                className="flex shrink-0 items-center rounded-md p-0.5 transition-colors hover:bg-secondary sm:p-1"
+                title={user.displayName || user.email || ''}
               >
-                <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary text-xs font-bold text-primary-foreground">
-                  {(user.displayName || user.email || '?').charAt(0).toUpperCase()}
-                </span>
-                <span className="truncate">{user.displayName || user.email}</span>
+                <UserAvatar user={user} />
               </Link>
               <button
                 type="button"
                 onClick={() => logout()}
-                className="rounded-lg px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
+                className="rounded-md p-1 text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground sm:p-1.5"
+                title={t('auth.logout')}
               >
-                {t('auth.logout')}
+                <LogOut className="h-3.5 w-3.5 shrink-0 sm:h-4 sm:w-4" />
+                <span className="sr-only">{t('auth.logout')}</span>
               </button>
             </>
           ) : (
             <>
               <Link
                 href="/login"
-                className="flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-medium text-foreground transition-colors hover:bg-secondary"
+                className="rounded-md p-1 text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground sm:p-1.5"
+                title={t('nav.login')}
               >
-                <LogIn className="h-4 w-4" />
-                {t('nav.login')}
+                <LogIn className="h-3.5 w-3.5 shrink-0 sm:h-4 sm:w-4" />
+                <span className="sr-only">{t('nav.login')}</span>
               </Link>
               <Link
                 href="/register"
-                className="flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90"
+                className="flex shrink-0 items-center rounded-md bg-primary p-1 text-primary-foreground transition-colors hover:bg-primary/90 sm:p-1.5"
+                title={t('nav.register')}
               >
-                <UserPlus className="h-4 w-4" />
-                {t('nav.register')}
+                <UserPlus className="h-3.5 w-3.5 shrink-0 sm:h-4 sm:w-4" />
+                <span className="sr-only">{t('nav.register')}</span>
               </Link>
             </>
           )}
         </div>
 
-        {/* Mobile Menu Button */}
-        <button
-          type="button"
-          className="inline-flex items-center justify-center rounded-lg p-2 text-foreground transition-colors hover:bg-secondary md:hidden"
-          onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-          aria-expanded={isMobileMenuOpen}
-          aria-label={isMobileMenuOpen ? 'Close menu' : 'Open menu'}
-        >
-          {isMobileMenuOpen ? (
-            <X className="h-6 w-6" />
-          ) : (
-            <Menu className="h-6 w-6" />
+        {/* Mobile: notifications + hamburger dropdown (far right) */}
+        <div className="flex shrink-0 items-center gap-0.5 md:hidden">
+          {showAdmin && (
+            <Link
+              href="/admin"
+              className="inline-flex shrink-0 items-center justify-center rounded-lg border border-primary/40 bg-primary p-1.5 text-primary-foreground"
+              title={t('nav.admin')}
+            >
+              <Shield className="h-4 w-4" />
+              <span className="sr-only">{t('nav.admin')}</span>
+            </Link>
           )}
-        </button>
-      </nav>
-
-      {/* Mobile Menu */}
-      {isMobileMenuOpen && (
-        <div className="border-t border-border bg-card md:hidden">
-          <div className="space-y-1 px-4 pb-4 pt-2">
-            <div className="flex items-center justify-between px-3 py-2">
-              <ThemeToggle />
-              <CurrencyToggle compact />
-            </div>
-            {navLinks.map((link) => (
-              <Link
-                key={link.href}
-                href={link.href}
-                className="flex items-center gap-3 rounded-lg px-3 py-3 text-base font-medium text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
-                onClick={() => setIsMobileMenuOpen(false)}
-              >
-                <link.icon className="h-5 w-5" />
-                {t(link.key)}
-              </Link>
-            ))}
-            <div className="flex items-center gap-2 rounded-lg px-3 py-2">
-              <span className="text-sm text-muted-foreground">{t('nav.language')}:</span>
-              {languageOptions.map((option) => (
-                <button
-                  key={option.code}
-                  onClick={() => setLanguage(option.code)}
-                  className={`rounded-md px-2 py-1 text-sm transition-colors ${
-                    language === option.code ? 'bg-primary/15 text-foreground' : 'text-muted-foreground hover:bg-secondary'
-                  }`}
-                  aria-label={option.label}
-                  title={option.label}
-                >
-                  {option.flag}
-                </button>
-              ))}
-            </div>
-            <div className="my-3 border-t border-border" />
-            {!authLoading && user ? (
-              <>
-                <Link
-                  href="/profile"
-                  className="flex items-center gap-3 rounded-lg px-3 py-3 text-base font-medium text-foreground"
-                  onClick={() => setIsMobileMenuOpen(false)}
-                >
-                  <User className="h-5 w-5" />
-                  {user.displayName || user.email}
-                </Link>
-                <button
-                  type="button"
-                  onClick={() => {
-                    logout()
-                    setIsMobileMenuOpen(false)
-                  }}
-                  className="flex w-full items-center gap-3 rounded-lg px-3 py-3 text-base font-medium text-muted-foreground hover:bg-secondary"
-                >
-                  <LogIn className="h-5 w-5" />
-                  {t('auth.logout')}
-                </button>
-              </>
-            ) : (
-              <>
-                <Link
-                  href="/login"
-                  className="flex items-center gap-3 rounded-lg px-3 py-3 text-base font-medium text-foreground transition-colors hover:bg-secondary"
-                  onClick={() => setIsMobileMenuOpen(false)}
-                >
-                  <LogIn className="h-5 w-5" />
-                  {t('nav.login')}
-                </Link>
-                <Link
-                  href="/register"
-                  className="flex items-center justify-center gap-2 rounded-lg bg-primary px-4 py-3 text-base font-medium text-primary-foreground transition-colors hover:bg-primary/90"
-                  onClick={() => setIsMobileMenuOpen(false)}
-                >
-                  <UserPlus className="h-5 w-5" />
-                  {t('nav.register')}
-                </Link>
-              </>
-            )}
-          </div>
+          <NotificationBell />
+          <MobileNavMenu />
         </div>
-      )}
+      </nav>
     </header>
   )
 }

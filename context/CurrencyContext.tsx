@@ -19,8 +19,13 @@ type CurrencyContextType = {
   rate: number
   setCurrency: (currency: Currency) => void
   toggleCurrency: () => void
-  convertPrice: (priceInUsd: number) => number
-  formatPrice: (priceInUsd: number) => string
+  /** Stored listing prices are always in GEL */
+  convertPrice: (priceInGel: number) => number
+  formatPrice: (priceInGel: number) => string
+  /** Convert user input in the active currency to GEL for storage/filtering */
+  toBasePrice: (displayPrice: number) => number
+  /** Convert GEL amount to the active currency for form/filter inputs */
+  fromBasePrice: (priceInGel: number) => number
 }
 
 const CurrencyContext = createContext<CurrencyContextType | undefined>(undefined)
@@ -55,19 +60,35 @@ export function CurrencyProvider({ children }: { children: ReactNode }) {
   }, [currency, setCurrency])
 
   const convertPrice = useCallback(
-    (priceInUsd: number) => {
-      if (currency === 'GEL') return Math.round(priceInUsd * rate)
-      return priceInUsd
+    (priceInGel: number) => {
+      if (currency === 'GEL') return Math.round(priceInGel)
+      return Math.round(priceInGel / rate)
     },
     [currency, rate]
   )
 
   const formatPrice = useCallback(
-    (priceInUsd: number) => {
+    (priceInGel: number) => {
       if (currency === 'GEL') {
-        return `${Math.round(priceInUsd * rate).toLocaleString('en-US')} ₾`
+        return `${Math.round(priceInGel).toLocaleString('en-US')} ₾`
       }
-      return `$${priceInUsd.toLocaleString('en-US')}`
+      return `$${Math.round(priceInGel / rate).toLocaleString('en-US')}`
+    },
+    [currency, rate]
+  )
+
+  const toBasePrice = useCallback(
+    (displayPrice: number) => {
+      if (currency === 'GEL') return Math.round(displayPrice)
+      return Math.round(displayPrice * rate)
+    },
+    [currency, rate]
+  )
+
+  const fromBasePrice = useCallback(
+    (priceInGel: number) => {
+      if (currency === 'GEL') return Math.round(priceInGel)
+      return Math.round(priceInGel / rate)
     },
     [currency, rate]
   )
@@ -80,8 +101,10 @@ export function CurrencyProvider({ children }: { children: ReactNode }) {
       toggleCurrency,
       convertPrice,
       formatPrice,
+      toBasePrice,
+      fromBasePrice,
     }),
-    [currency, rate, setCurrency, toggleCurrency, convertPrice, formatPrice]
+    [currency, rate, setCurrency, toggleCurrency, convertPrice, formatPrice, toBasePrice, fromBasePrice]
   )
 
   return <CurrencyContext.Provider value={value}>{children}</CurrencyContext.Provider>

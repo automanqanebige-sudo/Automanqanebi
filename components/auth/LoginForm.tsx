@@ -5,6 +5,7 @@ import Link from 'next/link'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { Eye, EyeOff, Loader2 } from 'lucide-react'
 import SocialLogin from '@/components/auth/SocialLogin'
+import AuthRecaptcha from '@/components/auth/AuthRecaptcha'
 import { AUTH_INPUT_CLASS } from '@/components/auth/AuthLayout'
 import { useAuth } from '@/context/AuthContext'
 import { useLanguage } from '@/context/LanguageContext'
@@ -24,6 +25,13 @@ export default function LoginForm() {
   const [error, setError] = useState<string | null>(null)
   const [info, setInfo] = useState<string | null>(null)
   const [resetMode, setResetMode] = useState(false)
+  const [captchaOk, setCaptchaOk] = useState(false)
+  const [captchaKey, setCaptchaKey] = useState(0)
+
+  const resetCaptcha = () => {
+    setCaptchaOk(false)
+    setCaptchaKey((k) => k + 1)
+  }
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault()
@@ -40,14 +48,21 @@ export default function LoginForm() {
       return
     }
 
+    if (!captchaOk) {
+      setError(t('auth.recaptchaRequired'))
+      return
+    }
+
     if (resetMode) {
       setLoading(true)
       try {
         await resetPassword(email)
         setInfo(t('auth.resetSent'))
         setResetMode(false)
+        resetCaptcha()
       } catch (err) {
         setError(getAuthErrorMessage(err, t))
+        resetCaptcha()
       } finally {
         setLoading(false)
       }
@@ -69,6 +84,7 @@ export default function LoginForm() {
       } else {
         setError(getAuthErrorMessage(err, t))
       }
+      resetCaptcha()
     } finally {
       setLoading(false)
     }
@@ -95,6 +111,16 @@ export default function LoginForm() {
         <p className="mb-4 rounded-lg border border-primary/30 bg-primary/10 px-3 py-2 text-sm text-primary">
           {info}
         </p>
+      )}
+
+      {!resetMode && (
+        <SocialLogin
+          mode="login"
+          position="top"
+          loading={loading}
+          onLoadingChange={setLoading}
+          onError={setError}
+        />
       )}
 
       <form onSubmit={handleSubmit} className="space-y-4">
@@ -141,12 +167,15 @@ export default function LoginForm() {
           </div>
         )}
 
+        <AuthRecaptcha key={captchaKey} onChange={setCaptchaOk} disabled={loading} />
+
         {!resetMode ? (
           <button
             type="button"
             onClick={() => {
               setResetMode(true)
               setError(null)
+              resetCaptcha()
             }}
             className="text-sm text-primary hover:underline"
           >
@@ -158,6 +187,7 @@ export default function LoginForm() {
             onClick={() => {
               setResetMode(false)
               setError(null)
+              resetCaptcha()
             }}
             className="text-sm text-muted-foreground hover:text-foreground"
           >
@@ -167,17 +197,13 @@ export default function LoginForm() {
 
         <button
           type="submit"
-          disabled={loading || !configured}
+          disabled={loading || !configured || !captchaOk}
           className="flex w-full items-center justify-center gap-2 rounded-lg bg-primary py-3 font-semibold text-primary-foreground transition-colors hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-60"
         >
           {loading && <Loader2 className="h-4 w-4 animate-spin" />}
           {resetMode ? t('auth.submit.reset') : t('auth.submit.login')}
         </button>
       </form>
-
-      {!resetMode && (
-        <SocialLogin loading={loading} onLoadingChange={setLoading} onError={setError} />
-      )}
 
       {!resetMode && (
         <p className="mt-6 text-center text-sm text-muted-foreground">

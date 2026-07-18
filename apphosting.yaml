@@ -53,7 +53,7 @@ env:
       - BUILD
       - RUNTIME
   - variable: NEXT_PUBLIC_ADMIN_EMAILS
-    value: "info@automanqanebi.ge"
+    value: "rkakalashvili19@gmail.com"
     availability:
       - BUILD
       - RUNTIME

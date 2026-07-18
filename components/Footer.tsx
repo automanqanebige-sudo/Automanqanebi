@@ -4,12 +4,15 @@ import Link from 'next/link'
 import Image from 'next/image'
 import { Facebook, Instagram, Youtube, Mail, Phone, MapPin } from 'lucide-react'
 import { useLanguage } from '../context/LanguageContext'
-import { SITE_CONTACT_EMAIL, SITE_LOGO_MAIN, SITE_LOGO_TLD } from '@/lib/site'
+import { useSiteSettings } from '@/context/SiteSettingsContext'
+import { SITE_LOGO_MAIN, SITE_LOGO_TLD, SITE_CONTACT_PHONE_TEL } from '@/lib/site'
 
 const footerLinks = {
   marketplace: [
     { href: '/', key: 'nav.home' },
     { href: '/services', key: 'nav.services' },
+    { href: '/workshops', key: 'nav.workshops' },
+    { href: '/tools', key: 'nav.tools' },
     { href: '/add-car', key: 'footer.addCar' },
     { href: '/favorites', key: 'nav.favorites' },
   ],
@@ -22,12 +25,20 @@ const footerLinks = {
     { href: '/about', key: 'footer.about' },
     { href: '/privacy', key: 'footer.privacy' },
     { href: '/terms', key: 'footer.terms' },
+    { href: '/cookies', key: 'legal.cookies.title' },
   ],
 }
 
 export default function Footer() {
   const currentYear = new Date().getFullYear()
   const { t } = useLanguage()
+  const { settings } = useSiteSettings()
+
+  const social = [
+    { href: settings.facebookUrl, icon: Facebook, label: 'Facebook' },
+    { href: settings.instagramUrl, icon: Instagram, label: 'Instagram' },
+    { href: settings.youtubeUrl, icon: Youtube, label: 'YouTube' },
+  ].filter((s) => s.href)
 
   return (
     <footer className="border-t border-border bg-card">
@@ -52,27 +63,18 @@ export default function Footer() {
               {t('footer.description')}
             </p>
             <div className="flex gap-3">
-              <a
-                href="#"
-                className="flex h-9 w-9 items-center justify-center rounded-lg bg-secondary text-muted-foreground transition-colors hover:bg-primary hover:text-primary-foreground"
-                aria-label="Facebook"
-              >
-                <Facebook className="h-4 w-4" />
-              </a>
-              <a
-                href="#"
-                className="flex h-9 w-9 items-center justify-center rounded-lg bg-secondary text-muted-foreground transition-colors hover:bg-primary hover:text-primary-foreground"
-                aria-label="Instagram"
-              >
-                <Instagram className="h-4 w-4" />
-              </a>
-              <a
-                href="#"
-                className="flex h-9 w-9 items-center justify-center rounded-lg bg-secondary text-muted-foreground transition-colors hover:bg-primary hover:text-primary-foreground"
-                aria-label="YouTube"
-              >
-                <Youtube className="h-4 w-4" />
-              </a>
+              {social.map((item) => (
+                <a
+                  key={item.label}
+                  href={item.href}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex h-9 w-9 items-center justify-center rounded-lg bg-secondary text-muted-foreground transition-colors hover:bg-primary hover:text-primary-foreground"
+                  aria-label={item.label}
+                >
+                  <item.icon className="h-4 w-4" />
+                </a>
+              ))}
             </div>
           </div>
 
@@ -116,20 +118,20 @@ export default function Footer() {
             <ul className="space-y-3">
               <li>
                 <a
-                  href={`mailto:${SITE_CONTACT_EMAIL}`}
+                  href={`mailto:${settings.contactEmail}`}
                   className="flex items-center gap-2 text-sm text-muted-foreground transition-colors hover:text-primary"
                 >
                   <Mail className="h-4 w-4" />
-                  {SITE_CONTACT_EMAIL}
+                  {settings.contactEmail}
                 </a>
               </li>
               <li>
                 <a
-                  href="tel:+995555123456"
+                  href={`tel:${SITE_CONTACT_PHONE_TEL}`}
                   className="flex items-center gap-2 text-sm text-muted-foreground transition-colors hover:text-primary"
                 >
                   <Phone className="h-4 w-4" />
-                  +995 555 123 456
+                  {settings.contactPhone}
                 </a>
               </li>
               <li>

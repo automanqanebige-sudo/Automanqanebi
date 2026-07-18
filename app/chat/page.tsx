@@ -3,7 +3,7 @@
 import { Suspense, useCallback, useEffect, useMemo, useState } from 'react'
 import Link from 'next/link'
 import { useRouter, useSearchParams } from 'next/navigation'
-import { ArrowLeft, MessageCircle, Send } from 'lucide-react'
+import { ArrowLeft, Bell, MessageCircle, Send } from 'lucide-react'
 import RequireAuth from '@/components/RequireAuth'
 import { useAuth } from '@/context/AuthContext'
 import { useLanguage } from '@/context/LanguageContext'
@@ -30,6 +30,13 @@ function ChatContent() {
   const [draft, setDraft] = useState('')
   const [loading, setLoading] = useState(true)
   const [sending, setSending] = useState(false)
+  const [pushMsg, setPushMsg] = useState('')
+
+  const enablePush = async () => {
+    const { requestChatPushPermission } = await import('@/lib/fcm-client')
+    const res = await requestChatPushPermission()
+    setPushMsg(t(res.messageKey))
+  }
 
   const loadConversations = useCallback(async () => {
     if (!user) return
@@ -149,6 +156,18 @@ function ChatContent() {
         <MessageCircle className="h-6 w-6 text-primary" />
         {t('nav.chat')}
       </h1>
+
+      <div className="mb-4 flex flex-wrap items-center gap-3">
+        <button
+          type="button"
+          onClick={enablePush}
+          className="inline-flex items-center gap-2 rounded-lg border border-border px-3 py-2 text-sm text-foreground hover:bg-secondary"
+        >
+          <Bell className="h-4 w-4 text-primary" />
+          {t('push.enable')}
+        </button>
+        {pushMsg && <span className="text-xs text-muted-foreground">{pushMsg}</span>}
+      </div>
 
       {loading ? (
         <p className="text-muted-foreground">{t('auth.loading')}</p>

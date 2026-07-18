@@ -5,17 +5,26 @@ import { Loader2 } from 'lucide-react'
 import { useAuth } from '@/context/AuthContext'
 import { useLanguage } from '@/context/LanguageContext'
 import { getAuthErrorMessage } from '@/lib/auth'
+import { logAnalyticsEvent } from '@/lib/analytics-firestore'
+import { saveUserProfile } from '@/lib/user-profile-firestore'
+import { getFirebaseAuth } from '@/lib/firebase'
 
 type SocialLoginProps = {
   loading: boolean
   onLoadingChange: (loading: boolean) => void
   onError: (message: string | null) => void
+  /** login | register — changes button label + analytics */
+  mode?: 'login' | 'register'
+  /** Place Google above the email form */
+  position?: 'top' | 'bottom'
 }
 
 export default function SocialLogin({
   loading,
   onLoadingChange,
   onError,
+  mode = 'login',
+  position = 'top',
 }: SocialLoginProps) {
   const { t } = useLanguage()
   const { configured, signInWithGoogle } = useAuth()
@@ -33,6 +42,21 @@ export default function SocialLogin({
     onLoadingChange(true)
     try {
       await signInWithGoogle()
+      const user = getFirebaseAuth().currentUser
+      if (user) {
+        try {
+          await saveUserProfile(user.uid, {
+            displayName: user.displayName || undefined,
+          })
+        } catch {
+          /* profile write is best-effort */
+        }
+        logAnalyticsEvent(
+          mode === 'register' ? 'user_register' : 'user_login',
+          { method: 'google', email: user.email || undefined },
+          user.uid
+        )
+      }
       router.push(redirectTo.startsWith('/') ? redirectTo : '/profile')
     } catch (err) {
       onError(getAuthErrorMessage(err, t))
@@ -41,22 +65,19 @@ export default function SocialLogin({
     }
   }
 
-  return (
-    <>
-      <div className="my-6 flex items-center gap-3">
-        <div className="h-px flex-1 bg-border" />
-        <span className="text-xs text-muted-foreground">{t('auth.or')}</span>
-        <div className="h-px flex-1 bg-border" />
-      </div>
+  const label = mode === 'register' ? t('auth.googleRegister') : t('auth.google')
 
-      <button
-        type="button"
-        onClick={handleGoogle}
-        disabled={loading || !configured}
-        className="flex w-full items-center justify-center gap-2 rounded-lg border border-border bg-background py-3 font-medium text-foreground transition-colors hover:bg-secondary disabled:cursor-not-allowed disabled:opacity-60"
-      >
-        {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
-        <svg className="h-5 w-5" viewBox="0 0 24 24" aria-hidden>
+  const button = (
+    <button
+      type="button"
+      onClick={handleGoogle}
+      disabled={loading || !configured}
+      className="flex w-full items-center justify-center gap-3 rounded-xl border-2 border-border bg-card py-3.5 text-sm font-semibold text-foreground shadow-sm transition-colors hover:border-primary/40 hover:bg-secondary disabled:cursor-not-allowed disabled:opacity-60"
+    >
+      {loading ? (
+        <Loader2 className="h-5 w-5 animate-spin text-primary" />
+      ) : (
+        <svg className="h-5 w-5 shrink-0" viewBox="0 0 24 24" aria-hidden>
           <path
             fill="#4285F4"
             d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
@@ -74,8 +95,34 @@ export default function SocialLogin({
             d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
           />
         </svg>
-        {t('auth.google')}
-      </button>
+      )}
+      {label}
+    </button>
+  )
+
+  const divider = (
+    <div className={`flex items-center gap-3 ${position === 'top' ? 'my-5' : 'my-6'}`}>
+      <div className="h-px flex-1 bg-border" />
+      <span className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+        {t('auth.or')}
+      </span>
+      <div className="h-px flex-1 bg-border" />
+    </div>
+  )
+
+  if (position === 'top') {
+    return (
+      <>
+        {button}
+        {divider}
+      </>
+    )
+  }
+
+  return (
+    <>
+      {divider}
+      {button}
     </>
   )
 }

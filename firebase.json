@@ -1,4 +1,17 @@
 {
+  "hosting": {
+    "source": ".",
+    "ignore": [
+      "firebase.json",
+      "**/.*",
+      "**/node_modules/**",
+      "AUTOGE-CLEAN/**",
+      "**/*.zip"
+    ],
+    "frameworksBackend": {
+      "region": "europe-west1"
+    }
+  },
   "apphosting": {
     "backendId": "automanqanebi",
     "rootDir": "/",
@@ -22,7 +35,8 @@
           "https://automanqanebi1.web.app",
           "https://automanqanebi1.firebaseapp.com"
         ]
-      }
+      },
+      "phoneNumber": true
     },
     "authorizedDomains": [
       "localhost",

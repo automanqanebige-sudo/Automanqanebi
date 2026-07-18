@@ -1,20 +1,31 @@
-import type { Metadata, Viewport } from "next";
-import { Inter } from "next/font/google";
-import "./globals.css";
-import Navbar from "../components/Navbar";
-import Footer from "../components/Footer";
-import { CurrencyProvider } from "../context/CurrencyContext";
-import { LanguageProvider } from "../context/LanguageContext";
-import { FavoritesProvider } from "../context/FavoritesContext";
-import { AuthProvider } from "../context/AuthContext";
-import { SITE_DOMAIN, SITE_LOGO_MAIN, SITE_LOGO_TLD, SITE_URL } from "../lib/site";
+import type { Metadata, Viewport } from 'next'
+import { Inter, Noto_Sans_Georgian } from 'next/font/google'
+import './globals.css'
+import Navbar from '../components/Navbar'
+import Footer from '../components/Footer'
+import MobileBottomNav from '../components/MobileBottomNav'
+import { CurrencyProvider } from '../context/CurrencyContext'
+import { LanguageProvider } from '../context/LanguageContext'
+import { SiteSettingsProvider } from '../context/SiteSettingsContext'
+import { FavoritesProvider } from '../context/FavoritesContext'
+import { AuthProvider } from '../context/AuthContext'
+import MaintenanceBanner from '../components/MaintenanceBanner'
+import { SiteBannersProvider } from '../context/SiteBannersContext'
+import { SiteBannerGlobalStrip } from '../components/SiteBannerSlot'
+import { SITE_DOMAIN, SITE_LOGO_MAIN, SITE_LOGO_TLD, SITE_URL } from '../lib/site'
 
-const inter = Inter({ 
-  subsets: ["latin"],
-  variable: "--font-inter",
-});
+const inter = Inter({
+  subsets: ['latin'],
+  variable: '--font-inter',
+})
 
-const siteTitle = `${SITE_LOGO_MAIN}${SITE_LOGO_TLD}`;
+const notoGeorgian = Noto_Sans_Georgian({
+  subsets: ['georgian', 'latin'],
+  variable: '--font-noto-georgian',
+  weight: ['400', '500', '600', '700'],
+})
+
+const siteTitle = `${SITE_LOGO_MAIN}${SITE_LOGO_TLD}`
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
@@ -22,58 +33,60 @@ export const metadata: Metadata = {
   description: `საქართველოს ყველაზე დიდი ავტომობილების ონლაინ მარკეტი (${SITE_DOMAIN}). იყიდე და გაყიდე მანქანები მარტივად და სწრაფად.`,
   keywords: [
     SITE_DOMAIN,
-    "automanqanebi",
-    "ავტომობილები",
-    "მანქანები",
-    "გაყიდვა",
-    "ყიდვა",
-    "საქართველო",
-    "თბილისი",
+    'automanqanebi',
+    'ავტომობილები',
+    'მანქანები',
+    'გაყიდვა',
+    'ყიდვა',
+    'საქართველო',
+    'თბილისი',
   ],
   applicationName: siteTitle,
   icons: {
-    icon: "/logo.png",
-    shortcut: "/logo.png",
-    apple: "/logo.png",
+    icon: '/logo.png',
+    shortcut: '/logo.png',
+    apple: '/logo.png',
   },
   openGraph: {
-    type: "website",
-    locale: "ka_GE",
+    type: 'website',
+    locale: 'ka_GE',
     url: SITE_URL,
     siteName: siteTitle,
     title: `${siteTitle} | ავტომობილების მარკეტი`,
   },
-};
+}
 
 export const viewport: Viewport = {
-  themeColor: "#16a34a",
-  width: "device-width",
+  themeColor: '#16a34a',
+  width: 'device-width',
   initialScale: 1,
   maximumScale: 5,
-};
+}
 
-export default function RootLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="ka" className={`${inter.variable} bg-background`}>
+    <html lang="ka" className={`${inter.variable} ${notoGeorgian.variable} bg-background`}>
       <body className="flex min-h-screen flex-col font-sans antialiased">
         <LanguageProvider>
           <AuthProvider>
             <CurrencyProvider>
-              <FavoritesProvider>
-                <Navbar />
-                <main className="flex-1">
-                  {children}
-                </main>
-                <Footer />
-              </FavoritesProvider>
+              <SiteSettingsProvider>
+                <SiteBannersProvider>
+                  <FavoritesProvider>
+                    <Navbar />
+                    <MaintenanceBanner />
+                    <SiteBannerGlobalStrip placement="global_top" />
+                    <main className="flex-1 pb-20 md:pb-0">{children}</main>
+                    <SiteBannerGlobalStrip placement="global_footer" />
+                    <Footer />
+                    <MobileBottomNav />
+                  </FavoritesProvider>
+                </SiteBannersProvider>
+              </SiteSettingsProvider>
             </CurrencyProvider>
           </AuthProvider>
         </LanguageProvider>
       </body>
     </html>
-  );
+  )
 }

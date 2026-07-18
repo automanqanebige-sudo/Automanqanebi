@@ -2,6 +2,7 @@
 
 import Link from 'next/link'
 import { ArrowLeft } from 'lucide-react'
+import SiteContactBlock from '@/components/SiteContactBlock'
 import { useLanguage } from '@/context/LanguageContext'
 
 export default function TermsPage() {
@@ -21,7 +22,9 @@ export default function TermsPage() {
         <p>{t('legal.terms.p1')}</p>
         <p>{t('legal.terms.p2')}</p>
         <p>{t('legal.terms.p3')}</p>
+        <p>{t('legal.terms.p4')}</p>
       </div>
+      <SiteContactBlock className="mt-8" />
     </div>
   )
 }

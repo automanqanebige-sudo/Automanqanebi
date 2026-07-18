@@ -1,6 +1,7 @@
 import type { Car } from '@/components/CarCard'
 import { sampleCars } from '@/data/cars'
 import { USE_SAMPLE_DATA } from '@/lib/site'
+import { isVipListingType, toIsoFromUnknown } from '@/lib/listing-lifecycle'
 
 export const DEFAULT_CAR_IMAGE =
   'https://images.unsplash.com/photo-1492144534655-ae79c964c9d7?w=800&q=80'
@@ -11,17 +12,28 @@ export type FirestoreCarDoc = {
   price: number
   year: number
   image?: string
+  images?: string[]
   description?: string
   mileage?: number
   location?: string
   fuelType?: string
   transmission?: string
   phone?: string
+  contactWhatsApp?: boolean
+  contactViber?: boolean
   userId?: string | null
   userEmail?: string | null
   createdAt?: unknown
+  updatedAt?: unknown
+  expiresAt?: unknown
+  bumpedAt?: unknown
+  views?: number
+  vipExpiresAt?: unknown
+  renewalNotifiedAt?: unknown
   isVip?: boolean
   listingType?: string
+  priceCurrency?: 'GEL' | 'USD'
+  offerType?: 'sale' | 'rent'
   category?: string
   bodyType?: string
   driveType?: string
@@ -48,9 +60,11 @@ function capitalizeFuel(fuel?: string): string {
 
 export function docToCar(id: string, data: FirestoreCarDoc): Car {
   const listingType = data.listingType as Car['listingType'] | undefined
-  const isVip =
-    data.isVip ??
-    Boolean(listingType && ['vip', 'vip_plus', 'super_vip'].includes(listingType))
+  const isVip = data.isVip ?? isVipListingType(listingType)
+
+  const imagesFromDoc = (data.images ?? []).map((url) => url.trim()).filter(Boolean)
+  const primaryImage = imagesFromDoc[0] || data.image?.trim() || DEFAULT_CAR_IMAGE
+  const images = imagesFromDoc.length > 0 ? imagesFromDoc : primaryImage ? [primaryImage] : undefined
 
   return {
     id,
@@ -58,16 +72,20 @@ export function docToCar(id: string, data: FirestoreCarDoc): Car {
     model: data.model,
     price: Number(data.price) || 0,
     year: Number(data.year) || new Date().getFullYear(),
-    image: data.image?.trim() || DEFAULT_CAR_IMAGE,
+    image: primaryImage,
+    images,
     location: data.location?.trim() || 'საქართველო',
     mileage: Number(data.mileage) || 0,
     fuelType: capitalizeFuel(data.fuelType),
     transmission: data.transmission,
     description: data.description,
     phone: data.phone,
+    contactWhatsApp: Boolean(data.contactWhatsApp),
+    contactViber: Boolean(data.contactViber),
     userId: data.userId ?? undefined,
     isVip,
     listingType: listingType || (isVip ? 'vip' : 'standard'),
+    offerType: data.offerType === 'rent' ? 'rent' : 'sale',
     category: data.category,
     bodyType: data.bodyType,
     driveType: data.driveType,
@@ -79,6 +97,13 @@ export function docToCar(id: string, data: FirestoreCarDoc): Car {
     importRegion: data.importRegion,
     customsStatus: data.customsStatus,
     features: data.features,
+    createdAt: toIsoFromUnknown(data.createdAt),
+    updatedAt: toIsoFromUnknown(data.updatedAt),
+    expiresAt: toIsoFromUnknown(data.expiresAt),
+    bumpedAt: toIsoFromUnknown(data.bumpedAt),
+    views: Number(data.views) || 0,
+    vipExpiresAt: toIsoFromUnknown(data.vipExpiresAt),
+    renewalNotifiedAt: toIsoFromUnknown(data.renewalNotifiedAt),
   }
 }
 

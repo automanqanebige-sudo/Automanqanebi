@@ -12,6 +12,7 @@ import {
 } from 'firebase/firestore/lite'
 import { getDb } from '@/lib/firebase-db'
 import { isFirebaseConfigured } from '@/lib/firebase'
+import { logAnalyticsEvent } from '@/lib/analytics-firestore'
 
 export type Conversation = {
   id: string
@@ -131,4 +132,28 @@ export async function sendMessage(
     lastMessage: trimmed,
     updatedAt: createdAt,
   })
+
+  logAnalyticsEvent('chat_message', { conversationId }, senderId)
+
+  // Best-effort push to the other participant
+  try {
+    const convSnap = await getDoc(doc(getDb(), 'conversations', conversationId))
+    const participants = (convSnap.data()?.participants as string[]) || []
+    const recipientId = participants.find((id) => id !== senderId)
+    if (recipientId) {
+      const title = String(convSnap.data()?.carTitle || 'automanqanebi.ge')
+      void fetch('/api/notify-chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          recipientId,
+          title: `💬 ${title}`,
+          text: trimmed.slice(0, 120),
+          url: `/chat?c=${conversationId}`,
+        }),
+      }).catch(() => undefined)
+    }
+  } catch {
+    /* ignore push failures */
+  }
 }

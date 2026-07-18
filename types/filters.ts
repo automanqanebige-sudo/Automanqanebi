@@ -1,8 +1,13 @@
+export type OfferType = '' | 'sale' | 'rent'
+
 export type ListingType =
   | ''
   | 'vip'
   | 'vip_plus'
   | 'super_vip'
+  | 'silver'
+  | 'gold'
+  | 'platinum'
   | 'dealer'
   | 'salon'
 
@@ -50,12 +55,15 @@ export interface FilterState {
   driveType: string
   steering: string
   engineVolume: string
+  engineVolumeMin: string
+  engineVolumeMax: string
   cylinders: string
   doors: string
   color: string
   mileageMin: string
   mileageMax: string
   features: CarFeature[]
+  offerType: OfferType
   listingType: ListingType
   importRegion: ImportRegion
   customsStatus: CustomsStatus
@@ -78,12 +86,15 @@ export const initialFilters: FilterState = {
   driveType: '',
   steering: '',
   engineVolume: '',
+  engineVolumeMin: '',
+  engineVolumeMax: '',
   cylinders: '',
   doors: '',
   color: '',
   mileageMin: '',
   mileageMax: '',
   features: [],
+  offerType: '',
   listingType: '',
   importRegion: '',
   customsStatus: '',
@@ -115,11 +126,16 @@ export const CAR_FEATURES: CarFeature[] = [
   'keyless',
 ]
 
+export const OFFER_TYPES: OfferType[] = ['', 'sale', 'rent']
+
 export const LISTING_TYPES: ListingType[] = [
   '',
   'vip',
   'vip_plus',
   'super_vip',
+  'silver',
+  'gold',
+  'platinum',
   'dealer',
   'salon',
 ]

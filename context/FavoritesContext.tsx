@@ -16,6 +16,7 @@ import {
   removeFavoriteRemote,
 } from '@/lib/favorites-firestore'
 import { isFirebaseConfigured } from '@/lib/firebase'
+import { logAnalyticsEvent } from '@/lib/analytics-firestore'
 
 interface FavoritesContextValue {
   favoriteIds: Set<string>
@@ -97,6 +98,7 @@ export function FavoritesProvider({ children }: { children: ReactNode }) {
         if (user?.uid && isFirebaseConfigured()) {
           const action = adding ? addFavoriteRemote(user.uid, id) : removeFavoriteRemote(user.uid, id)
           action.catch(console.error)
+          if (adding) logAnalyticsEvent('favorite_add', { carId: id }, user.uid)
         }
 
         return next

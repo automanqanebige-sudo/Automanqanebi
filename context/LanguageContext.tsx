@@ -6,6 +6,7 @@ import { SITE_DOMAIN } from '@/lib/site'
 import ka from '@/locales/ka.json'
 import ru from '@/locales/ru.json'
 import en from '@/locales/en.json'
+import { serviceCategoryMessages } from '@/lib/service-category-messages'
 
 export type Language = 'ka' | 'ru' | 'en'
 
@@ -16,9 +17,9 @@ type LanguageContextType = {
 }
 
 const messages: Record<Language, Record<string, string>> = {
-  ka,
-  ru,
-  en,
+  ka: { ...ka, ...serviceCategoryMessages.ka },
+  ru: { ...ru, ...serviceCategoryMessages.ru },
+  en: { ...en, ...serviceCategoryMessages.en },
 }
 
 const LanguageContext = createContext<LanguageContextType | undefined>(undefined)

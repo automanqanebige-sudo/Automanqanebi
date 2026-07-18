@@ -11,17 +11,25 @@ export const LISTING_LOCATIONS = [
   'საქართველო',
 ] as const
 
+export type ListingPriceCurrency = 'GEL' | 'USD'
+
 export type CarListingPayload = {
   brand: string
   model: string
+  /** Always stored in GEL */
   price: number
+  /** Currency the seller entered when posting */
+  priceCurrency?: ListingPriceCurrency
   year: number
   mileage: number
   location: string
   fuelType: string
   transmission: string
   phone: string
+  contactWhatsApp?: boolean
+  contactViber?: boolean
   image: string
+  images?: string[]
   description: string
   category?: string
   bodyType?: string
@@ -32,6 +40,7 @@ export type CarListingPayload = {
   doors?: number
   color?: string
   listingType?: string
+  offerType?: 'sale' | 'rent'
   importRegion?: string
   customsStatus?: string
   features?: CarFeature[]
@@ -47,7 +56,10 @@ export type CarListingFormValues = {
   fuelType: string
   transmission: string
   phone: string
+  contactWhatsApp: boolean
+  contactViber: boolean
   imageUrl: string
+  imageUrls: string[]
   description: string
   category: string
   bodyType: string
@@ -58,6 +70,7 @@ export type CarListingFormValues = {
   doors: string
   color: string
   listingType: string
+  offerType: 'sale' | 'rent'
   importRegion: string
   customsStatus: string
   features: CarFeature[]
@@ -83,7 +96,10 @@ export function carToFormValues(car: {
   fuelType: string
   transmission?: string
   phone?: string
+  contactWhatsApp?: boolean
+  contactViber?: boolean
   image: string
+  images?: string[]
   description?: string
   category?: string
   bodyType?: string
@@ -94,6 +110,7 @@ export function carToFormValues(car: {
   doors?: number
   color?: string
   listingType?: string
+  offerType?: 'sale' | 'rent'
   importRegion?: string
   customsStatus?: string
   features?: string[]
@@ -108,7 +125,10 @@ export function carToFormValues(car: {
     fuelType: fuelToFormValue(car.fuelType),
     transmission: transmissionToFormValue(car.transmission),
     phone: car.phone ?? '',
+    contactWhatsApp: Boolean(car.contactWhatsApp),
+    contactViber: Boolean(car.contactViber),
     imageUrl: car.image ?? '',
+    imageUrls: car.images?.length ? car.images : car.image ? [car.image] : [],
     description: car.description ?? '',
     category: car.category ?? '',
     bodyType: car.bodyType ?? '',
@@ -119,6 +139,7 @@ export function carToFormValues(car: {
     doors: car.doors ? String(car.doors) : '',
     color: car.color ?? '',
     listingType: car.listingType ?? 'standard',
+    offerType: car.offerType === 'rent' ? 'rent' : 'sale',
     importRegion: car.importRegion ?? '',
     customsStatus: car.customsStatus ?? '',
     features: (car.features ?? []).filter((f): f is CarFeature =>
@@ -140,19 +161,35 @@ function optionalNumber(value: string): number | undefined {
 
 export function formValuesToPayload(
   values: CarListingFormValues,
-  image: string
+  imageUrls: string[],
+  options?: {
+    /** Price already converted to GEL for storage */
+    priceInGel?: number
+    priceCurrency?: ListingPriceCurrency
+  }
 ): CarListingPayload {
+  const images = imageUrls.map((url) => url.trim()).filter(Boolean)
+  const primary = images[0] ?? ''
+  const price =
+    options?.priceInGel != null && Number.isFinite(options.priceInGel)
+      ? Math.round(options.priceInGel)
+      : Math.round(Number(values.price) || 0)
+
   return {
     brand: values.brand,
     model: values.model,
-    price: Number(values.price),
+    price,
+    priceCurrency: options?.priceCurrency ?? 'GEL',
     year: Number(values.year),
     mileage: Number(values.mileage) || 0,
     location: values.location,
     fuelType: values.fuelType,
     transmission: values.transmission,
     phone: values.phone.trim(),
-    image,
+    contactWhatsApp: values.contactWhatsApp,
+    contactViber: values.contactViber,
+    image: primary,
+    images: images.length > 0 ? images : undefined,
     description: values.description.trim(),
     category: optionalString(values.category),
     bodyType: optionalString(values.bodyType),
@@ -163,6 +200,7 @@ export function formValuesToPayload(
     doors: optionalNumber(values.doors),
     color: optionalString(values.color),
     listingType: optionalString(values.listingType) ?? 'standard',
+    offerType: values.offerType === 'rent' ? 'rent' : 'sale',
     importRegion: optionalString(values.importRegion),
     customsStatus: optionalString(values.customsStatus),
     features: values.features.length > 0 ? values.features : undefined,

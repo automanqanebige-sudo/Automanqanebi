@@ -5,10 +5,12 @@ import Link from 'next/link'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { Eye, EyeOff, Loader2 } from 'lucide-react'
 import SocialLogin from '@/components/auth/SocialLogin'
+import AuthRecaptcha from '@/components/auth/AuthRecaptcha'
 import { AUTH_INPUT_CLASS } from '@/components/auth/AuthLayout'
 import { useAuth } from '@/context/AuthContext'
 import { useLanguage } from '@/context/LanguageContext'
 import { getAuthErrorMessage } from '@/lib/auth'
+import { logAnalyticsEvent } from '@/lib/analytics-firestore'
 
 export default function RegisterForm() {
   const { t } = useLanguage()
@@ -24,6 +26,13 @@ export default function RegisterForm() {
   const [showPassword, setShowPassword] = useState(false)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [captchaOk, setCaptchaOk] = useState(false)
+  const [captchaKey, setCaptchaKey] = useState(0)
+
+  const resetCaptcha = () => {
+    setCaptchaOk(false)
+    setCaptchaKey((k) => k + 1)
+  }
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault()
@@ -49,16 +58,25 @@ export default function RegisterForm() {
       return
     }
 
+    if (!captchaOk) {
+      setError(t('auth.recaptchaRequired'))
+      return
+    }
+
     setLoading(true)
     try {
       await registerWithEmail(email, password, displayName)
-      router.push(redirectTo.startsWith('/') ? redirectTo : '/profile')
+      logAnalyticsEvent('user_register', { email: email.trim().toLowerCase() })
+      router.push(
+        `${redirectTo.startsWith('/') ? redirectTo : '/profile'}?verifyEmail=1`
+      )
     } catch (err) {
       if (err instanceof Error && err.message === 'FIREBASE_NOT_CONFIGURED') {
         setError(t('auth.error.notConfigured'))
       } else {
         setError(getAuthErrorMessage(err, t))
       }
+      resetCaptcha()
     } finally {
       setLoading(false)
     }
@@ -76,6 +94,14 @@ export default function RegisterForm() {
           {error}
         </p>
       )}
+
+      <SocialLogin
+        mode="register"
+        position="top"
+        loading={loading}
+        onLoadingChange={setLoading}
+        onError={setError}
+      />
 
       <form onSubmit={handleSubmit} className="space-y-4">
         <div>
@@ -153,17 +179,17 @@ export default function RegisterForm() {
           />
         </div>
 
+        <AuthRecaptcha key={captchaKey} onChange={setCaptchaOk} disabled={loading} />
+
         <button
           type="submit"
-          disabled={loading || !configured}
+          disabled={loading || !configured || !captchaOk}
           className="flex w-full items-center justify-center gap-2 rounded-lg bg-primary py-3 font-semibold text-primary-foreground transition-colors hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-60"
         >
           {loading && <Loader2 className="h-4 w-4 animate-spin" />}
           {t('auth.submit.register')}
         </button>
       </form>
-
-      <SocialLogin loading={loading} onLoadingChange={setLoading} onError={setError} />
 
       <p className="mt-6 text-center text-sm text-muted-foreground">
         {t('auth.hasAccount')}{' '}

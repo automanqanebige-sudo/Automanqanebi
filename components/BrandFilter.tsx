@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from 'react'
 import Image from 'next/image'
-import { Star, ChevronDown, Search } from 'lucide-react'
+import { Star } from 'lucide-react'
 import { carBrands, TOP_BRAND_NAMES } from '@/data/car-brands'
 import { useLanguage } from '@/context/LanguageContext'
 
@@ -13,12 +13,26 @@ type BrandFilterProps = {
   onModelChange: (model: string) => void
 }
 
-function BrandLogo({ src, alt }: { src: string; alt: string }) {
+function BrandLogo({
+  src,
+  alt,
+  size = 'md',
+}: {
+  src: string
+  alt: string
+  size?: 'md' | 'lg'
+}) {
   const [failed, setFailed] = useState(false)
+  const dims =
+    size === 'lg'
+      ? { img: 'h-11 w-11 sm:h-12 sm:w-12', fallback: 'text-base' }
+      : { img: 'h-8 w-8', fallback: 'text-sm' }
 
   if (failed) {
     return (
-      <span className="flex h-full w-full items-center justify-center rounded-lg bg-primary/10 text-sm font-bold text-primary">
+      <span
+        className={`flex h-full w-full items-center justify-center font-bold text-primary ${dims.fallback}`}
+      >
         {alt.charAt(0).toUpperCase()}
       </span>
     )
@@ -28,9 +42,9 @@ function BrandLogo({ src, alt }: { src: string; alt: string }) {
     <Image
       src={src}
       alt={alt}
-      width={40}
-      height={40}
-      className="h-full w-full object-contain"
+      width={48}
+      height={48}
+      className={`object-contain ${dims.img}`}
       onError={() => setFailed(true)}
       unoptimized
     />
@@ -44,19 +58,11 @@ export default function BrandFilter({
   onModelChange,
 }: BrandFilterProps) {
   const { t } = useLanguage()
-  const [showAll, setShowAll] = useState(false)
-  const [query, setQuery] = useState('')
 
   const sortedBrands = useMemo(
     () => [...carBrands].sort((a, b) => a.brand.localeCompare(b.brand)),
     []
   )
-
-  const filteredBrands = useMemo(() => {
-    const q = query.trim().toLowerCase()
-    if (!q) return sortedBrands
-    return sortedBrands.filter((b) => b.brand.toLowerCase().includes(q))
-  }, [sortedBrands, query])
 
   const models = carBrands.find((b) => b.brand === selectedBrand)?.models ?? []
 
@@ -64,13 +70,13 @@ export default function BrandFilter({
     'w-full rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-white outline-none transition-colors focus:border-primary focus:ring-2 focus:ring-primary/40'
 
   return (
-    <div className="rounded-2xl bg-slate-900 p-5 shadow-inner sm:p-6">
+    <div className="rounded-2xl bg-slate-900 p-4 shadow-inner sm:p-5 lg:p-6">
       <h3 className="mb-4 flex items-center gap-2 text-base font-semibold text-white">
         <Star className="h-4 w-4 fill-amber-400 text-amber-400" />
         {t('search.topBrands')}
       </h3>
 
-      <div className="mb-6 grid grid-cols-5 gap-3 md:grid-cols-5">
+      <div className="mb-6 grid grid-cols-5 gap-2 sm:grid-cols-10 sm:gap-1.5 lg:gap-2">
         {TOP_BRAND_NAMES.map((brand) => {
           const item = carBrands.find((b) => b.brand === brand)
           if (!item) return null
@@ -84,15 +90,15 @@ export default function BrandFilter({
               onClick={() => {
                 onBrandChange(selected ? '' : brand)
               }}
-              className={`flex flex-col items-center gap-2 rounded-2xl p-2 transition-all hover:-translate-y-0.5 ${
-                selected ? 'ring-2 ring-amber-400' : ''
+              className={`flex w-full min-w-0 flex-col items-center gap-1 rounded-xl p-1 transition-all hover:-translate-y-0.5 sm:gap-1.5 sm:p-1.5 ${
+                selected ? 'ring-2 ring-amber-400 ring-offset-1 ring-offset-slate-900' : ''
               }`}
               aria-pressed={selected}
             >
-              <div className="relative flex aspect-square w-full items-center justify-center overflow-hidden rounded-2xl bg-white p-3 shadow-sm">
-                <BrandLogo src={item.logo} alt={item.brand} />
+              <div className="flex aspect-square w-full items-center justify-center rounded-xl bg-white p-2 shadow-sm sm:p-2.5 lg:p-3">
+                <BrandLogo src={item.logo} alt={item.brand} size="lg" />
               </div>
-              <span className="max-w-full truncate text-center text-[11px] font-medium text-white">
+              <span className="w-full truncate text-center text-[9px] font-medium leading-tight text-white sm:text-[10px] lg:text-[11px]">
                 {item.brand}
               </span>
             </button>
@@ -100,7 +106,6 @@ export default function BrandFilter({
         })}
       </div>
 
-      <h3 className="mb-2 text-sm font-semibold text-white">{t('search.allBrands')}</h3>
       <select
         value={selectedBrand}
         onChange={(e) => {
@@ -117,57 +122,6 @@ export default function BrandFilter({
           </option>
         ))}
       </select>
-
-      <button
-        type="button"
-        onClick={() => setShowAll((v) => !v)}
-        className="mb-4 flex w-full items-center justify-center gap-2 rounded-xl border border-white/10 bg-white/5 px-4 py-2.5 text-sm font-medium text-white transition-colors hover:bg-white/10"
-        aria-expanded={showAll}
-      >
-        {t('search.allBrands')}
-        <ChevronDown className={`h-4 w-4 transition-transform ${showAll ? 'rotate-180' : ''}`} />
-      </button>
-
-      {showAll && (
-        <div className="mb-4">
-          <div className="relative mb-3">
-            <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-white/40" />
-            <input
-              type="text"
-              value={query}
-              onChange={(e) => setQuery(e.target.value)}
-              placeholder={t('search.selectBrand')}
-              className={`${selectClass} pl-10`}
-            />
-          </div>
-          <div className="grid max-h-72 grid-cols-4 gap-2 overflow-y-auto pr-1 sm:grid-cols-5 md:grid-cols-6">
-            {filteredBrands.map((item) => {
-              const selected = selectedBrand === item.brand
-              return (
-                <button
-                  key={item.brand}
-                  type="button"
-                  onClick={() => {
-                    onBrandChange(selected ? '' : item.brand)
-                  }}
-                  className={`flex flex-col items-center gap-1.5 rounded-xl p-1.5 transition-all hover:-translate-y-0.5 ${
-                    selected ? 'ring-2 ring-amber-400' : ''
-                  }`}
-                  aria-pressed={selected}
-                  title={item.brand}
-                >
-                  <div className="relative flex aspect-square w-full items-center justify-center overflow-hidden rounded-xl bg-white p-2 shadow-sm">
-                    <BrandLogo src={item.logo} alt={item.brand} />
-                  </div>
-                  <span className="max-w-full truncate text-center text-[10px] font-medium text-white">
-                    {item.brand}
-                  </span>
-                </button>
-              )
-            })}
-          </div>
-        </div>
-      )}
 
       {selectedBrand && (
         <>

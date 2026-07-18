@@ -1,8 +1,9 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Sparkles } from 'lucide-react'
 import { useLanguage } from '@/context/LanguageContext'
+import { useCurrency } from '@/context/CurrencyContext'
 import { useAuth } from '@/context/AuthContext'
 import { carBrands } from '@/data/car-brands'
 import { DEFAULT_CAR_IMAGE } from '@/lib/cars-mapper'
@@ -12,8 +13,14 @@ import {
   formValuesToPayload,
 } from '@/lib/car-listing'
 import { CAR_FEATURES } from '@/types/filters'
-import { uploadCarImage } from '@/lib/upload-car-image'
-import CarImageUpload, { UploadingOverlay } from '@/components/CarImageUpload'
+import { uploadCarImages } from '@/lib/upload-car-image'
+import CarImagesUpload, { urlsToSlots, type ImageSlot } from '@/components/CarImagesUpload'
+import { UploadingOverlay } from '@/components/CarImageUpload'
+import MessengerContactToggles from '@/components/MessengerContactToggles'
+import CurrencyToggle, { type PriceCurrency } from '@/components/CurrencyToggle'
+import PhoneOtpVerify from '@/components/auth/PhoneOtpVerify'
+import { fetchUserProfile } from '@/lib/user-profile-firestore'
+import { isFirebaseConfigured } from '@/lib/firebase'
 
 function inputClass() {
   return 'w-full rounded-lg border border-input bg-background px-3 py-2.5 text-foreground outline-none transition-all focus:ring-2 focus:ring-primary'
@@ -29,7 +36,10 @@ const emptyValues: CarListingFormValues = {
   fuelType: 'petrol',
   transmission: 'automatic',
   phone: '',
+  contactWhatsApp: false,
+  contactViber: false,
   imageUrl: '',
+  imageUrls: [],
   description: '',
   category: 'car',
   bodyType: '',
@@ -40,6 +50,7 @@ const emptyValues: CarListingFormValues = {
   doors: '',
   color: '',
   listingType: 'standard',
+  offerType: 'sale',
   importRegion: '',
   customsStatus: '',
   features: [],
@@ -63,20 +74,115 @@ export default function CarListingForm({
   onSubmit,
 }: CarListingFormProps) {
   const { t } = useLanguage()
+  const { currency: siteCurrency, rate } = useCurrency()
   const { user } = useAuth()
 
   const [values, setValues] = useState<CarListingFormValues>(initialValues ?? emptyValues)
-  const [imageFile, setImageFile] = useState<File | null>(null)
+  const [priceCurrency, setPriceCurrency] = useState<PriceCurrency>(siteCurrency)
+  const [imageSlots, setImageSlots] = useState<ImageSlot[]>(() =>
+    initialValues?.imageUrls?.length ? urlsToSlots(initialValues.imageUrls) : []
+  )
   const [loadingAI, setLoadingAI] = useState(false)
   const [uploading, setUploading] = useState(false)
   const [submitting, setSubmitting] = useState(false)
   const [showAdvanced, setShowAdvanced] = useState(false)
   const [error, setError] = useState('')
+  const [vin, setVin] = useState('')
+  const [vinLoading, setVinLoading] = useState(false)
+  const [vinMsg, setVinMsg] = useState('')
+  const [phoneVerified, setPhoneVerified] = useState(Boolean(initialValues))
+  const [checkingPhone, setCheckingPhone] = useState(!initialValues)
+
+  useEffect(() => {
+    if (!user || initialValues || !isFirebaseConfigured()) {
+      setCheckingPhone(false)
+      if (initialValues) setPhoneVerified(true)
+      return
+    }
+    let cancelled = false
+    fetchUserProfile(user.uid)
+      .then((p) => {
+        if (!cancelled) setPhoneVerified(Boolean(p.phoneVerified))
+      })
+      .finally(() => {
+        if (!cancelled) setCheckingPhone(false)
+      })
+    return () => {
+      cancelled = true
+    }
+  }, [user, initialValues])
 
   const models = carBrands.find((b) => b.brand === values.brand)?.models ?? []
 
   const patch = (partial: Partial<CarListingFormValues>) =>
     setValues((prev) => ({ ...prev, ...partial }))
+
+  const convertDisplayPrice = (amount: number, from: PriceCurrency, to: PriceCurrency) => {
+    if (from === to || !Number.isFinite(amount)) return amount
+    if (from === 'USD' && to === 'GEL') return Math.round(amount * rate)
+    if (from === 'GEL' && to === 'USD') return Math.round(amount / rate)
+    return amount
+  }
+
+  const handlePriceCurrencyChange = (next: PriceCurrency) => {
+    if (next === priceCurrency) return
+    const current = Number(values.price)
+    if (values.price.trim() && Number.isFinite(current) && current > 0) {
+      patch({ price: String(convertDisplayPrice(current, priceCurrency, next)) })
+    }
+    setPriceCurrency(next)
+  }
+
+  const priceInGel = () => {
+    const n = Number(values.price)
+    if (!Number.isFinite(n) || n < 0) return 0
+    return priceCurrency === 'GEL' ? Math.round(n) : Math.round(n * rate)
+  }
+
+  const decodeVin = async () => {
+    const cleaned = vin.trim().toUpperCase()
+    if (cleaned.length < 11) {
+      setVinMsg(t('addCar.vinInvalid'))
+      return
+    }
+    setVinLoading(true)
+    setVinMsg('')
+    try {
+      const res = await fetch(`/api/vin/${encodeURIComponent(cleaned)}`)
+      const data = await res.json()
+      if (!res.ok || !data.valid) {
+        setVinMsg(t('addCar.vinNotFound'))
+        return
+      }
+      const brandMatch =
+        carBrands.find(
+          (b) => b.brand.toLowerCase() === String(data.make || '').toLowerCase()
+        )?.brand || data.make || ''
+      const next: Partial<CarListingFormValues> = {}
+      if (brandMatch) next.brand = brandMatch
+      if (data.model) next.model = data.model
+      if (data.modelYear) next.year = String(data.modelYear)
+      if (data.displacementL) {
+        const liters = Number(data.displacementL)
+        if (!Number.isNaN(liters)) next.engineVolume = String(Math.round(liters * 10) / 10)
+      }
+      if (data.engineCylinders) next.cylinders = String(data.engineCylinders)
+      if (data.fuelType) {
+        const f = String(data.fuelType).toLowerCase()
+        if (f.includes('diesel')) next.fuelType = 'diesel'
+        else if (f.includes('electric')) next.fuelType = 'electric'
+        else if (f.includes('hybrid')) next.fuelType = 'hybrid'
+        else if (f.includes('gas') || f.includes('petrol') || f.includes('gasoline'))
+          next.fuelType = 'petrol'
+      }
+      patch(next)
+      setVinMsg(t('addCar.vinFilled'))
+    } catch {
+      setVinMsg(t('addCar.vinNotFound'))
+    } finally {
+      setVinLoading(false)
+    }
+  }
 
   const generateAIDescription = async () => {
     if (!values.brand || !values.model) {
@@ -121,19 +227,43 @@ export default function CarListingForm({
       return
     }
 
+    if (!phoneVerified) {
+      setError(t('addCar.phoneVerifyRequired'))
+      return
+    }
+
     setSubmitting(true)
     try {
-      let imageUrl = values.imageUrl.trim()
+      const filesToUpload = imageSlots.filter((s) => s.file).map((s) => s.file!)
+      let uploadedUrls: string[] = []
 
-      if (imageFile) {
+      if (filesToUpload.length > 0) {
         setUploading(true)
-        imageUrl = await uploadCarImage(imageFile, user.uid)
+        uploadedUrls = await uploadCarImages(filesToUpload, user.uid)
         setUploading(false)
       }
 
-      if (!imageUrl) imageUrl = DEFAULT_CAR_IMAGE
+      let uploadIndex = 0
+      const resolvedUrls = imageSlots
+        .map((slot) => {
+          if (slot.file) {
+            const url = uploadedUrls[uploadIndex]
+            uploadIndex += 1
+            return url
+          }
+          if (slot.url.startsWith('blob:')) return ''
+          return slot.url.trim()
+        })
+        .filter(Boolean)
 
-      await onSubmit(formValuesToPayload(values, imageUrl))
+      if (resolvedUrls.length === 0) resolvedUrls.push(DEFAULT_CAR_IMAGE)
+
+      await onSubmit(
+        formValuesToPayload(values, resolvedUrls, {
+          priceInGel: priceInGel(),
+          priceCurrency,
+        })
+      )
     } catch (err) {
       console.error(err)
       const msg = err instanceof Error && err.message === 'invalidType'
@@ -157,17 +287,35 @@ export default function CarListingForm({
         <p className="mb-6 text-sm text-muted-foreground">{subtitle}</p>
 
         <form onSubmit={handleSubmit} className="space-y-5">
-          <CarImageUpload
-            existingUrl={initialValues?.imageUrl}
-            urlFallback={values.imageUrl}
-            onUrlFallbackChange={(imageUrl) => patch({ imageUrl })}
-            onFileChange={setImageFile}
-            disabled={busy}
-          />
+          <CarImagesUpload slots={imageSlots} onChange={setImageSlots} disabled={busy} />
 
           {uploading && <UploadingOverlay label={t('upload.uploading')} />}
 
           <div className="grid gap-4 sm:grid-cols-2">
+            <div className="sm:col-span-2">
+              <label className="mb-1.5 block text-xs font-medium text-muted-foreground">
+                VIN
+              </label>
+              <div className="flex flex-col gap-2 sm:flex-row">
+                <input
+                  className={inputClass()}
+                  value={vin}
+                  onChange={(e) => setVin(e.target.value.toUpperCase())}
+                  placeholder="WVWZZZ1JZXW000000"
+                  maxLength={17}
+                  disabled={busy || vinLoading}
+                />
+                <button
+                  type="button"
+                  disabled={busy || vinLoading || vin.trim().length < 11}
+                  onClick={decodeVin}
+                  className="inline-flex shrink-0 items-center justify-center gap-2 rounded-lg border border-primary/40 px-4 py-2.5 text-sm font-medium text-primary hover:bg-primary/10 disabled:opacity-50"
+                >
+                  {vinLoading ? t('auth.loading') : t('addCar.vinAutofill')}
+                </button>
+              </div>
+              {vinMsg && <p className="mt-1 text-xs text-muted-foreground">{vinMsg}</p>}
+            </div>
             <div>
               <label className="mb-1.5 block text-xs font-medium text-muted-foreground">
                 {t('search.selectBrand')} *
@@ -204,39 +352,100 @@ export default function CarListingForm({
                     {m}
                   </option>
                 ))}
+                {values.model && !models.includes(values.model) && (
+                  <option value={values.model}>{values.model}</option>
+                )}
               </select>
             </div>
           </div>
 
-          <div className="grid gap-4 sm:grid-cols-2">
-            <div>
-              <label className="mb-1.5 block text-xs font-medium text-muted-foreground">
-                {t('addCar.price')} (USD) *
-              </label>
-              <input
-                className={inputClass()}
-                type="number"
-                min={0}
-                value={values.price}
-                onChange={(e) => patch({ price: e.target.value })}
-                required
+          <div>
+            <label className="mb-2 block text-xs font-medium text-muted-foreground">
+              {t('filter.section.offerType')}
+            </label>
+            <div className="inline-flex rounded-xl border border-border bg-background p-0.5">
+              {(['sale', 'rent'] as const).map((type) => (
+                <button
+                  key={type}
+                  type="button"
+                  onClick={() => patch({ offerType: type })}
+                  disabled={busy}
+                  className={`rounded-lg px-4 py-2 text-sm font-medium transition-colors ${
+                    values.offerType === type
+                      ? 'bg-primary text-primary-foreground'
+                      : 'text-muted-foreground hover:bg-secondary'
+                  }`}
+                >
+                  {t(`filter.offer.${type}`)}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <div className="space-y-2">
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <span className="text-xs font-medium text-muted-foreground">
+                {t('addCar.priceCurrency')}
+              </span>
+              <CurrencyToggle
+                compact
+                value={priceCurrency}
+                onChange={handlePriceCurrencyChange}
                 disabled={busy}
               />
             </div>
-            <div>
-              <label className="mb-1.5 block text-xs font-medium text-muted-foreground">
-                {t('search.year')} *
-              </label>
-              <input
-                className={inputClass()}
-                type="number"
-                min={1980}
-                max={new Date().getFullYear() + 1}
-                value={values.year}
-                onChange={(e) => patch({ year: e.target.value })}
-                required
-                disabled={busy}
-              />
+            <div className="grid gap-4 sm:grid-cols-2">
+              <div>
+                <label className="mb-1.5 block text-xs font-medium text-muted-foreground">
+                  {t('addCar.price')} ({priceCurrency === 'GEL' ? '₾ GEL' : '$ USD'})
+                  {values.offerType === 'rent' ? ` / ${t('filter.offer.perMonth')}` : ''} *
+                </label>
+                <div className="relative">
+                  <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-sm font-semibold text-muted-foreground">
+                    {priceCurrency === 'GEL' ? '₾' : '$'}
+                  </span>
+                  <input
+                    className={`${inputClass()} pl-8`}
+                    type="number"
+                    min={0}
+                    step={1}
+                    value={values.price}
+                    onChange={(e) => patch({ price: e.target.value })}
+                    required
+                    disabled={busy}
+                    placeholder={priceCurrency === 'GEL' ? '25000' : '9000'}
+                  />
+                </div>
+                {values.price.trim() && Number(values.price) > 0 && (
+                  <p className="mt-1.5 text-xs text-muted-foreground">
+                    {priceCurrency === 'USD'
+                      ? t('addCar.priceInGelHint').replace(
+                          '{amount}',
+                          priceInGel().toLocaleString('en-US')
+                        )
+                      : t('addCar.priceInUsdHint').replace(
+                          '{amount}',
+                          Math.round(Number(values.price) / rate).toLocaleString('en-US')
+                        )}
+                    <span className="ml-1 opacity-70">(1 $ ≈ {rate.toFixed(2)} ₾)</span>
+                  </p>
+                )}
+              </div>
+              <div>
+                <label className="mb-1.5 block text-xs font-medium text-muted-foreground">
+                  {t('search.year')} *
+                </label>
+                <input
+                  className={inputClass()}
+                  type="number"
+                  min={1980}
+                  max={new Date().getFullYear() + 1}
+                  value={values.year}
+                  onChange={(e) => patch({ year: e.target.value })}
+                  required
+                  disabled={busy}
+                />
+              </div>
             </div>
           </div>
 
@@ -321,6 +530,32 @@ export default function CarListingForm({
               required
               disabled={busy}
             />
+            <div className="mt-3">
+              <MessengerContactToggles
+                whatsApp={values.contactWhatsApp}
+                viber={values.contactViber}
+                onWhatsAppChange={(contactWhatsApp) => patch({ contactWhatsApp })}
+                onViberChange={(contactViber) => patch({ contactViber })}
+                disabled={busy}
+              />
+            </div>
+            {!initialValues && (
+              <div className="mt-4 rounded-xl border border-primary/25 bg-primary/5 p-3">
+                <p className="text-sm font-medium text-foreground">{t('phoneOtp.title')}</p>
+                {checkingPhone ? (
+                  <p className="mt-1 text-xs text-muted-foreground">{t('auth.loading')}</p>
+                ) : phoneVerified ? (
+                  <p className="mt-1 text-sm text-primary">{t('phoneOtp.success')}</p>
+                ) : (
+                  <>
+                    <p className="mt-1 text-xs text-muted-foreground">
+                      {t('addCar.phoneVerifyRequired')}
+                    </p>
+                    <PhoneOtpVerify compact onVerified={() => setPhoneVerified(true)} />
+                  </>
+                )}
+              </div>
+            )}
           </div>
 
           <button
@@ -352,12 +587,13 @@ export default function CarListingForm({
                   </label>
                   <select className={inputClass()} value={values.bodyType} onChange={(e) => patch({ bodyType: e.target.value })} disabled={busy}>
                     <option value="">{t('search.any')}</option>
-                    <option value="sedan">{t('bodyType.sedan')}</option>
-                    <option value="suv">{t('bodyType.suv')}</option>
-                    <option value="hatchback">{t('bodyType.hatchback')}</option>
-                    <option value="coupe">{t('bodyType.coupe')}</option>
-                    <option value="wagon">{t('bodyType.wagon')}</option>
-                    <option value="pickup">{t('bodyType.pickup')}</option>
+                    <option value="sedan">{t('filter.body.sedan')}</option>
+                    <option value="suv">{t('filter.body.suv')}</option>
+                    <option value="hatchback">{t('filter.body.hatchback')}</option>
+                    <option value="coupe">{t('filter.body.coupe')}</option>
+                    <option value="wagon">{t('filter.body.wagon')}</option>
+                    <option value="pickup">{t('filter.body.pickup')}</option>
+                    <option value="special_tech">{t('filter.body.special_tech')}</option>
                   </select>
                 </div>
                 <div>

@@ -1,12 +1,14 @@
 'use client'
 
 import { useState } from 'react'
-import { Search, ChevronDown, X, SlidersHorizontal } from 'lucide-react'
+import { ChevronDown, SlidersHorizontal } from 'lucide-react'
 import BrandFilter from '@/components/BrandFilter'
 import AdvancedFilterPanel from '@/components/AdvancedFilterPanel'
+import RangeFromTo from '@/components/RangeFromTo'
 import { useLanguage } from '@/context/LanguageContext'
+import { useCurrency } from '@/context/CurrencyContext'
 import { countActiveFilters } from '@/lib/apply-car-filters'
-import type { FilterState } from '@/types/filters'
+import { PRICE_SLIDER_MAX, type FilterState } from '@/types/filters'
 
 export type { FilterState } from '@/types/filters'
 export { initialFilters } from '@/types/filters'
@@ -27,61 +29,82 @@ export default function SearchFilters({
   resultCount,
 }: SearchFiltersProps) {
   const { t } = useLanguage()
-  const [isExpanded, setIsExpanded] = useState(true)
+  const { currency, toBasePrice, fromBasePrice } = useCurrency()
+  const [isExpanded, setIsExpanded] = useState(false)
+  const currentYear = new Date().getFullYear()
 
   const activeFilterCount = countActiveFilters(filters)
+  const patch = (partial: Partial<FilterState>) => onFiltersChange({ ...filters, ...partial })
 
   return (
     <div className="overflow-hidden rounded-2xl border border-border/80 bg-card shadow-lg shadow-primary/5">
       <div className="border-b border-border/60 bg-gradient-to-r from-primary/8 via-card to-primary/5 px-4 py-3 sm:px-6">
         <div className="flex items-center gap-2 text-sm font-semibold text-foreground">
+          <span aria-hidden>🔍</span>
           <SlidersHorizontal className="h-4 w-4 text-primary" />
           {t('search.detailedFilters')}
         </div>
       </div>
 
       <div className="p-4 sm:p-6">
-        <div className="flex flex-col gap-4 lg:flex-row">
-          <div className="relative flex-1">
-            <Search className="absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-muted-foreground" />
-            <input
-              type="text"
-              placeholder={t('search.placeholder')}
-              value={filters.search}
-              onChange={(e) => onFiltersChange({ ...filters, search: e.target.value })}
-              className="w-full rounded-xl border border-input bg-background py-3 pl-12 pr-4 text-foreground placeholder:text-muted-foreground transition-all focus:border-transparent focus:outline-none focus:ring-2 focus:ring-primary"
-              onKeyDown={(e) => e.key === 'Enter' && onSearch()}
-            />
-            {filters.search && (
-              <button
-                onClick={() => onFiltersChange({ ...filters, search: '' })}
-                className="absolute right-4 top-1/2 -translate-y-1/2 rounded-full p-1 transition-colors hover:bg-secondary"
-                aria-label={t('search.reset')}
-              >
-                <X className="h-4 w-4 text-muted-foreground" />
-              </button>
-            )}
-          </div>
+        <BrandFilter
+          selectedBrand={filters.brand}
+          selectedModel={filters.model}
+          onBrandChange={(brand) => onFiltersChange({ ...filters, brand, model: '' })}
+          onModelChange={(model) => onFiltersChange({ ...filters, model })}
+        />
 
-          <button
-            onClick={onSearch}
-            className="flex items-center justify-center gap-2 rounded-xl bg-primary px-8 py-3 font-semibold text-primary-foreground transition-all hover:bg-primary/90 hover:shadow-lg hover:shadow-primary/25 active:scale-[0.98]"
-          >
-            <Search className="h-5 w-5" />
-            <span>{t('search.button')}</span>
-          </button>
-        </div>
-
-        <div className="mt-5">
-          <BrandFilter
-            selectedBrand={filters.brand}
-            selectedModel={filters.model}
-            onBrandChange={(brand) => onFiltersChange({ ...filters, brand, model: '' })}
-            onModelChange={(model) => onFiltersChange({ ...filters, model })}
+        <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+          <RangeFromTo
+            icon="💰"
+            title={`${t('filter.section.price')} (${currency === 'GEL' ? '₾' : '$'})`}
+            fromLabel={t('search.from')}
+            toLabel={t('search.to')}
+            fromValue={filters.priceMin ? fromBasePrice(filters.priceMin) : ''}
+            toValue={filters.priceMax === PRICE_SLIDER_MAX ? '' : fromBasePrice(filters.priceMax)}
+            onFromChange={(v) => patch({ priceMin: toBasePrice(Number(v) || 0) })}
+            onToChange={(v) =>
+              patch({ priceMax: v ? toBasePrice(Number(v)) : PRICE_SLIDER_MAX })
+            }
+            fromPlaceholder="0"
+            toPlaceholder={String(fromBasePrice(PRICE_SLIDER_MAX))}
+            min={0}
+            step={100}
+          />
+          <RangeFromTo
+            icon="📅"
+            title={t('search.year')}
+            fromLabel={t('search.from')}
+            toLabel={t('search.to')}
+            fromValue={filters.yearMin}
+            toValue={filters.yearMax}
+            onFromChange={(yearMin) => patch({ yearMin })}
+            onToChange={(yearMax) => patch({ yearMax })}
+            fromPlaceholder={String(currentYear - 30)}
+            toPlaceholder={String(currentYear)}
+            min={1980}
+            max={currentYear + 1}
+          />
+          <RangeFromTo
+            icon="🛣️"
+            title={t('search.mileage')}
+            fromLabel={t('search.from')}
+            toLabel={t('search.to')}
+            fromValue={filters.mileageMin}
+            toValue={filters.mileageMax}
+            onFromChange={(mileageMin) => patch({ mileageMin })}
+            onToChange={(mileageMax) => patch({ mileageMax })}
+            fromPlaceholder="0"
+            toPlaceholder="200000"
+            min={0}
+            step={1000}
+            suffix="km"
+            className="sm:col-span-2 lg:col-span-1"
           />
         </div>
 
         <button
+          type="button"
           onClick={() => setIsExpanded(!isExpanded)}
           className="mt-4 flex items-center gap-2 text-sm text-muted-foreground transition-colors hover:text-foreground"
         >

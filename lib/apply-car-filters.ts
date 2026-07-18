@@ -38,8 +38,20 @@ export function applyCarFilters(cars: Car[], filters: FilterState): Car[] {
       return false
     if (filters.driveType && norm(car.driveType) !== norm(filters.driveType)) return false
     if (filters.steering && norm(car.steering) !== norm(filters.steering)) return false
-    if (filters.engineVolume && Number(car.engineVolume ?? 0) !== Number(filters.engineVolume))
+
+    const engine = Number(car.engineVolume ?? 0)
+    if (filters.engineVolumeMin && engine < Number(filters.engineVolumeMin)) return false
+    if (filters.engineVolumeMax && engine > Number(filters.engineVolumeMax)) return false
+    // legacy exact match
+    if (
+      !filters.engineVolumeMin &&
+      !filters.engineVolumeMax &&
+      filters.engineVolume &&
+      engine !== Number(filters.engineVolume)
+    ) {
       return false
+    }
+
     if (filters.cylinders && String(car.cylinders ?? '') !== filters.cylinders) return false
     if (filters.doors && String(car.doors ?? '') !== filters.doors) return false
     if (filters.color && norm(car.color) !== norm(filters.color)) return false
@@ -55,6 +67,11 @@ export function applyCarFilters(cars: Car[], filters: FilterState): Car[] {
     if (filters.listingType) {
       const lt = carListingType(car)
       if (lt !== filters.listingType) return false
+    }
+
+    if (filters.offerType) {
+      const ot = car.offerType ?? 'sale'
+      if (ot !== filters.offerType) return false
     }
 
     if (filters.importRegion && norm(car.importRegion) !== norm(filters.importRegion))
@@ -80,12 +97,14 @@ export function countActiveFilters(filters: FilterState): number {
   if (filters.driveType) n++
   if (filters.steering) n++
   if (filters.engineVolume) n++
+  if (filters.engineVolumeMin || filters.engineVolumeMax) n++
   if (filters.cylinders) n++
   if (filters.doors) n++
   if (filters.color) n++
   if (filters.mileageMin || filters.mileageMax) n++
   if (filters.features.length) n++
   if (filters.listingType) n++
+  if (filters.offerType) n++
   if (filters.importRegion) n++
   if (filters.customsStatus) n++
   return n

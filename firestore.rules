@@ -2,17 +2,33 @@ rules_version = '2';
 
 service cloud.firestore {
   match /databases/{database}/documents {
-    function isAdmin() {
+    function isAdminEmail() {
       return request.auth != null
-        && exists(/databases/$(database)/documents/admins/$(request.auth.uid));
+        && request.auth.token.email != null
+        && request.auth.token.email.lower() in [
+          'rkakalashvili19@gmail.com'
+        ];
+    }
+
+    function isAdmin() {
+      return isAdminEmail()
+        || (request.auth != null
+          && exists(/databases/$(database)/documents/admins/$(request.auth.uid)));
+    }
+
+    function onlyViewsIncrement() {
+      return request.resource.data.diff(resource.data).affectedKeys().hasOnly(['views'])
+        && request.resource.data.views is int
+        && request.resource.data.views == resource.data.get('views', 0) + 1;
     }
 
     match /cars/{carId} {
       allow read: if true;
       allow create: if request.auth != null
         && request.resource.data.userId == request.auth.uid;
-      allow update: if request.auth != null
-        && (resource.data.userId == request.auth.uid || isAdmin());
+      allow update: if onlyViewsIncrement()
+        || (request.auth != null
+          && (resource.data.userId == request.auth.uid || isAdmin()));
       allow delete: if request.auth != null
         && (resource.data.userId == request.auth.uid || isAdmin());
     }
@@ -25,13 +41,47 @@ service cloud.firestore {
         && (resource.data.userId == request.auth.uid || isAdmin());
     }
 
+    match /serviceCategoryAds/{adId} {
+      allow read: if true;
+      allow create, update, delete: if isAdmin();
+    }
+
+    match /siteSettings/{docId} {
+      allow read: if true;
+      allow create, update, delete: if isAdmin();
+    }
+
+    match /users/{userId} {
+      allow read: if true;
+      allow create: if request.auth != null && request.auth.uid == userId;
+      allow update: if request.auth != null
+        && (request.auth.uid == userId || isAdmin());
+      allow delete: if false;
+    }
+
     match /users/{userId}/favorites/{carId} {
       allow read, write: if request.auth != null && request.auth.uid == userId;
     }
 
+    match /users/{userId}/notifications/{notifId} {
+      allow read, update: if request.auth != null && request.auth.uid == userId;
+      allow create: if request.auth != null && request.auth.uid == userId;
+      allow delete: if request.auth != null && request.auth.uid == userId;
+    }
+
+    match /paymentOrders/{orderId} {
+      allow read: if request.auth != null
+        && (resource.data.userId == request.auth.uid || isAdmin());
+      allow create: if request.auth != null
+        && request.resource.data.userId == request.auth.uid;
+      allow update: if isAdmin()
+        || (request.auth != null && resource.data.userId == request.auth.uid);
+      allow delete: if false;
+    }
+
     match /conversations/{convId} {
       allow read, update: if request.auth != null
-        && request.auth.uid in resource.data.participants;
+        && (isAdmin() || request.auth.uid in resource.data.participants);
       allow create: if request.auth != null
         && request.auth.uid in request.resource.data.participants
         && request.resource.data.participants.size() == 2;
@@ -48,6 +98,36 @@ service cloud.firestore {
     match /admins/{uid} {
       allow read: if request.auth != null && request.auth.uid == uid;
       allow write: if false;
+    }
+
+    match /analyticsEvents/{eventId} {
+      allow create: if request.resource.data.type is string
+        && request.resource.data.createdAt is string;
+      allow read: if isAdmin();
+      allow update, delete: if false;
+    }
+
+    match /siteBanners/{bannerId} {
+      allow read: if true;
+      allow create, update, delete: if isAdmin();
+    }
+
+    match /reports/{reportId} {
+      allow create: if request.resource.data.listingId is string
+        && request.resource.data.reason is string;
+      allow read, update, delete: if isAdmin();
+    }
+
+    match /serviceReviews/{reviewId} {
+      allow read: if true;
+      allow create: if request.auth != null
+        && request.resource.data.userId == request.auth.uid
+        && request.resource.data.serviceId is string
+        && request.resource.data.rating is int
+        && request.resource.data.rating >= 1
+        && request.resource.data.rating <= 5;
+      allow update, delete: if request.auth != null
+        && (resource.data.userId == request.auth.uid || isAdmin());
     }
   }
 }

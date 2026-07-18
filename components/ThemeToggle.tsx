@@ -3,7 +3,12 @@
 import { useEffect, useState } from 'react'
 import { Moon, Sun } from 'lucide-react'
 
-export default function ThemeToggle() {
+type ThemeToggleProps = {
+  className?: string
+  iconClassName?: string
+}
+
+export default function ThemeToggle({ className = '', iconClassName = 'h-5 w-5' }: ThemeToggleProps) {
   const [mounted, setMounted] = useState(false)
   const [isDark, setIsDark] = useState(false)
 
@@ -31,11 +36,11 @@ export default function ThemeToggle() {
     <button
       type="button"
       onClick={toggleTheme}
-      className="inline-flex h-10 w-10 items-center justify-center rounded-lg border border-border bg-background text-foreground transition-colors hover:bg-secondary"
+      className={`inline-flex h-10 w-10 items-center justify-center rounded-lg border border-border bg-background text-foreground transition-colors hover:bg-secondary ${className}`}
       aria-label={mounted && isDark ? 'Switch to light mode' : 'Switch to dark mode'}
       title={mounted && isDark ? 'Light mode' : 'Dark mode'}
     >
-      {mounted && isDark ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
+      {mounted && isDark ? <Sun className={iconClassName} /> : <Moon className={iconClassName} />}
     </button>
   )
 }

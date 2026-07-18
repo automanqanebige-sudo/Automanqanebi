@@ -3,14 +3,16 @@
 import { useState } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
-import { Heart, MapPin, Gauge, Fuel, Crown } from 'lucide-react'
+import { Heart, MapPin, Gauge, Fuel, Crown, Eye, Calendar } from 'lucide-react'
 import { useLanguage } from '@/context/LanguageContext'
 import { useCurrency } from '@/context/CurrencyContext'
 import { useFavorites } from '@/context/FavoritesContext'
+import { formatListingDate } from '@/lib/listing-lifecycle'
 
 export type Car = {
   id: string
   image: string
+  images?: string[]
   price: number
   year: number
   brand: string
@@ -29,13 +31,32 @@ export type Car = {
   cylinders?: number
   doors?: number
   color?: string
-  listingType?: 'vip' | 'vip_plus' | 'super_vip' | 'dealer' | 'salon' | 'standard'
+  listingType?:
+    | 'vip'
+    | 'vip_plus'
+    | 'super_vip'
+    | 'silver'
+    | 'gold'
+    | 'platinum'
+    | 'dealer'
+    | 'salon'
+    | 'standard'
+  offerType?: 'sale' | 'rent'
   importRegion?: string
   customsStatus?: string
   features?: string[]
   description?: string
   phone?: string
+  contactWhatsApp?: boolean
+  contactViber?: boolean
   userId?: string
+  createdAt?: string
+  updatedAt?: string
+  expiresAt?: string
+  bumpedAt?: string
+  views?: number
+  vipExpiresAt?: string
+  renewalNotifiedAt?: string
 }
 
 interface CarCardProps {
@@ -85,7 +106,7 @@ export default function CarCard({ car, onFavoriteToggle }: CarCardProps) {
 
           {/* VIP Badge */}
           {car.isVip && (
-            <div className="absolute top-3 left-3 flex items-center gap-1.5 bg-green-500 text-white px-2.5 py-1 rounded-full text-xs font-semibold shadow-lg">
+            <div className="absolute top-3 left-3 flex items-center gap-1.5 rounded-full bg-primary px-2.5 py-1 text-xs font-semibold text-primary-foreground shadow-lg">
               <Crown className="h-3.5 w-3.5" />
               <span>VIP</span>
             </div>
@@ -94,8 +115,8 @@ export default function CarCard({ car, onFavoriteToggle }: CarCardProps) {
           {/* Favorite Button */}
           <button
             onClick={handleFavoriteClick}
-            className="absolute top-3 right-3 p-2 rounded-full bg-white/90 hover:bg-white shadow-md transition-all duration-200 hover:scale-110"
-            aria-label={isFavorite ? 'Remove from favorites' : 'Add to favorites'}
+            className="absolute top-3 right-3 rounded-full bg-card/90 p-2 shadow-md transition-all duration-200 hover:scale-110 hover:bg-card"
+            aria-label={favorited ? t('favorites.remove') : t('favorites.add')}
           >
             <Heart
               className={`h-5 w-5 transition-colors ${
@@ -108,7 +129,12 @@ export default function CarCard({ car, onFavoriteToggle }: CarCardProps) {
 
           {/* Price Tag */}
           <div className="absolute bottom-3 left-3 bg-primary text-primary-foreground px-3 py-1.5 rounded-lg shadow-lg">
-            <span className="text-lg font-bold">{formatPrice(car.price)}</span>
+            <span className="text-lg font-bold">
+              {formatPrice(car.price)}
+              {car.offerType === 'rent' && (
+                <span className="ml-1 text-xs font-medium opacity-90">/ {t('filter.offer.perMonth')}</span>
+              )}
+            </span>
           </div>
         </div>
 
@@ -135,6 +161,21 @@ export default function CarCard({ car, onFavoriteToggle }: CarCardProps) {
               <Fuel className="h-4 w-4 flex-shrink-0" />
               <span className="text-sm">{fuelLabel}</span>
             </div>
+          </div>
+
+          <div className="mt-2 flex flex-wrap items-center gap-3 text-xs text-muted-foreground">
+            {car.createdAt && (
+              <span className="inline-flex items-center gap-1" title={t('car.postedDate')}>
+                <Calendar className="h-3.5 w-3.5" />
+                <span>
+                  {t('car.postedDate')}: {formatListingDate(car.createdAt)}
+                </span>
+              </span>
+            )}
+            <span className="inline-flex items-center gap-1">
+              <Eye className="h-3.5 w-3.5" />
+              {car.views ?? 0} {t('car.views')}
+            </span>
           </div>
         </div>
       </article>

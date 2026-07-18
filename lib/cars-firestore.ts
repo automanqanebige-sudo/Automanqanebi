@@ -3,18 +3,26 @@ import type { Car } from '@/components/CarCard'
 import { getDb } from '@/lib/firebase-db'
 import { isFirebaseConfigured } from '@/lib/firebase'
 import { docToCar, type FirestoreCarDoc } from '@/lib/cars-mapper'
+import { isListingExpired, isVipListingType, listingSortTime } from '@/lib/listing-lifecycle'
+
+function sortCars(cars: Car[]): Car[] {
+  return [...cars].sort((a, b) => {
+    const aVip = a.isVip || isVipListingType(a.listingType) ? 1 : 0
+    const bVip = b.isVip || isVipListingType(b.listingType) ? 1 : 0
+    if (bVip !== aVip) return bVip - aVip
+    return listingSortTime(b) - listingSortTime(a)
+  })
+}
 
 export async function fetchFirestoreCars(): Promise<Car[]> {
   if (!isFirebaseConfigured()) return []
 
   const snap = await getDocs(collection(getDb(), 'cars'))
-  const cars = snap.docs.map((d) => docToCar(d.id, d.data() as FirestoreCarDoc))
+  const cars = snap.docs
+    .map((d) => docToCar(d.id, d.data() as FirestoreCarDoc))
+    .filter((c) => !isListingExpired(c))
 
-  return cars.sort((a, b) => {
-    const yearDiff = b.year - a.year
-    if (yearDiff !== 0) return yearDiff
-    return b.price - a.price
-  })
+  return sortCars(cars)
 }
 
 export async function fetchFirestoreCarById(id: string): Promise<Car | null> {
