@@ -28,8 +28,10 @@ export type FirestoreCarDoc = {
   expiresAt?: unknown
   bumpedAt?: unknown
   views?: number
+  favoriteCount?: number
   vipExpiresAt?: unknown
   renewalNotifiedAt?: unknown
+  inAppRenewalNotifiedAt?: unknown
   isVip?: boolean
   listingType?: string
   priceCurrency?: 'GEL' | 'USD'
@@ -102,8 +104,10 @@ export function docToCar(id: string, data: FirestoreCarDoc): Car {
     expiresAt: toIsoFromUnknown(data.expiresAt),
     bumpedAt: toIsoFromUnknown(data.bumpedAt),
     views: Number(data.views) || 0,
+    favoriteCount: Number(data.favoriteCount) || 0,
     vipExpiresAt: toIsoFromUnknown(data.vipExpiresAt),
     renewalNotifiedAt: toIsoFromUnknown(data.renewalNotifiedAt),
+    inAppRenewalNotifiedAt: toIsoFromUnknown(data.inAppRenewalNotifiedAt),
   }
 }
 

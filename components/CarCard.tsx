@@ -3,10 +3,11 @@
 import { useState } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
-import { Heart, MapPin, Gauge, Fuel, Crown, Eye, Calendar } from 'lucide-react'
+import { Heart, MapPin, Gauge, Fuel, Crown, Eye, Calendar, Columns2 } from 'lucide-react'
 import { useLanguage } from '@/context/LanguageContext'
 import { useCurrency } from '@/context/CurrencyContext'
 import { useFavorites } from '@/context/FavoritesContext'
+import { useCompare } from '@/context/CompareContext'
 import { formatListingDate } from '@/lib/listing-lifecycle'
 
 export type Car = {
@@ -55,8 +56,10 @@ export type Car = {
   expiresAt?: string
   bumpedAt?: string
   views?: number
+  favoriteCount?: number
   vipExpiresAt?: string
   renewalNotifiedAt?: string
+  inAppRenewalNotifiedAt?: string
 }
 
 interface CarCardProps {
@@ -68,8 +71,11 @@ export default function CarCard({ car, onFavoriteToggle }: CarCardProps) {
   const { t } = useLanguage()
   const { formatPrice } = useCurrency()
   const { isFavorite, toggleFavorite } = useFavorites()
+  const { isComparing, toggleCompare } = useCompare()
   const favorited = isFavorite(car.id)
+  const comparing = isComparing(car.id)
   const [imageError, setImageError] = useState(false)
+  const [compareHint, setCompareHint] = useState(false)
 
   const fuelLabel = t(`fuel.${car.fuelType}`) !== `fuel.${car.fuelType}` ? t(`fuel.${car.fuelType}`) : car.fuelType
 
@@ -78,6 +84,16 @@ export default function CarCard({ car, onFavoriteToggle }: CarCardProps) {
     e.stopPropagation()
     toggleFavorite(car.id)
     onFavoriteToggle?.(car.id)
+  }
+
+  const handleCompareClick = (e: React.MouseEvent) => {
+    e.preventDefault()
+    e.stopPropagation()
+    const res = toggleCompare(car.id)
+    if (!res.ok && res.reason === 'full') {
+      setCompareHint(true)
+      setTimeout(() => setCompareHint(false), 2000)
+    }
   }
 
   const formatMileage = (mileage: number) => {
@@ -112,20 +128,36 @@ export default function CarCard({ car, onFavoriteToggle }: CarCardProps) {
             </div>
           )}
 
-          {/* Favorite Button */}
-          <button
-            onClick={handleFavoriteClick}
-            className="absolute top-3 right-3 rounded-full bg-card/90 p-2 shadow-md transition-all duration-200 hover:scale-110 hover:bg-card"
-            aria-label={favorited ? t('favorites.remove') : t('favorites.add')}
-          >
-            <Heart
-              className={`h-5 w-5 transition-colors ${
-                favorited
-                  ? 'fill-red-500 text-red-500'
-                  : 'text-muted-foreground hover:text-red-500'
+          {/* Favorite + Compare */}
+          <div className="absolute top-3 right-3 flex flex-col gap-2">
+            <button
+              onClick={handleFavoriteClick}
+              className="rounded-full bg-card/90 p-2 shadow-md transition-all duration-200 hover:scale-110 hover:bg-card"
+              aria-label={favorited ? t('favorites.remove') : t('favorites.add')}
+            >
+              <Heart
+                className={`h-5 w-5 transition-colors ${
+                  favorited
+                    ? 'fill-red-500 text-red-500'
+                    : 'text-muted-foreground hover:text-red-500'
+                }`}
+              />
+            </button>
+            <button
+              onClick={handleCompareClick}
+              className={`rounded-full bg-card/90 p-2 shadow-md transition-all duration-200 hover:scale-110 hover:bg-card ${
+                comparing ? 'ring-2 ring-primary' : ''
               }`}
-            />
-          </button>
+              aria-label={comparing ? t('compare.remove') : t('compare.add')}
+              title={compareHint ? t('compare.full') : comparing ? t('compare.remove') : t('compare.add')}
+            >
+              <Columns2
+                className={`h-5 w-5 transition-colors ${
+                  comparing ? 'text-primary' : 'text-muted-foreground hover:text-primary'
+                }`}
+              />
+            </button>
+          </div>
 
           {/* Price Tag */}
           <div className="absolute bottom-3 left-3 bg-primary text-primary-foreground px-3 py-1.5 rounded-lg shadow-lg">

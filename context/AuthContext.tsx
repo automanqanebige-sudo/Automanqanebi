@@ -38,7 +38,7 @@ type AuthContextType = {
     password: string,
     displayName?: string
   ) => Promise<void>
-  signInWithGoogle: () => Promise<void>
+  signInWithGoogle: () => Promise<import('@/lib/auth').GoogleSignInResult>
   resetPassword: (email: string) => Promise<void>
   logout: () => Promise<void>
   updateDisplayName: (displayName: string) => Promise<void>
@@ -65,14 +65,36 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       return
     }
 
-    // Finish any Google sign-in that used the redirect fallback.
-    void completeGoogleRedirect()
+    let cancelled = false
+
+    void (async () => {
+      const redirectedUser = await completeGoogleRedirect()
+      if (cancelled || !redirectedUser) return
+      try {
+        const { saveUserProfile } = await import('@/lib/user-profile-firestore')
+        const { logAnalyticsEvent } = await import('@/lib/analytics-firestore')
+        await saveUserProfile(redirectedUser.uid, {
+          displayName: redirectedUser.displayName || undefined,
+        }).catch(() => undefined)
+        logAnalyticsEvent(
+          'user_login',
+          { method: 'google', email: redirectedUser.email || undefined },
+          redirectedUser.uid
+        )
+        // Navigation is handled by AuthPageGate via takeGoogleRedirectPath / ?redirect=
+      } catch {
+        /* best-effort post-redirect */
+      }
+    })()
 
     const unsubscribe = onAuthStateChanged(getFirebaseAuth(), (nextUser) => {
       setUser(nextUser)
       setLoading(false)
     })
-    return () => unsubscribe()
+    return () => {
+      cancelled = true
+      unsubscribe()
+    }
   }, [configured])
 
   const signInWithEmail = useCallback(authSignIn, [])

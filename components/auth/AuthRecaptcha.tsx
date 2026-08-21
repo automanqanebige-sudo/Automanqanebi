@@ -1,9 +1,10 @@
 'use client'
 
-import { useCallback, useEffect, useId, useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import type { RecaptchaVerifier } from 'firebase/auth'
 import { useLanguage } from '@/context/LanguageContext'
 import { isFirebaseConfigured } from '@/lib/firebase'
+import { clearRecaptchaVerifier } from '@/lib/firebase-recaptcha'
 
 type AuthRecaptchaProps = {
   /** Called when user solves or expires the challenge */
@@ -16,24 +17,13 @@ type AuthRecaptchaProps = {
  */
 export default function AuthRecaptcha({ onChange, disabled }: AuthRecaptchaProps) {
   const { t } = useLanguage()
-  const containerId = `auth-recaptcha-${useId().replace(/:/g, '')}`
+  const containerRef = useRef<HTMLDivElement>(null)
   const verifierRef = useRef<RecaptchaVerifier | null>(null)
   const onChangeRef = useRef(onChange)
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(true)
 
   onChangeRef.current = onChange
-
-  const clearVerifier = useCallback(() => {
-    if (verifierRef.current) {
-      try {
-        verifierRef.current.clear()
-      } catch {
-        /* ignore */
-      }
-      verifierRef.current = null
-    }
-  }, [])
 
   useEffect(() => {
     if (!isFirebaseConfigured() || disabled) {
@@ -51,11 +41,11 @@ export default function AuthRecaptcha({ onChange, disabled }: AuthRecaptchaProps
         const { getFirebaseAuth } = await import('@/lib/firebase')
         const { RecaptchaVerifier } = await import('firebase/auth')
         const auth = getFirebaseAuth()
+        const el = containerRef.current
+        if (!el) throw new Error('recaptcha-container-missing')
+        el.innerHTML = ''
 
-        const el = document.getElementById(containerId)
-        if (el) el.innerHTML = ''
-
-        const verifier = new RecaptchaVerifier(auth, containerId, {
+        const verifier = new RecaptchaVerifier(auth, el, {
           size: 'normal',
           callback: () => {
             if (!cancelled) onChangeRef.current(true)
@@ -72,11 +62,7 @@ export default function AuthRecaptcha({ onChange, disabled }: AuthRecaptchaProps
         })
 
         if (cancelled) {
-          try {
-            verifier.clear()
-          } catch {
-            /* ignore */
-          }
+          clearRecaptchaVerifier(verifier)
           return
         }
 
@@ -96,10 +82,11 @@ export default function AuthRecaptcha({ onChange, disabled }: AuthRecaptchaProps
 
     return () => {
       cancelled = true
-      clearVerifier()
+      clearRecaptchaVerifier(verifierRef.current)
+      verifierRef.current = null
       onChangeRef.current(false)
     }
-  }, [containerId, disabled, clearVerifier, t])
+  }, [disabled, t])
 
   return (
     <div className="space-y-2">
@@ -107,7 +94,7 @@ export default function AuthRecaptcha({ onChange, disabled }: AuthRecaptchaProps
       {loading && !error && (
         <p className="text-xs text-muted-foreground">{t('auth.loading')}</p>
       )}
-      <div id={containerId} className="flex min-h-[78px] justify-center overflow-x-auto" />
+      <div ref={containerRef} className="flex min-h-[78px] justify-center overflow-x-auto" />
       {error && <p className="text-sm text-destructive">{error}</p>}
     </div>
   )

@@ -2,25 +2,29 @@ import { addDoc, collection, getDocs, limit, orderBy, query, updateDoc, doc } fr
 import { getDb } from '@/lib/firebase-db'
 import { isFirebaseConfigured } from '@/lib/firebase'
 
+export type NotificationKind = 'chat' | 'payment' | 'vip' | 'system'
+
 export type UserNotification = {
   id: string
   title: string
   body: string
   url?: string
+  kind?: NotificationKind
   createdAt: string
   read: boolean
 }
 
 export async function createUserNotification(
   userId: string,
-  data: { title: string; body: string; url?: string }
+  data: { title: string; body: string; url?: string; kind?: NotificationKind }
 ): Promise<void> {
   if (!isFirebaseConfigured() || !userId) return
   try {
     await addDoc(collection(getDb(), 'users', userId, 'notifications'), {
-      title: data.title,
-      body: data.body,
+      title: data.title.slice(0, 200),
+      body: data.body.slice(0, 500),
       url: data.url || '',
+      ...(data.kind ? { kind: data.kind } : {}),
       createdAt: new Date().toISOString(),
       read: false,
     })
@@ -44,6 +48,7 @@ export async function fetchUserNotifications(userId: string, max = 20): Promise<
       title: String(data.title || ''),
       body: String(data.body || ''),
       url: String(data.url || ''),
+      kind: data.kind as NotificationKind | undefined,
       createdAt: String(data.createdAt || ''),
       read: Boolean(data.read),
     }

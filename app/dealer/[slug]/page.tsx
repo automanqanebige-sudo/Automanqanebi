@@ -50,7 +50,14 @@ export default function DealerPage() {
           // fallback: try doc id = slug
           const byId = await getDoc(doc(getDb(), 'users', slug))
           if (byId.exists()) {
-            const data = byId.data() as DealerProfile
+            const data = byId.data() as DealerProfile & { dealerApproved?: boolean }
+            if (!data.dealerApproved) {
+              if (active) {
+                setProfile(null)
+                setCars([])
+              }
+              return
+            }
             if (active) {
               setProfile({ id: byId.id, ...data })
               setCars(allCars.filter((c) => c.userId === byId.id))
@@ -61,7 +68,14 @@ export default function DealerPage() {
           }
           return
         }
-        const data = dealerDoc.data() as DealerProfile
+        const data = dealerDoc.data() as DealerProfile & { dealerApproved?: boolean; role?: string }
+        if (!data.dealerApproved) {
+          if (active) {
+            setProfile(null)
+            setCars([])
+          }
+          return
+        }
         if (active) {
           setProfile({ id: dealerDoc.id, ...data })
           setCars(allCars.filter((c) => c.userId === dealerDoc.id))

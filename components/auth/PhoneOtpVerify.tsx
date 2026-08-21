@@ -1,16 +1,21 @@
 'use client'
 
-import { useEffect, useId, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import type { ConfirmationResult, RecaptchaVerifier } from 'firebase/auth'
 import { useLanguage } from '@/context/LanguageContext'
 import { useAuth } from '@/context/AuthContext'
 import { saveUserProfile } from '@/lib/user-profile-firestore'
 import { isFirebaseConfigured } from '@/lib/firebase'
 import { formatPhoneDisplay, toE164Phone } from '@/lib/phone'
+import {
+  clearRecaptchaVerifier,
+  createRecaptchaVerifier,
+  phoneAuthErrorLocaleKey,
+} from '@/lib/firebase-recaptcha'
 
 /**
- * Firebase Phone Auth OTP — requires Phone provider + reCAPTCHA in Firebase Console.
- * Uses invisible reCAPTCHA; optimized for mobile Georgian numbers (+995).
+ * Firebase Phone Auth OTP with visible Google reCAPTCHA.
+ * Optimized for Georgian numbers (+995).
  */
 export default function PhoneOtpVerify({
   onVerified,
@@ -23,12 +28,13 @@ export default function PhoneOtpVerify({
 } = {}) {
   const { t } = useLanguage()
   const { user } = useAuth()
-  const recaptchaContainerId = useId().replace(/:/g, '')
+  const containerRef = useRef<HTMLDivElement>(null)
   const [phone, setPhone] = useState(defaultPhone ?? '')
   const [code, setCode] = useState('')
   const [step, setStep] = useState<'phone' | 'code' | 'done'>('phone')
   const [error, setError] = useState('')
   const [busy, setBusy] = useState(false)
+  const [captchaReady, setCaptchaReady] = useState(false)
   const confirmationRef = useRef<ConfirmationResult | null>(null)
   const verifierRef = useRef<RecaptchaVerifier | null>(null)
 
@@ -36,47 +42,67 @@ export default function PhoneOtpVerify({
     if (defaultPhone) setPhone(defaultPhone)
   }, [defaultPhone])
 
-  useEffect(() => {
-    return () => {
-      confirmationRef.current = null
-      if (verifierRef.current) {
-        try {
-          verifierRef.current.clear()
-        } catch {
-          /* ignore */
-        }
-        verifierRef.current = null
-      }
-    }
+  const destroyVerifier = useCallback(() => {
+    clearRecaptchaVerifier(verifierRef.current)
+    verifierRef.current = null
+    setCaptchaReady(false)
   }, [])
 
-  const clearVerifier = () => {
-    if (verifierRef.current) {
-      try {
-        verifierRef.current.clear()
-      } catch {
-        /* ignore */
-      }
-      verifierRef.current = null
+  const ensureVerifier = useCallback(async () => {
+    if (!isFirebaseConfigured() || !containerRef.current) {
+      throw new Error('recaptcha-container-missing')
     }
-  }
 
-  const getRecaptchaVerifier = async () => {
     const { getFirebaseAuth } = await import('@/lib/firebase')
-    const { RecaptchaVerifier } = await import('firebase/auth')
     const auth = getFirebaseAuth()
-    clearVerifier()
 
-    const el = document.getElementById(recaptchaContainerId)
-    if (el) el.innerHTML = ''
+    if (verifierRef.current) {
+      return { auth, verifier: verifierRef.current }
+    }
 
-    const verifier = new RecaptchaVerifier(auth, recaptchaContainerId, {
-      size: 'invisible',
-    })
+    const verifier = await createRecaptchaVerifier(auth, containerRef.current, 'normal')
     verifierRef.current = verifier
-    await verifier.render()
+    setCaptchaReady(true)
     return { auth, verifier }
-  }
+  }, [])
+
+  const resetCaptcha = useCallback(async () => {
+    destroyVerifier()
+    if (containerRef.current) containerRef.current.innerHTML = ''
+    // Allow DOM to settle before re-creating widget
+    await new Promise((r) => setTimeout(r, 50))
+    try {
+      await ensureVerifier()
+    } catch (err) {
+      console.error('[PhoneOtp] recaptcha init', err)
+      setError(t('phoneOtp.recaptchaFailed'))
+    }
+  }, [destroyVerifier, ensureVerifier, t])
+
+  useEffect(() => {
+    if (step !== 'phone') return
+    let cancelled = false
+
+    const init = async () => {
+      setError('')
+      try {
+        await ensureVerifier()
+      } catch (err) {
+        if (!cancelled) {
+          console.error('[PhoneOtp] recaptcha init', err)
+          setError(t('phoneOtp.recaptchaFailed'))
+        }
+      }
+    }
+
+    void init()
+
+    return () => {
+      cancelled = true
+      destroyVerifier()
+      confirmationRef.current = null
+    }
+  }, [step, ensureVerifier, destroyVerifier, t])
 
   const sendCode = async () => {
     if (!user) {
@@ -97,7 +123,7 @@ export default function PhoneOtpVerify({
     setError('')
     try {
       const { linkWithPhoneNumber, signInWithPhoneNumber } = await import('firebase/auth')
-      const { auth, verifier } = await getRecaptchaVerifier()
+      const { auth, verifier } = await ensureVerifier()
 
       const hasNonPhoneProvider =
         Boolean(user.email) || user.providerData.some((p) => p.providerId !== 'phone')
@@ -109,19 +135,11 @@ export default function PhoneOtpVerify({
       confirmationRef.current = confirmation
       setPhone(formatPhoneDisplay(e164))
       setStep('code')
+      destroyVerifier()
     } catch (err) {
       console.error('[PhoneOtp]', err)
-      clearVerifier()
-      const code = (err as { code?: string } | null)?.code
-      if (code === 'auth/too-many-requests') {
-        setError(t('phoneOtp.tooMany'))
-      } else if (code === 'auth/invalid-phone-number') {
-        setError(t('phoneOtp.invalidPhone'))
-      } else if (code === 'auth/captcha-check-failed') {
-        setError(t('phoneOtp.recaptchaFailed'))
-      } else {
-        setError(t('phoneOtp.sendError'))
-      }
+      setError(t(phoneAuthErrorLocaleKey(err)))
+      await resetCaptcha()
     } finally {
       setBusy(false)
     }
@@ -138,8 +156,10 @@ export default function PhoneOtpVerify({
       await saveUserProfile(user.uid, { phone: normalized, phoneVerified: true })
       setStep('done')
       onVerified?.(normalized)
-    } catch {
-      setError(t('phoneOtp.verifyError'))
+    } catch (err) {
+      console.error('[PhoneOtp] verify', err)
+      const key = phoneAuthErrorLocaleKey(err)
+      setError(t(key === 'phoneOtp.sendError' ? 'phoneOtp.verifyError' : key))
     } finally {
       setBusy(false)
     }
@@ -153,7 +173,7 @@ export default function PhoneOtpVerify({
     <div className={`space-y-3 ${compact ? 'mt-2' : 'mt-3'}`}>
       {!compact && <p className="text-sm text-muted-foreground">{t('phoneOtp.subtitle')}</p>}
       <p className="text-xs text-muted-foreground">{t('phoneOtp.recaptchaHint')}</p>
-      <div id={recaptchaContainerId} />
+
       {step === 'phone' ? (
         <>
           <input
@@ -166,10 +186,20 @@ export default function PhoneOtpVerify({
             enterKeyHint="send"
             className="w-full rounded-xl border border-input bg-background px-3 py-3 text-base sm:text-sm"
           />
+
+          <div
+            ref={containerRef}
+            className="flex min-h-[78px] justify-center overflow-x-auto rounded-xl border border-border/60 bg-background px-2 py-2"
+            aria-label="reCAPTCHA"
+          />
+          {!captchaReady && !error && (
+            <p className="text-xs text-muted-foreground">{t('auth.loading')}</p>
+          )}
+
           <button
             type="button"
-            disabled={busy || phone.replace(/\D/g, '').length < 9}
-            onClick={sendCode}
+            disabled={busy || !captchaReady || phone.replace(/\D/g, '').length < 9}
+            onClick={() => void sendCode()}
             className="w-full rounded-xl bg-primary px-4 py-3 text-sm font-semibold text-primary-foreground hover:bg-primary/90 disabled:opacity-50 sm:w-auto sm:py-2 sm:font-medium"
           >
             {busy ? t('auth.loading') : t('phoneOtp.send')}
@@ -194,7 +224,7 @@ export default function PhoneOtpVerify({
             <button
               type="button"
               disabled={busy || code.trim().length < 4}
-              onClick={verifyCode}
+              onClick={() => void verifyCode()}
               className="w-full rounded-xl bg-primary px-4 py-3 text-sm font-semibold text-primary-foreground hover:bg-primary/90 disabled:opacity-50 sm:w-auto sm:py-2 sm:font-medium"
             >
               {busy ? t('auth.loading') : t('phoneOtp.verify')}
@@ -206,7 +236,6 @@ export default function PhoneOtpVerify({
                 setStep('phone')
                 setCode('')
                 confirmationRef.current = null
-                clearVerifier()
               }}
               className="w-full rounded-xl border border-border px-4 py-3 text-sm font-medium text-foreground hover:bg-secondary disabled:opacity-50 sm:w-auto sm:py-2"
             >

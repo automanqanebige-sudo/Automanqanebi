@@ -5,6 +5,7 @@ import Link from 'next/link'
 import {
   ArrowLeft,
   Calendar,
+  Columns2,
   Crown,
   Eye,
   Heart,
@@ -21,7 +22,9 @@ import SimilarCarsSection from '@/components/SimilarCarsSection'
 import MessengerContactButtons from '@/components/MessengerContactButtons'
 import CarImageGallery from '@/components/CarImageGallery'
 import ReportListingButton from '@/components/ReportListingButton'
+import ShareListingButton from '@/components/ShareListingButton'
 import VehicleToolsCalculators from '@/components/calculators/VehicleToolsCalculators'
+import { SITE_URL } from '@/lib/site'
 import { getCarById } from '@/data/cars'
 import { fetchFirestoreCarById, loadAllCars } from '@/lib/cars-firestore'
 import { incrementCarViews } from '@/lib/cars-lifecycle-actions'
@@ -33,6 +36,7 @@ import { COLOR_EMOJI } from '@/types/filters'
 import { useLanguage } from '@/context/LanguageContext'
 import { useCurrency } from '@/context/CurrencyContext'
 import { useFavorites } from '@/context/FavoritesContext'
+import { useCompare } from '@/context/CompareContext'
 import { CarDetailSkeleton } from '@/components/ui/Skeleton'
 import type { CarFeature } from '@/types/filters'
 
@@ -46,13 +50,25 @@ export default function CarPage({ params }: { params: { id: string } }) {
   const { t } = useLanguage()
   const { formatPrice } = useCurrency()
   const { isFavorite, toggleFavorite } = useFavorites()
+  const { isComparing, toggleCompare } = useCompare()
   const { user } = useAuth()
   const router = useRouter()
   const [car, setCar] = useState<Car | null>(null)
   const [allCars, setAllCars] = useState<Car[]>([])
   const [loading, setLoading] = useState(true)
+  const [compareFull, setCompareFull] = useState(false)
 
   const favorited = car ? isFavorite(car.id) : false
+  const comparing = car ? isComparing(car.id) : false
+
+  const handleCompare = () => {
+    if (!car) return
+    const res = toggleCompare(car.id)
+    if (!res.ok && res.reason === 'full') {
+      setCompareFull(true)
+      setTimeout(() => setCompareFull(false), 2000)
+    }
+  }
 
   useEffect(() => {
     const found = getCarById(params.id)
@@ -250,6 +266,19 @@ export default function CarPage({ params }: { params: { id: string } }) {
               </div>
             </div>
             <div className="flex flex-col items-end gap-2">
+              <ShareListingButton
+                payload={{
+                  url: `${SITE_URL}/car/${car.id}`,
+                  title: `${car.year} ${car.brand} ${car.model} — ${formatPrice(car.price)}`,
+                  text: [
+                    `${car.year} ${car.brand} ${car.model}`,
+                    formatPrice(car.price),
+                    `${new Intl.NumberFormat('en-US').format(car.mileage)} km`,
+                    car.location,
+                  ].join(' · '),
+                  imageUrl: galleryImages[0],
+                }}
+              />
               <button
                 type="button"
                 onClick={() => toggleFavorite(car.id)}
@@ -259,6 +288,22 @@ export default function CarPage({ params }: { params: { id: string } }) {
                   className={`h-5 w-5 ${favorited ? 'fill-red-500 text-red-500' : 'text-muted-foreground'}`}
                 />
                 {favorited ? t('car.removeFavorite') : t('car.addFavorite')}
+              </button>
+              <button
+                type="button"
+                onClick={handleCompare}
+                className={`flex items-center gap-2 rounded-xl border px-4 py-2.5 text-sm font-medium transition-colors ${
+                  comparing
+                    ? 'border-primary bg-primary/10 text-primary'
+                    : 'border-border bg-card hover:bg-secondary'
+                }`}
+              >
+                <Columns2 className="h-5 w-5" />
+                {compareFull
+                  ? t('compare.full')
+                  : comparing
+                    ? t('compare.remove')
+                    : t('compare.add')}
               </button>
               <ReportListingButton listingId={car.id} listingType="car" />
             </div>

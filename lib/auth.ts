@@ -1,6 +1,7 @@
 import {
   EmailAuthProvider,
   GoogleAuthProvider,
+  browserPopupRedirectResolver,
   createUserWithEmailAndPassword,
   getRedirectResult,
   reauthenticateWithCredential,
@@ -15,8 +16,11 @@ import {
   updatePassword,
   updateProfile,
   verifyBeforeUpdateEmail,
+  type User,
 } from 'firebase/auth'
 import { getFirebaseAuth, isFirebaseConfigured } from '@/lib/firebase'
+
+const GOOGLE_REDIRECT_PATH_KEY = 'am_google_auth_redirect'
 
 export function requireFirebaseAuth() {
   if (!isFirebaseConfigured()) {
@@ -50,38 +54,89 @@ export async function registerWithEmail(
 /** Popup failures that are safe to retry with a full-page redirect flow. */
 const POPUP_FALLBACK_CODES = new Set([
   'auth/popup-blocked',
-  'auth/popup-closed-by-user',
   'auth/cancelled-popup-request',
   'auth/operation-not-supported-in-this-environment',
   'auth/web-storage-unsupported',
   'auth/network-request-failed',
+  'auth/internal-error',
 ])
 
-export async function signInWithGoogle() {
-  const auth = requireFirebaseAuth()
+function shouldPreferGoogleRedirect(): boolean {
+  if (typeof window === 'undefined') return true
+  const ua = navigator.userAgent || ''
+  const isIOS = /iPad|iPhone|iPod/.test(ua)
+  const isInApp = /FBAN|FBAV|Instagram|Line\/|TikTok|Snapchat/i.test(ua)
+  const isSafari = /Safari/i.test(ua) && !/Chrome|CriOS|Edg|OPR|Firefox/i.test(ua)
+  return isIOS || isInApp || isSafari
+}
+
+export function stashGoogleRedirectPath(path: string): void {
+  if (typeof window === 'undefined') return
+  try {
+    sessionStorage.setItem(GOOGLE_REDIRECT_PATH_KEY, path.startsWith('/') ? path : '/profile')
+  } catch {
+    /* ignore */
+  }
+}
+
+export function takeGoogleRedirectPath(): string | null {
+  if (typeof window === 'undefined') return null
+  try {
+    const path = sessionStorage.getItem(GOOGLE_REDIRECT_PATH_KEY)
+    sessionStorage.removeItem(GOOGLE_REDIRECT_PATH_KEY)
+    return path && path.startsWith('/') ? path : null
+  } catch {
+    return null
+  }
+}
+
+function googleProvider() {
   const provider = new GoogleAuthProvider()
+  provider.addScope('profile')
+  provider.addScope('email')
   provider.setCustomParameters({ prompt: 'select_account' })
+  return provider
+}
+
+export type GoogleSignInResult = {
+  method: 'popup' | 'redirect'
+  user?: User
+}
+
+export async function signInWithGoogle(): Promise<GoogleSignInResult> {
+  const auth = requireFirebaseAuth()
+  const provider = googleProvider()
+
+  if (shouldPreferGoogleRedirect()) {
+    await signInWithRedirect(auth, provider, browserPopupRedirectResolver)
+    return { method: 'redirect' }
+  }
 
   try {
-    await signInWithPopup(auth, provider)
+    const cred = await signInWithPopup(auth, provider, browserPopupRedirectResolver)
+    return { method: 'popup', user: cred.user }
   } catch (err) {
     const code = (err as { code?: string } | null)?.code
+    // User closed the popup — do not force redirect.
+    if (code === 'auth/popup-closed-by-user') {
+      throw err
+    }
     if (code && POPUP_FALLBACK_CODES.has(code)) {
-      // Popup was blocked / unsupported — fall back to full-page redirect.
-      await signInWithRedirect(auth, provider)
-      return
+      await signInWithRedirect(auth, provider, browserPopupRedirectResolver)
+      return { method: 'redirect' }
     }
     throw err
   }
 }
 
 /** Completes a pending Google redirect sign-in (call once on app load). */
-export async function completeGoogleRedirect() {
-  if (!isFirebaseConfigured()) return
+export async function completeGoogleRedirect(): Promise<User | null> {
+  if (!isFirebaseConfigured()) return null
   try {
-    await getRedirectResult(getFirebaseAuth())
+    const result = await getRedirectResult(getFirebaseAuth(), browserPopupRedirectResolver)
+    return result?.user ?? null
   } catch {
-    // onAuthStateChanged is the source of truth; ignore transient redirect errors.
+    return null
   }
 }
 
@@ -89,16 +144,11 @@ export async function resetPassword(email: string) {
   await sendPasswordResetEmail(requireFirebaseAuth(), email.trim())
 }
 
-/** Whether the signed-in user has an email/password credential. */
 export function hasPasswordProvider(): boolean {
   const user = getFirebaseAuth().currentUser
   return Boolean(user?.providerData.some((p) => p.providerId === 'password'))
 }
 
-/**
- * Re-authenticates the current user. Uses the supplied password when the account
- * has a password credential, otherwise falls back to a Google popup.
- */
 async function reauthenticate(currentPassword?: string) {
   const auth = requireFirebaseAuth()
   const user = auth.currentUser
@@ -109,7 +159,7 @@ async function reauthenticate(currentPassword?: string) {
     const cred = EmailAuthProvider.credential(user.email, currentPassword ?? '')
     await reauthenticateWithCredential(user, cred)
   } else {
-    await reauthenticateWithPopup(user, new GoogleAuthProvider())
+    await reauthenticateWithPopup(user, googleProvider(), browserPopupRedirectResolver)
   }
   return user
 }
@@ -145,7 +195,6 @@ export async function changeUserPassword(currentPassword: string, newPassword: s
 
 export async function changeUserEmail(currentPassword: string, newEmail: string) {
   const user = await reauthenticate(currentPassword)
-  // Sends a confirmation link to the new address; email updates after the user confirms.
   await verifyBeforeUpdateEmail(user, newEmail.trim())
 }
 
@@ -173,6 +222,8 @@ export function authErrorKey(code: string): string {
       return 'auth.error.tooManyRequests'
     case 'auth/popup-closed-by-user':
       return 'auth.error.popupClosed'
+    case 'auth/popup-blocked':
+      return 'auth.error.popupBlocked'
     case 'auth/network-request-failed':
       return 'auth.error.network'
     case 'auth/operation-not-allowed':

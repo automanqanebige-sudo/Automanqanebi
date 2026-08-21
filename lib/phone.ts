@@ -4,9 +4,12 @@ import { normalizePhoneDigits } from '@/lib/contact-links'
 export function toE164Phone(phone: string): string | null {
   const digits = normalizePhoneDigits(phone.trim())
   if (!digits) return null
-  // Georgian mobile: 995 + 9 digits
+
   if (digits.startsWith('995') && digits.length === 12) return `+${digits}`
-  if (digits.length >= 10 && digits.length <= 15) return `+${digits}`
+  // Other international E.164 (10–15 digits)
+  if (!digits.startsWith('995') && digits.length >= 10 && digits.length <= 15) {
+    return `+${digits}`
+  }
   return null
 }
 

@@ -27,6 +27,7 @@ import { fetchListingReports } from '@/lib/reports-firestore'
 import { isAdminEmail } from '@/lib/site'
 import type { Service } from '@/types/service'
 import { fetchAnalyticsEvents } from '@/lib/analytics-firestore'
+import { buildAdminAnalytics } from '@/lib/admin-analytics'
 import type { ServiceCategoryAd } from '@/types/service-category-ad'
 import type { SiteBanner } from '@/types/site-banner'
 import type { AnalyticsEvent } from '@/types/analytics'
@@ -119,8 +120,26 @@ function AdminPanel() {
       vip: vipCount,
       users: userRows.length,
       reports: reports.filter((r) => r.status === 'open').length,
+      analyticsEvents: analyticsEvents.length,
     }
-  }, [cars, services, categoryAds, siteBanners, userRows, reports])
+  }, [cars, services, categoryAds, siteBanners, userRows, reports, analyticsEvents])
+
+  const analyticsPreview = useMemo(() => {
+    const bundle = buildAdminAnalytics({
+      periodDays: 30,
+      cars,
+      services: servicesRaw,
+      events: analyticsEvents,
+      conversations,
+    })
+    return {
+      carViews: bundle.totals.carViews,
+      carSearches: bundle.totals.carSearches,
+      shares: bundle.totals.shares,
+      logins: bundle.totals.logins,
+      eventsLoaded: analyticsEvents.length,
+    }
+  }, [cars, servicesRaw, analyticsEvents, conversations])
 
   const loadData = async () => {
     const [
@@ -146,7 +165,19 @@ function AdminPanel() {
     ])
 
     const carsList = carsSnap.docs.map(
-      (d) => ({ id: d.id, ...d.data() } as AdminCar & { userId?: string; createdAt?: unknown; offerType?: string })
+      (d) =>
+        ({
+          id: d.id,
+          ...d.data(),
+        } as AdminCar & {
+          userId?: string
+          createdAt?: unknown
+          offerType?: string
+          views?: number
+          brand?: string
+          model?: string
+          year?: number
+        })
     )
     const profiles = usersSnap.docs.map((d) => ({
       id: d.id,
@@ -220,7 +251,7 @@ function AdminPanel() {
 
   const tabs: { id: Tab; label: string; count?: number; icon: typeof Car }[] = [
     { id: 'overview', label: t('admin.tabOverview'), icon: Shield },
-    { id: 'analytics', label: t('admin.tabAnalytics'), icon: BarChart3 },
+    { id: 'analytics', label: t('admin.tabAnalytics'), count: stats.analyticsEvents, icon: BarChart3 },
     { id: 'banners', label: t('admin.tabBanners'), count: stats.banners, icon: LayoutTemplate },
     { id: 'cars', label: t('admin.tabCars'), count: stats.cars, icon: Car },
     { id: 'services', label: t('admin.tabServices'), count: stats.services, icon: Wrench },
@@ -300,6 +331,7 @@ function AdminPanel() {
       ) : tab === 'overview' ? (
         <AdminOverview
           stats={stats}
+          analyticsPreview={analyticsPreview}
           onNavigate={(id) => setTab(id as Tab)}
         />
       ) : tab === 'analytics' ? (

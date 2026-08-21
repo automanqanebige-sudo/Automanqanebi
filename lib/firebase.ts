@@ -5,7 +5,13 @@ import {
   getApps,
   initializeApp,
 } from 'firebase/app'
-import { type Auth, getAuth } from 'firebase/auth'
+import {
+  type Auth,
+  browserLocalPersistence,
+  getAuth,
+  indexedDBLocalPersistence,
+  initializeAuth,
+} from 'firebase/auth'
 import { type FirebaseStorage, getStorage } from 'firebase/storage'
 
 function envValue(primary: string | undefined, fallback?: string): string {
@@ -85,9 +91,24 @@ export function getFirebaseApp(): FirebaseApp {
 }
 
 export function getFirebaseAuth(): Auth {
-  if (!authInstance) {
-    authInstance = getAuth(getFirebaseApp())
+  if (authInstance) return authInstance
+
+  const app = getFirebaseApp()
+
+  // Browser: durable persistence helps Google popup/redirect survive reloads.
+  if (typeof window !== 'undefined') {
+    try {
+      authInstance = initializeAuth(app, {
+        persistence: [indexedDBLocalPersistence, browserLocalPersistence],
+      })
+    } catch {
+      // Already initialized (HMR / second call) — reuse.
+      authInstance = getAuth(app)
+    }
+  } else {
+    authInstance = getAuth(app)
   }
+
   return authInstance
 }
 

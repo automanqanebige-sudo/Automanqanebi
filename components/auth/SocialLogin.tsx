@@ -4,10 +4,12 @@ import { useRouter, useSearchParams } from 'next/navigation'
 import { Loader2 } from 'lucide-react'
 import { useAuth } from '@/context/AuthContext'
 import { useLanguage } from '@/context/LanguageContext'
-import { getAuthErrorMessage } from '@/lib/auth'
+import {
+  getAuthErrorMessage,
+  stashGoogleRedirectPath,
+} from '@/lib/auth'
 import { logAnalyticsEvent } from '@/lib/analytics-firestore'
 import { saveUserProfile } from '@/lib/user-profile-firestore'
-import { getFirebaseAuth } from '@/lib/firebase'
 
 type SocialLoginProps = {
   loading: boolean
@@ -31,6 +33,7 @@ export default function SocialLogin({
   const router = useRouter()
   const searchParams = useSearchParams()
   const redirectTo = searchParams.get('redirect') || '/profile'
+  const safeRedirect = redirectTo.startsWith('/') ? redirectTo : '/profile'
 
   const handleGoogle = async () => {
     onError(null)
@@ -40,9 +43,17 @@ export default function SocialLogin({
     }
 
     onLoadingChange(true)
+    stashGoogleRedirectPath(safeRedirect)
+
     try {
-      await signInWithGoogle()
-      const user = getFirebaseAuth().currentUser
+      const result = await signInWithGoogle()
+
+      // Full-page redirect to Google — do not navigate locally.
+      if (result.method === 'redirect') {
+        return
+      }
+
+      const user = result.user
       if (user) {
         try {
           await saveUserProfile(user.uid, {
@@ -57,10 +68,9 @@ export default function SocialLogin({
           user.uid
         )
       }
-      router.push(redirectTo.startsWith('/') ? redirectTo : '/profile')
+      router.replace(safeRedirect)
     } catch (err) {
       onError(getAuthErrorMessage(err, t))
-    } finally {
       onLoadingChange(false)
     }
   }
@@ -70,7 +80,7 @@ export default function SocialLogin({
   const button = (
     <button
       type="button"
-      onClick={handleGoogle}
+      onClick={() => void handleGoogle()}
       disabled={loading || !configured}
       className="flex w-full items-center justify-center gap-3 rounded-xl border-2 border-border bg-card py-3.5 text-sm font-semibold text-foreground shadow-sm transition-colors hover:border-primary/40 hover:bg-secondary disabled:cursor-not-allowed disabled:opacity-60"
     >

@@ -4,6 +4,7 @@ import type {
   AnalyticsEvent,
   NamedCount,
   TimeSeriesPoint,
+  TopViewedCar,
 } from '@/types/analytics'
 
 type Timestamped = { date: Date | null }
@@ -71,9 +72,33 @@ function countBreakdown(items: { key: string; label: string }[]): NamedCount[] {
     .sort((a, b) => b.count - a.count)
 }
 
+function buildTopViewedCars(
+  cars: { id?: string; brand?: string; model?: string; year?: number; views?: number }[]
+): TopViewedCar[] {
+  return cars
+    .map((c) => ({
+      id: String(c.id ?? ''),
+      title: [c.brand, c.model, c.year].filter(Boolean).join(' ') || String(c.id ?? ''),
+      views: Number(c.views ?? 0),
+    }))
+    .filter((c) => c.id && c.views > 0)
+    .sort((a, b) => b.views - a.views)
+    .slice(0, 10)
+}
+
 export type AdminAnalyticsInput = {
   periodDays: number
-  cars: { createdAt?: unknown; offerType?: string; listingType?: string; isVip?: boolean }[]
+  cars: {
+    id?: string
+    brand?: string
+    model?: string
+    year?: number
+    views?: number
+    createdAt?: unknown
+    offerType?: string
+    listingType?: string
+    isVip?: boolean
+  }[]
   services: { createdAt?: unknown; category?: string }[]
   events: AnalyticsEvent[]
   conversations: { updatedAt?: string }[]
@@ -103,6 +128,9 @@ export function buildAdminAnalytics(input: AdminAnalyticsInput): AdminAnalyticsB
   const chatActivity = buildDailySeries(days, chatDates, since)
   const favorites = eventsByTypeSeries(days, events, since, 'favorite_add')
   const registrations = eventsByTypeSeries(days, events, since, 'user_register')
+  const logins = eventsByTypeSeries(days, events, since, 'user_login')
+  const carViews = eventsByTypeSeries(days, events, since, 'car_view')
+  const shares = eventsByTypeSeries(days, events, since, 'listing_share')
 
   const offerTypeBreakdown = countBreakdown(
     cars.map((c) => ({
@@ -127,6 +155,7 @@ export function buildAdminAnalytics(input: AdminAnalyticsInput): AdminAnalyticsB
   )
 
   const periodEvents = events.filter((e) => inPeriod(parseFirestoreDate(e.createdAt), since))
+  const totalCarViews = cars.reduce((sum, c) => sum + Number(c.views ?? 0), 0)
 
   return {
     periodDays,
@@ -137,8 +166,12 @@ export function buildAdminAnalytics(input: AdminAnalyticsInput): AdminAnalyticsB
     chatActivity,
     favorites,
     registrations,
+    logins,
+    carViews,
+    shares,
     topCarSearches: topQueries(events, 'search_cars'),
     topServiceSearches: topQueries(events, 'search_services'),
+    topViewedCars: buildTopViewedCars(cars),
     offerTypeBreakdown,
     listingTypeBreakdown,
     serviceCategoryBreakdown,
@@ -150,7 +183,11 @@ export function buildAdminAnalytics(input: AdminAnalyticsInput): AdminAnalyticsB
       chatMessages: periodEvents.filter((e) => e.type === 'chat_message').length,
       favorites: periodEvents.filter((e) => e.type === 'favorite_add').length,
       registrations: periodEvents.filter((e) => e.type === 'user_register').length,
+      logins: periodEvents.filter((e) => e.type === 'user_login').length,
+      carViews: periodEvents.filter((e) => e.type === 'car_view').length,
+      shares: periodEvents.filter((e) => e.type === 'listing_share').length,
       conversations: conversations.length,
+      totalCarViews,
     },
   }
 }

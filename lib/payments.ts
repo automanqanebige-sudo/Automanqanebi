@@ -20,6 +20,14 @@ export type PaymentOrder = {
   paidAt?: string
 }
 
+export type VipTierId = 'silver' | 'gold' | 'platinum'
+
+export const VIP_TIER_OPTIONS: { id: VipTierId; days: number; price: number }[] = [
+  { id: 'silver', days: 30, price: 29 },
+  { id: 'gold', days: 30, price: 49 },
+  { id: 'platinum', days: 30, price: 79 },
+]
+
 const VIP_PRICES: Record<string, number> = {
   silver: 29,
   gold: 49,
@@ -43,16 +51,20 @@ export function paymentsProvider(): string {
   ).toLowerCase()
 }
 
+export function checkoutPath(orderId: string): string {
+  return `/payments/checkout?orderId=${encodeURIComponent(orderId)}`
+}
+
 /**
- * Create payment order while authenticated (client).
- * Stub provider auto-fulfills with Firestore owner permissions.
+ * Create a pending payment order (client, authenticated).
+ * Does not fulfill — user confirms on /payments/checkout.
  */
-export async function createAndMaybeFulfillPayment(input: {
+export async function createPaymentOrder(input: {
   kind: PaymentKind
   carId: string
   userId: string
   tier?: string
-}): Promise<{ orderId: string; status: PaymentOrder['status']; amountGel: number; stub: boolean }> {
+}): Promise<{ orderId: string; amountGel: number; checkoutUrl: string; stub: boolean }> {
   if (!isFirebaseConfigured()) throw new Error('Firebase not configured')
 
   const amountGel = priceForPayment(input.kind, input.tier)
@@ -70,12 +82,53 @@ export async function createAndMaybeFulfillPayment(input: {
     createdAt,
   })
 
-  if (provider === 'stub') {
-    await fulfillPaymentOrder(ref.id)
-    return { orderId: ref.id, status: 'paid', amountGel, stub: true }
+  return {
+    orderId: ref.id,
+    amountGel,
+    checkoutUrl: checkoutPath(ref.id),
+    stub: provider === 'stub',
   }
+}
 
-  return { orderId: ref.id, status: 'pending', amountGel, stub: false }
+/** @deprecated Prefer createPaymentOrder + checkout confirm */
+export async function createAndMaybeFulfillPayment(input: {
+  kind: PaymentKind
+  carId: string
+  userId: string
+  tier?: string
+}): Promise<{ orderId: string; status: PaymentOrder['status']; amountGel: number; stub: boolean }> {
+  const created = await createPaymentOrder(input)
+  if (!created.stub) {
+    return { orderId: created.orderId, status: 'pending', amountGel: created.amountGel, stub: false }
+  }
+  const order = await confirmOwnPayment(created.orderId, input.userId)
+  return {
+    orderId: created.orderId,
+    status: order?.status === 'paid' ? 'paid' : 'pending',
+    amountGel: created.amountGel,
+    stub: true,
+  }
+}
+
+export async function fetchPaymentOrder(orderId: string): Promise<PaymentOrder | null> {
+  if (!isFirebaseConfigured() || !orderId) return null
+  const snap = await getDoc(doc(getDb(), 'paymentOrders', orderId))
+  if (!snap.exists()) return null
+  return { id: snap.id, ...(snap.data() as Omit<PaymentOrder, 'id'>) }
+}
+
+/**
+ * Owner confirms stub payment on checkout page (uses their Firestore auth).
+ */
+export async function confirmOwnPayment(
+  orderId: string,
+  userId: string
+): Promise<PaymentOrder | null> {
+  const order = await fetchPaymentOrder(orderId)
+  if (!order) return null
+  if (order.userId !== userId) throw new Error('not-owner')
+  if (order.status === 'paid') return order
+  return fulfillPaymentOrder(orderId)
 }
 
 export async function fulfillPaymentOrder(orderId: string): Promise<PaymentOrder | null> {
@@ -108,6 +161,7 @@ export async function fulfillPaymentOrder(orderId: string): Promise<PaymentOrder
   await updateDoc(ref, { status: 'paid', paidAt })
 
   await createUserNotification(data.userId, {
+    kind: 'payment',
     title: data.kind === 'vip' ? 'VIP გააქტიურდა' : 'განცხადება წინ წამოიწია',
     body:
       data.kind === 'vip'

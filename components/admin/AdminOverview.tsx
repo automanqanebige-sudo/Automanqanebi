@@ -5,16 +5,28 @@ import {
   Car,
   Crown,
   ExternalLink,
+  Eye,
   Home,
   Megaphone,
   MessageCircle,
+  Search,
   Settings,
+  Share2,
   Users,
   Wrench,
   BarChart3,
   LayoutTemplate,
+  LogIn,
 } from 'lucide-react'
 import { useLanguage } from '@/context/LanguageContext'
+
+type AnalyticsPreview = {
+  carViews: number
+  carSearches: number
+  shares: number
+  logins: number
+  eventsLoaded: number
+}
 
 type AdminOverviewProps = {
   stats: {
@@ -25,6 +37,7 @@ type AdminOverviewProps = {
     users: number
     reports?: number
   }
+  analyticsPreview?: AnalyticsPreview
   onNavigate: (tab: string) => void
 }
 
@@ -37,11 +50,11 @@ const quickPages = [
   { href: '/about', icon: ExternalLink, key: 'footer.about' },
 ]
 
-export default function AdminOverview({ stats, onNavigate }: AdminOverviewProps) {
+export default function AdminOverview({ stats, analyticsPreview, onNavigate }: AdminOverviewProps) {
   const { t } = useLanguage()
 
   const manageCards = [
-    { id: 'analytics', icon: BarChart3, label: t('admin.tabAnalytics'), count: null, color: 'text-primary' },
+    { id: 'analytics', icon: BarChart3, label: t('admin.tabAnalytics'), count: analyticsPreview?.eventsLoaded ?? null, color: 'text-primary' },
     { id: 'banners', icon: LayoutTemplate, label: t('admin.tabBanners'), count: null, color: 'text-primary' },
     { id: 'cars', icon: Car, label: t('admin.tabCars'), count: stats.cars, color: 'text-foreground' },
     { id: 'services', icon: Wrench, label: t('admin.tabServices'), count: stats.services, color: 'text-foreground' },
@@ -53,6 +66,27 @@ export default function AdminOverview({ stats, onNavigate }: AdminOverviewProps)
 
   return (
     <div className="space-y-8">
+      {analyticsPreview && (
+        <div>
+          <div className="mb-3 flex items-center justify-between gap-2">
+            <h2 className="text-lg font-bold text-foreground">{t('admin.analytics.title')}</h2>
+            <button
+              type="button"
+              onClick={() => onNavigate('analytics')}
+              className="text-sm font-medium text-primary hover:underline"
+            >
+              {t('admin.analytics.open')}
+            </button>
+          </div>
+          <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
+            <PreviewStat icon={Eye} label={t('admin.analytics.carViews')} value={analyticsPreview.carViews} />
+            <PreviewStat icon={Search} label={t('admin.analytics.carSearch')} value={analyticsPreview.carSearches} />
+            <PreviewStat icon={Share2} label={t('admin.analytics.shares')} value={analyticsPreview.shares} />
+            <PreviewStat icon={LogIn} label={t('admin.analytics.logins')} value={analyticsPreview.logins} />
+          </div>
+        </div>
+      )}
+
       <div>
         <h2 className="mb-3 text-lg font-bold text-foreground">{t('admin.overviewManage')}</h2>
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
@@ -114,6 +148,26 @@ export default function AdminOverview({ stats, onNavigate }: AdminOverviewProps)
         </div>
         <span className="text-sm font-medium text-primary">{t('admin.analytics.open')}</span>
       </button>
+    </div>
+  )
+}
+
+function PreviewStat({
+  icon: Icon,
+  label,
+  value,
+}: {
+  icon: typeof Eye
+  label: string
+  value: number
+}) {
+  return (
+    <div className="rounded-xl border border-border bg-card px-4 py-3">
+      <p className="flex items-center gap-1.5 text-xs text-muted-foreground">
+        <Icon className="h-3.5 w-3.5 shrink-0" />
+        {label}
+      </p>
+      <p className="mt-1 text-2xl font-bold text-foreground">{value}</p>
     </div>
   )
 }

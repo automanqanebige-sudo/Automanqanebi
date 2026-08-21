@@ -3,11 +3,12 @@
 import { useState } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
-import { Heart, MapPin, Gauge, Fuel, Crown, Sparkles } from 'lucide-react'
+import { Heart, MapPin, Gauge, Fuel, Crown, Sparkles, Columns2 } from 'lucide-react'
 import { Car } from './CarCard'
 import { useLanguage } from '@/context/LanguageContext'
 import { useCurrency } from '@/context/CurrencyContext'
 import { useFavorites } from '@/context/FavoritesContext'
+import { useCompare } from '@/context/CompareContext'
 
 interface VipCarCardProps {
   car: Car
@@ -18,7 +19,9 @@ export default function VipCarCard({ car, onFavoriteToggle }: VipCarCardProps) {
   const { t } = useLanguage()
   const { formatPrice } = useCurrency()
   const { isFavorite, toggleFavorite } = useFavorites()
+  const { isComparing, toggleCompare } = useCompare()
   const favorited = isFavorite(car.id)
+  const comparing = isComparing(car.id)
   const [imageError, setImageError] = useState(false)
 
   const fuelLabel = t(`fuel.${car.fuelType}`) !== `fuel.${car.fuelType}` ? t(`fuel.${car.fuelType}`) : car.fuelType
@@ -28,6 +31,12 @@ export default function VipCarCard({ car, onFavoriteToggle }: VipCarCardProps) {
     e.stopPropagation()
     toggleFavorite(car.id)
     onFavoriteToggle?.(car.id)
+  }
+
+  const handleCompareClick = (e: React.MouseEvent) => {
+    e.preventDefault()
+    e.stopPropagation()
+    toggleCompare(car.id)
   }
 
   const formatMileage = (mileage: number) => {
@@ -64,19 +73,33 @@ export default function VipCarCard({ car, onFavoriteToggle }: VipCarCardProps) {
             <Sparkles className="h-3.5 w-3.5" />
           </div>
 
-          <button
-            onClick={handleFavoriteClick}
-            className="absolute right-4 top-4 rounded-full bg-card/95 p-3 shadow-xl transition-all duration-300 hover:scale-110 hover:bg-card group/heart"
-            aria-label={favorited ? t('favorites.remove') : t('favorites.add')}
-          >
-            <Heart
-              className={`h-6 w-6 transition-all duration-300 ${
-                favorited
-                  ? 'scale-110 fill-red-500 text-red-500'
-                  : 'text-muted-foreground group-hover/heart:text-red-500'
+          <div className="absolute right-4 top-4 flex flex-col gap-2">
+            <button
+              type="button"
+              onClick={handleFavoriteClick}
+              className="rounded-full bg-card/95 p-3 shadow-xl transition-all duration-300 hover:scale-110 hover:bg-card group/heart"
+              aria-label={favorited ? t('favorites.remove') : t('favorites.add')}
+            >
+              <Heart
+                className={`h-6 w-6 transition-all duration-300 ${
+                  favorited
+                    ? 'scale-110 fill-red-500 text-red-500'
+                    : 'text-muted-foreground group-hover/heart:text-red-500'
+                }`}
+              />
+            </button>
+            <button
+              type="button"
+              onClick={handleCompareClick}
+              className={`rounded-full bg-card/95 p-3 shadow-xl transition-all duration-300 hover:scale-110 hover:bg-card ${
+                comparing ? 'ring-2 ring-primary' : ''
               }`}
-            />
-          </button>
+              aria-label={comparing ? t('compare.remove') : t('compare.add')}
+              title={comparing ? t('compare.remove') : t('compare.add')}
+            >
+              <Columns2 className={`h-5 w-5 ${comparing ? 'text-primary' : 'text-muted-foreground'}`} />
+            </button>
+          </div>
 
           <div className="absolute bottom-4 left-4 right-4 flex items-end justify-between">
             <div className="rounded-xl bg-primary px-5 py-2.5 text-primary-foreground shadow-xl shadow-primary/30">

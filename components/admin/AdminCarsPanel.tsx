@@ -15,6 +15,7 @@ export type AdminCar = {
   userEmail?: string
   listingType?: string
   isVip?: boolean
+  views?: number
 }
 
 type AdminCarsPanelProps = {

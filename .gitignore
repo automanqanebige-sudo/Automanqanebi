@@ -24,3 +24,5 @@ firebase-debug.log
 # Legacy copy and archives (not part of the app)
 AUTOGE-CLEAN/
 *.zip
+.vercel
+.env*

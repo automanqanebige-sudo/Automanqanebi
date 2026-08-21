@@ -5,6 +5,7 @@ import { ChevronDown, SlidersHorizontal } from 'lucide-react'
 import BrandFilter from '@/components/BrandFilter'
 import AdvancedFilterPanel from '@/components/AdvancedFilterPanel'
 import RangeFromTo from '@/components/RangeFromTo'
+import CurrencyToggle from '@/components/CurrencyToggle'
 import { useLanguage } from '@/context/LanguageContext'
 import { useCurrency } from '@/context/CurrencyContext'
 import { countActiveFilters } from '@/lib/apply-car-filters'
@@ -29,7 +30,7 @@ export default function SearchFilters({
   resultCount,
 }: SearchFiltersProps) {
   const { t } = useLanguage()
-  const { currency, toBasePrice, fromBasePrice } = useCurrency()
+  const { currency, rate, toBasePrice, fromBasePrice } = useCurrency()
   const [isExpanded, setIsExpanded] = useState(false)
   const currentYear = new Date().getFullYear()
 
@@ -54,53 +55,69 @@ export default function SearchFilters({
           onModelChange={(model) => onFiltersChange({ ...filters, model })}
         />
 
-        <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-          <RangeFromTo
-            icon="💰"
-            title={`${t('filter.section.price')} (${currency === 'GEL' ? '₾' : '$'})`}
-            fromLabel={t('search.from')}
-            toLabel={t('search.to')}
-            fromValue={filters.priceMin ? fromBasePrice(filters.priceMin) : ''}
-            toValue={filters.priceMax === PRICE_SLIDER_MAX ? '' : fromBasePrice(filters.priceMax)}
-            onFromChange={(v) => patch({ priceMin: toBasePrice(Number(v) || 0) })}
-            onToChange={(v) =>
-              patch({ priceMax: v ? toBasePrice(Number(v)) : PRICE_SLIDER_MAX })
-            }
-            fromPlaceholder="0"
-            toPlaceholder={String(fromBasePrice(PRICE_SLIDER_MAX))}
-            min={0}
-            step={100}
-          />
-          <RangeFromTo
-            icon="📅"
-            title={t('search.year')}
-            fromLabel={t('search.from')}
-            toLabel={t('search.to')}
-            fromValue={filters.yearMin}
-            toValue={filters.yearMax}
-            onFromChange={(yearMin) => patch({ yearMin })}
-            onToChange={(yearMax) => patch({ yearMax })}
-            fromPlaceholder={String(currentYear - 30)}
-            toPlaceholder={String(currentYear)}
-            min={1980}
-            max={currentYear + 1}
-          />
-          <RangeFromTo
-            icon="🛣️"
-            title={t('search.mileage')}
-            fromLabel={t('search.from')}
-            toLabel={t('search.to')}
-            fromValue={filters.mileageMin}
-            toValue={filters.mileageMax}
-            onFromChange={(mileageMin) => patch({ mileageMin })}
-            onToChange={(mileageMax) => patch({ mileageMax })}
-            fromPlaceholder="0"
-            toPlaceholder="200000"
-            min={0}
-            step={1000}
-            suffix="km"
-            className="sm:col-span-2 lg:col-span-1"
-          />
+        <div className="mt-4 space-y-3">
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <p className="text-sm font-medium text-foreground">
+              💰 {t('filter.section.price')} ({currency === 'GEL' ? '₾' : '$'})
+            </p>
+            <div className="flex flex-wrap items-center gap-2">
+              <CurrencyToggle compact />
+              <span className="text-xs text-muted-foreground">
+                1$ ≈ {rate.toFixed(2)}₾
+              </span>
+            </div>
+          </div>
+          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+            <RangeFromTo
+              icon="💰"
+              title={`${t('search.from')} – ${t('search.to')}`}
+              fromLabel={t('search.from')}
+              toLabel={t('search.to')}
+              fromValue={filters.priceMin ? fromBasePrice(filters.priceMin) : ''}
+              toValue={filters.priceMax === PRICE_SLIDER_MAX ? '' : fromBasePrice(filters.priceMax)}
+              onFromChange={(v) => patch({ priceMin: toBasePrice(Number(v) || 0) })}
+              onToChange={(v) =>
+                patch({ priceMax: v ? toBasePrice(Number(v)) : PRICE_SLIDER_MAX })
+              }
+              fromPlaceholder="0"
+              toPlaceholder={String(fromBasePrice(PRICE_SLIDER_MAX))}
+              min={0}
+              step={100}
+            />
+            <RangeFromTo
+              icon="📅"
+              title={t('search.year')}
+              fromLabel={t('search.from')}
+              toLabel={t('search.to')}
+              fromValue={filters.yearMin}
+              toValue={filters.yearMax}
+              onFromChange={(yearMin) => patch({ yearMin })}
+              onToChange={(yearMax) => patch({ yearMax })}
+              fromPlaceholder={String(currentYear - 30)}
+              toPlaceholder={String(currentYear)}
+              min={1980}
+              max={currentYear + 1}
+            />
+            <RangeFromTo
+              icon="🛣️"
+              title={t('search.mileage')}
+              fromLabel={t('search.from')}
+              toLabel={t('search.to')}
+              fromValue={filters.mileageMin}
+              toValue={filters.mileageMax}
+              onFromChange={(mileageMin) => patch({ mileageMin })}
+              onToChange={(mileageMax) => patch({ mileageMax })}
+              fromPlaceholder="0"
+              toPlaceholder="200000"
+              min={0}
+              step={1000}
+              suffix="km"
+              className="sm:col-span-2 lg:col-span-1"
+            />
+          </div>
+          <p className="text-xs text-muted-foreground">
+            {t('currency.filterAutoConvert').replace('{{rate}}', rate.toFixed(2))}
+          </p>
         </div>
 
         <button

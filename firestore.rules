@@ -22,11 +22,23 @@ service cloud.firestore {
         && request.resource.data.views == resource.data.get('views', 0) + 1;
     }
 
+    function onlyFavoriteCountChange() {
+      return request.auth != null
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['favoriteCount'])
+        && request.resource.data.favoriteCount is int
+        && request.resource.data.favoriteCount >= 0
+        && (
+          request.resource.data.favoriteCount == resource.data.get('favoriteCount', 0) + 1
+          || request.resource.data.favoriteCount == resource.data.get('favoriteCount', 0) - 1
+        );
+    }
+
     match /cars/{carId} {
       allow read: if true;
       allow create: if request.auth != null
         && request.resource.data.userId == request.auth.uid;
       allow update: if onlyViewsIncrement()
+        || onlyFavoriteCountChange()
         || (request.auth != null
           && (resource.data.userId == request.auth.uid || isAdmin()));
       allow delete: if request.auth != null
@@ -65,7 +77,16 @@ service cloud.firestore {
 
     match /users/{userId}/notifications/{notifId} {
       allow read, update: if request.auth != null && request.auth.uid == userId;
-      allow create: if request.auth != null && request.auth.uid == userId;
+      // Any signed-in user may create a notification for another user (chat, VIP, etc.)
+      allow create: if request.auth != null
+        && request.resource.data.keys().hasAll(['title', 'body', 'createdAt', 'read'])
+        && request.resource.data.title is string
+        && request.resource.data.body is string
+        && request.resource.data.createdAt is string
+        && request.resource.data.read == false
+        && request.resource.data.title.size() > 0
+        && request.resource.data.title.size() <= 200
+        && request.resource.data.body.size() <= 500;
       allow delete: if request.auth != null && request.auth.uid == userId;
     }
 

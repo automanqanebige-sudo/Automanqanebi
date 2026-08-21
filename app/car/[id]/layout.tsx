@@ -13,31 +13,50 @@ export async function generateMetadata({ params }: { params: { id: string } }): 
     return { title: 'განცხადება | AUTOMANQANEBI.GE' }
   }
 
-  const title = `${car.year} ${car.brand} ${car.model} — ${car.price}₾ | AUTOMANQANEBI.GE`
-  const description =
-    car.description?.slice(0, 160) ||
-    `${car.brand} ${car.model}, ${car.year}, ${car.mileage} კმ — ${car.location}`
+  const priceLabel = `${Math.round(car.price).toLocaleString('en-US')}₾`
+  const title = `${car.year} ${car.brand} ${car.model} — ${priceLabel}`
+  const description = [
+    `${car.year} ${car.brand} ${car.model}`,
+    `${Math.round(car.mileage).toLocaleString('en-US')} კმ`,
+    car.fuelType,
+    car.transmission,
+    car.location,
+    priceLabel,
+  ]
+    .filter(Boolean)
+    .join(' · ')
   const image = car.images?.[0] || car.image
+  const pageUrl = `${SITE_URL}/car/${car.id}`
 
   return {
-    title,
-    description,
+    title: `${title} | AUTOMANQANEBI.GE`,
+    description: car.description?.slice(0, 160) || description,
     openGraph: {
       title,
-      description,
-      url: `${SITE_URL}/car/${car.id}`,
-      images: image ? [{ url: image }] : undefined,
+      description: car.description?.slice(0, 160) || description,
+      url: pageUrl,
+      siteName: 'AUTOMANQANEBI.GE',
+      images: image
+        ? [
+            {
+              url: image,
+              width: 1200,
+              height: 630,
+              alt: `${car.year} ${car.brand} ${car.model}`,
+            },
+          ]
+        : undefined,
       type: 'website',
       locale: 'ka_GE',
     },
     twitter: {
       card: 'summary_large_image',
       title,
-      description,
+      description: car.description?.slice(0, 160) || description,
       images: image ? [image] : undefined,
     },
     alternates: {
-      canonical: `${SITE_URL}/car/${car.id}`,
+      canonical: pageUrl,
     },
   }
 }

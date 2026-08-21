@@ -1,12 +1,16 @@
 'use client'
 
+import Link from 'next/link'
 import { useMemo, useState } from 'react'
 import {
   BarChart3,
   Car,
+  Eye,
   Heart,
+  LogIn,
   MessageCircle,
   Search,
+  Share2,
   UserPlus,
   Wrench,
 } from 'lucide-react'
@@ -88,7 +92,10 @@ export default function AdminAnalyticsDashboard({
         point.value +
         (analytics.serviceListings[index]?.value ?? 0) +
         (analytics.carSearches[index]?.value ?? 0) +
-        (analytics.serviceSearches[index]?.value ?? 0),
+        (analytics.serviceSearches[index]?.value ?? 0) +
+        (analytics.carViews[index]?.value ?? 0) +
+        (analytics.logins[index]?.value ?? 0) +
+        (analytics.shares[index]?.value ?? 0),
     }))
   }, [analytics])
 
@@ -129,7 +136,8 @@ export default function AdminAnalyticsDashboard({
         </div>
       </div>
 
-      <div className="grid grid-cols-2 gap-2 sm:grid-cols-4 lg:grid-cols-7">
+      <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-5">
+        <StatChip icon={Eye} label={t('admin.analytics.carViews')} value={analytics.totals.carViews} />
         <StatChip icon={Car} label={t('admin.analytics.newCars')} value={analytics.totals.carListings} />
         <StatChip icon={Wrench} label={t('admin.analytics.newServices')} value={analytics.totals.serviceListings} />
         <StatChip icon={Search} label={t('admin.analytics.carSearch')} value={analytics.totals.carSearches} />
@@ -137,6 +145,8 @@ export default function AdminAnalyticsDashboard({
         <StatChip icon={MessageCircle} label={t('admin.analytics.chat')} value={analytics.totals.chatMessages} />
         <StatChip icon={Heart} label={t('admin.analytics.favorites')} value={analytics.totals.favorites} />
         <StatChip icon={UserPlus} label={t('admin.analytics.registrations')} value={analytics.totals.registrations} />
+        <StatChip icon={LogIn} label={t('admin.analytics.logins')} value={analytics.totals.logins} />
+        <StatChip icon={Share2} label={t('admin.analytics.shares')} value={analytics.totals.shares} />
       </div>
 
       <ChartCard title={t('admin.analytics.chartCombined')}>
@@ -144,6 +154,20 @@ export default function AdminAnalyticsDashboard({
       </ChartCard>
 
       <div className="grid gap-4 lg:grid-cols-2">
+        <ChartCard title={t('admin.analytics.chartCarViews')}>
+          <ActivityBarChart
+            data={analytics.carViews}
+            colorClass="bg-cyan-500"
+            emptyLabel={t('admin.analytics.noData')}
+          />
+        </ChartCard>
+        <ChartCard title={t('admin.analytics.chartShares')}>
+          <ActivityBarChart
+            data={analytics.shares}
+            colorClass="bg-teal-500"
+            emptyLabel={t('admin.analytics.noData')}
+          />
+        </ChartCard>
         <ChartCard title={t('admin.analytics.chartCarListings')}>
           <ActivityBarChart
             data={analytics.carListings}
@@ -193,6 +217,13 @@ export default function AdminAnalyticsDashboard({
             emptyLabel={t('admin.analytics.noData')}
           />
         </ChartCard>
+        <ChartCard title={t('admin.analytics.chartLogins')}>
+          <ActivityBarChart
+            data={analytics.logins}
+            colorClass="bg-fuchsia-500"
+            emptyLabel={t('admin.analytics.noData')}
+          />
+        </ChartCard>
       </div>
 
       <div className="grid gap-4 lg:grid-cols-2">
@@ -203,6 +234,10 @@ export default function AdminAnalyticsDashboard({
           <TopQueriesList items={analytics.topServiceSearches} emptyLabel={t('admin.analytics.noSearchYet')} />
         </ChartCard>
       </div>
+
+      <ChartCard title={`${t('admin.analytics.topViewedCars')} · ${t('admin.analytics.totalViews')}: ${analytics.totals.totalCarViews}`}>
+        <TopViewedList items={analytics.topViewedCars} emptyLabel={t('admin.analytics.noData')} />
+      </ChartCard>
 
       <div className="grid gap-4 lg:grid-cols-3">
         <ChartCard title={t('admin.analytics.offerBreakdown')}>
@@ -273,6 +308,36 @@ function TopQueriesList({
             <span className="truncate text-foreground">{item.name}</span>
           </span>
           <span className="shrink-0 font-medium text-muted-foreground">{item.count}</span>
+        </li>
+      ))}
+    </ol>
+  )
+}
+
+function TopViewedList({
+  items,
+  emptyLabel,
+}: {
+  items: { id: string; title: string; views: number }[]
+  emptyLabel: string
+}) {
+  if (items.length === 0) {
+    return <p className="text-sm text-muted-foreground">{emptyLabel}</p>
+  }
+
+  return (
+    <ol className="space-y-2">
+      {items.map((item, i) => (
+        <li key={item.id} className="flex items-center justify-between gap-2 text-sm">
+          <span className="flex min-w-0 items-center gap-2">
+            <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-cyan-500/15 text-[10px] font-bold text-cyan-700 dark:text-cyan-300">
+              {i + 1}
+            </span>
+            <Link href={`/car/${item.id}`} className="truncate text-foreground hover:text-primary hover:underline">
+              {item.title}
+            </Link>
+          </span>
+          <span className="shrink-0 font-medium text-muted-foreground">{item.views}</span>
         </li>
       ))}
     </ol>

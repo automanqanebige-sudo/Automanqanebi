@@ -8,10 +8,12 @@ import { CurrencyProvider } from '../context/CurrencyContext'
 import { LanguageProvider } from '../context/LanguageContext'
 import { SiteSettingsProvider } from '../context/SiteSettingsContext'
 import { FavoritesProvider } from '../context/FavoritesContext'
+import { CompareProvider } from '../context/CompareContext'
 import { AuthProvider } from '../context/AuthContext'
 import MaintenanceBanner from '../components/MaintenanceBanner'
 import { SiteBannersProvider } from '../context/SiteBannersContext'
 import { SiteBannerGlobalStrip } from '../components/SiteBannerSlot'
+import CompareBar from '../components/CompareBar'
 import { SITE_DOMAIN, SITE_LOGO_MAIN, SITE_LOGO_TLD, SITE_URL } from '../lib/site'
 
 const inter = Inter({
@@ -73,13 +75,16 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
               <SiteSettingsProvider>
                 <SiteBannersProvider>
                   <FavoritesProvider>
-                    <Navbar />
-                    <MaintenanceBanner />
-                    <SiteBannerGlobalStrip placement="global_top" />
-                    <main className="flex-1 pb-20 md:pb-0">{children}</main>
-                    <SiteBannerGlobalStrip placement="global_footer" />
-                    <Footer />
-                    <MobileBottomNav />
+                    <CompareProvider>
+                      <Navbar />
+                      <MaintenanceBanner />
+                      <SiteBannerGlobalStrip placement="global_top" />
+                      <main className="flex-1 pb-20 md:pb-0">{children}</main>
+                      <SiteBannerGlobalStrip placement="global_footer" />
+                      <Footer />
+                      <MobileBottomNav />
+                      <CompareBar />
+                    </CompareProvider>
                   </FavoritesProvider>
                 </SiteBannersProvider>
               </SiteSettingsProvider>

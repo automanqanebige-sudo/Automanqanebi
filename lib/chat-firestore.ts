@@ -13,6 +13,7 @@ import {
 import { getDb } from '@/lib/firebase-db'
 import { isFirebaseConfigured } from '@/lib/firebase'
 import { logAnalyticsEvent } from '@/lib/analytics-firestore'
+import { createUserNotification } from '@/lib/notifications-firestore'
 
 export type Conversation = {
   id: string
@@ -135,25 +136,32 @@ export async function sendMessage(
 
   logAnalyticsEvent('chat_message', { conversationId }, senderId)
 
-  // Best-effort push to the other participant
+  // Best-effort in-app + push to the other participant
   try {
     const convSnap = await getDoc(doc(getDb(), 'conversations', conversationId))
     const participants = (convSnap.data()?.participants as string[]) || []
     const recipientId = participants.find((id) => id !== senderId)
     if (recipientId) {
-      const title = String(convSnap.data()?.carTitle || 'automanqanebi.ge')
+      const carTitle = String(convSnap.data()?.carTitle || 'automanqanebi.ge')
+      const chatUrl = `/chat?c=${conversationId}`
+      void createUserNotification(recipientId, {
+        kind: 'chat',
+        title: `💬 ${carTitle}`,
+        body: trimmed.slice(0, 120),
+        url: chatUrl,
+      })
       void fetch('/api/notify-chat', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           recipientId,
-          title: `💬 ${title}`,
+          title: `💬 ${carTitle}`,
           text: trimmed.slice(0, 120),
-          url: `/chat?c=${conversationId}`,
+          url: chatUrl,
         }),
       }).catch(() => undefined)
     }
   } catch {
-    /* ignore push failures */
+    /* ignore notify failures */
   }
 }

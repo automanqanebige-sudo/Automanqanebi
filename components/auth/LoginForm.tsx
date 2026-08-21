@@ -10,6 +10,7 @@ import { AUTH_INPUT_CLASS } from '@/components/auth/AuthLayout'
 import { useAuth } from '@/context/AuthContext'
 import { useLanguage } from '@/context/LanguageContext'
 import { getAuthErrorMessage } from '@/lib/auth'
+import { logAnalyticsEvent } from '@/lib/analytics-firestore'
 
 export default function LoginForm() {
   const { t } = useLanguage()
@@ -77,6 +78,7 @@ export default function LoginForm() {
     setLoading(true)
     try {
       await signInWithEmail(email, password)
+      logAnalyticsEvent('user_login', { method: 'email', email: email.trim().toLowerCase() })
       router.push(redirectTo.startsWith('/') ? redirectTo : '/profile')
     } catch (err) {
       if (err instanceof Error && err.message === 'FIREBASE_NOT_CONFIGURED') {

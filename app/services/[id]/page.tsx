@@ -15,7 +15,9 @@ import ServiceCard from '@/components/ServiceCard'
 import ServiceSearchBar from '@/components/ServiceSearchBar'
 import ServiceReviewsSection from '@/components/ServiceReviewsSection'
 import ReportListingButton from '@/components/ReportListingButton'
+import ShareListingButton from '@/components/ShareListingButton'
 import CarImageGallery from '@/components/CarImageGallery'
+import { SITE_URL } from '@/lib/site'
 import { useServiceCatalogT } from '@/hooks/useServiceCatalogT'
 import { useLanguage } from '@/context/LanguageContext'
 import { useCurrency } from '@/context/CurrencyContext'
@@ -170,21 +172,39 @@ function ServiceDetailContent({ id }: { id: string }) {
                     {categoryLabel(service.category)}
                   </span>
                 </div>
-                {displayPrice != null && (
-                  <div className="text-right">
-                    <p className="text-2xl font-bold text-primary">{formatPrice(displayPrice)}</p>
-                    {service.oldPrice != null && service.oldPrice > displayPrice && (
-                      <p className="text-sm text-muted-foreground line-through">
-                        {formatPrice(service.oldPrice)}
-                      </p>
-                    )}
-                    {service.promoUntil && (
-                      <p className="mt-1 text-xs font-medium text-amber-600 dark:text-amber-400">
-                        {t('services.promoUntil')}: {service.promoUntil}
-                      </p>
-                    )}
-                  </div>
-                )}
+                <div className="flex flex-col items-end gap-2">
+                  {displayPrice != null && (
+                    <div className="text-right">
+                      <p className="text-2xl font-bold text-primary">{formatPrice(displayPrice)}</p>
+                      {service.oldPrice != null && service.oldPrice > displayPrice && (
+                        <p className="text-sm text-muted-foreground line-through">
+                          {formatPrice(service.oldPrice)}
+                        </p>
+                      )}
+                      {service.promoUntil && (
+                        <p className="mt-1 text-xs font-medium text-amber-600 dark:text-amber-400">
+                          {t('services.promoUntil')}: {service.promoUntil}
+                        </p>
+                      )}
+                    </div>
+                  )}
+                  <ShareListingButton
+                    compact
+                    payload={{
+                      url: `${SITE_URL}/services/${service.id}`,
+                      title: `${service.name}${displayPrice != null ? ` — ${formatPrice(displayPrice)}` : ''}`,
+                      text: [
+                        service.name,
+                        categoryLabel(service.category),
+                        service.location,
+                        displayPrice != null ? formatPrice(displayPrice) : null,
+                      ]
+                        .filter(Boolean)
+                        .join(' · '),
+                      imageUrl: getServiceImages(service)[0],
+                    }}
+                  />
+                </div>
               </div>
 
               {bio && (

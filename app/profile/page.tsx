@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
@@ -8,8 +8,11 @@ import {
   ArrowUp,
   Car,
   Crown,
+  Eye,
+  Heart,
   LogOut,
   Mail,
+  MessageCircle,
   Trash2,
   ExternalLink,
   Pencil,
@@ -21,7 +24,7 @@ import { useAuth } from '@/context/AuthContext'
 import { useLanguage } from '@/context/LanguageContext'
 import { useCurrency } from '@/context/CurrencyContext'
 import { fetchUserCars } from '@/lib/cars-firestore'
-import { createAndMaybeFulfillPayment } from '@/lib/payments'
+import { createPaymentOrder } from '@/lib/payments'
 import {
   daysUntilExpiry,
   formatListingDate,
@@ -30,9 +33,15 @@ import {
 } from '@/lib/listing-lifecycle'
 import { deleteService, fetchUserServices } from '@/lib/services-firestore'
 import { getDb } from '@/lib/firebase-db'
+import { fetchUserProfile, type UserProfile } from '@/lib/user-profile-firestore'
+import {
+  buildDealerListingStats,
+  type DealerListingStats,
+} from '@/lib/dealer-listing-stats'
 import ProfileSettings from '@/components/profile/ProfileSettings'
 import VipMonetizationPanel from '@/components/VipMonetizationPanel'
 import DealerProfileSettings from '@/components/profile/DealerProfileSettings'
+import DealerStatsPanel from '@/components/profile/DealerStatsPanel'
 import { ProfileRowSkeleton } from '@/components/ui/Skeleton'
 import type { Car as CarType } from '@/components/CarCard'
 import type { Service } from '@/types/service'
@@ -50,6 +59,8 @@ export default function ProfilePage() {
   const [showVipPanel, setShowVipPanel] = useState(false)
   const [bumpingId, setBumpingId] = useState<string | null>(null)
   const [vipCarId, setVipCarId] = useState<string | undefined>()
+  const [profile, setProfile] = useState<UserProfile>({})
+  const [dealerStats, setDealerStats] = useState<DealerListingStats | null>(null)
 
   useEffect(() => {
     if (!loading && configured && !user) {
@@ -68,12 +79,30 @@ export default function ProfilePage() {
 
   useEffect(() => {
     if (!user) return
+    fetchUserProfile(user.uid).then(setProfile).catch(() => setProfile({}))
+  }, [user])
+
+  useEffect(() => {
+    if (!user) return
+    buildDealerListingStats(user.uid, myCars)
+      .then(setDealerStats)
+      .catch(() => setDealerStats(null))
+  }, [user, myCars])
+
+  useEffect(() => {
+    if (!user) return
     setLoadingServices(true)
     fetchUserServices(user.uid)
       .then(setMyServices)
       .catch(() => setMyServices([]))
       .finally(() => setLoadingServices(false))
   }, [user])
+
+  const inquiryByCar = useMemo(() => {
+    const map = new Map<string, number>()
+    dealerStats?.byCar.forEach((row) => map.set(row.carId, row.inquiries))
+    return map
+  }, [dealerStats])
 
   const handleDelete = async (id: string) => {
     if (!confirm(t('profile.deleteConfirm'))) return
@@ -100,17 +129,12 @@ export default function ProfilePage() {
     if (!confirm(t('profile.bumpConfirm'))) return
     setBumpingId(id)
     try {
-      const data = await createAndMaybeFulfillPayment({
+      const data = await createPaymentOrder({
         kind: 'bump',
         carId: id,
         userId: user.uid,
       })
-      if (data.status !== 'paid') throw new Error('bump pending')
-      setMyCars((prev) =>
-        prev.map((c) =>
-          c.id === id ? { ...c, bumpedAt: new Date().toISOString() } : c
-        )
-      )
+      router.push(data.checkoutUrl)
     } catch (err) {
       console.error(err)
       alert(t('profile.bumpError'))
@@ -249,12 +273,27 @@ export default function ProfilePage() {
         <section className="mt-6">
           <VipMonetizationPanel
             carId={vipCarId || myCars[0]?.id}
+            listings={myCars.map((c) => ({
+              id: c.id,
+              label: `${c.year} ${c.brand} ${c.model}`,
+            }))}
             onRenewed={() => {
               if (!user) return
               fetchUserCars(user.uid).then(setMyCars).catch(() => {})
             }}
           />
         </section>
+      )}
+
+      {dealerStats && myCars.length > 0 && (
+        <div className="mt-8">
+          <DealerStatsPanel
+            stats={dealerStats}
+            dealerSlug={profile.dealerSlug}
+            dealerApproved={profile.dealerApproved}
+            dealerName={profile.dealerName}
+          />
+        </div>
       )}
 
       <section className="mt-10">
@@ -290,6 +329,20 @@ export default function ProfilePage() {
                   </p>
                   <p className="text-sm text-primary font-medium">{formatPrice(car.price)}</p>
                   <p className="text-xs text-muted-foreground">{car.location}</p>
+                  <p className="mt-2 flex flex-wrap items-center gap-3 text-xs text-muted-foreground">
+                    <span className="inline-flex items-center gap-1">
+                      <Eye className="h-3.5 w-3.5" />
+                      {car.views ?? 0} {t('car.views')}
+                    </span>
+                    <span className="inline-flex items-center gap-1">
+                      <Heart className="h-3.5 w-3.5" />
+                      {car.favoriteCount ?? 0} {t('dealer.statFavorites')}
+                    </span>
+                    <span className="inline-flex items-center gap-1">
+                      <MessageCircle className="h-3.5 w-3.5" />
+                      {inquiryByCar.get(car.id) ?? 0} {t('dealer.statInquiries')}
+                    </span>
+                  </p>
                   {car.createdAt && (
                     <p className="mt-1 text-xs text-muted-foreground">
                       {t('car.postedDate')}: {formatListingDate(car.createdAt)}

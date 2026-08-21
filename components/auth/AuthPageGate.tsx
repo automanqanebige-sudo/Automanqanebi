@@ -4,6 +4,7 @@ import { Suspense, useEffect, useState, type ReactNode } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { useAuth } from '@/context/AuthContext'
 import { useLanguage } from '@/context/LanguageContext'
+import { takeGoogleRedirectPath } from '@/lib/auth'
 
 export function AuthLoadingScreen() {
   const { t } = useLanguage()
@@ -31,7 +32,8 @@ function AuthPageGateContent({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     if (!mounted || loading || !user) return
-    const redirect = searchParams.get('redirect') || '/profile'
+    const stashed = takeGoogleRedirectPath()
+    const redirect = stashed || searchParams.get('redirect') || '/profile'
     router.replace(redirect.startsWith('/') ? redirect : '/profile')
   }, [mounted, user, loading, router, searchParams])
 

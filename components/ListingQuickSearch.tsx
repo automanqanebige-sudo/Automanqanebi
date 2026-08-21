@@ -1,6 +1,6 @@
 'use client'
 
-import { Search, X, Clock } from 'lucide-react'
+import { Search, Sparkles, X, Clock } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { useLanguage } from '@/context/LanguageContext'
 import type { OfferType } from '@/types/filters'
@@ -47,9 +47,17 @@ export default function ListingQuickSearch({
 
   return (
     <div className="mb-4 space-y-3">
+      <div className="flex items-center gap-2">
+        <span className="inline-flex items-center gap-1.5 rounded-full bg-primary/10 px-2.5 py-1 text-xs font-semibold text-primary">
+          <Sparkles className="h-3.5 w-3.5" />
+          {t('search.aiBadge')}
+        </span>
+        <span className="text-xs text-muted-foreground">{t('search.aiHint')}</span>
+      </div>
+
       <div className="flex flex-col gap-3 sm:flex-row">
         <div className="relative min-w-0 flex-1">
-          <Search className="absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-muted-foreground" />
+          <Sparkles className="absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-primary" />
           <input
             type="search"
             value={search}
@@ -57,8 +65,9 @@ export default function ListingQuickSearch({
             onFocus={() => setShowHistory(true)}
             onBlur={() => setTimeout(() => setShowHistory(false), 150)}
             onKeyDown={(e) => e.key === 'Enter' && handleSubmit()}
-            placeholder={t('search.placeholder')}
-            className="w-full rounded-xl border border-border/80 bg-card/95 py-3.5 pl-12 pr-11 text-base text-foreground shadow-md backdrop-blur-sm placeholder:text-muted-foreground focus:border-transparent focus:outline-none focus:ring-2 focus:ring-primary"
+            placeholder={t('search.aiPlaceholder')}
+            aria-label={t('search.aiLabel')}
+            className="w-full rounded-xl border border-primary/25 bg-card/95 py-3.5 pl-12 pr-11 text-base text-foreground shadow-md backdrop-blur-sm placeholder:text-muted-foreground focus:border-transparent focus:outline-none focus:ring-2 focus:ring-primary"
             autoComplete="off"
           />
           {search && (
@@ -117,8 +126,8 @@ export default function ListingQuickSearch({
           onClick={handleSubmit}
           className="inline-flex shrink-0 items-center justify-center gap-2 rounded-xl bg-primary px-8 py-3.5 text-base font-semibold text-primary-foreground shadow-md transition-all hover:bg-primary/90 hover:shadow-lg active:scale-[0.98]"
         >
-          <Search className="h-5 w-5" />
-          {t('search.button')}
+          <Sparkles className="h-5 w-5" />
+          {t('search.aiButton')}
         </button>
       </div>
 

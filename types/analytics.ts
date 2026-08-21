@@ -8,6 +8,7 @@ export type AnalyticsEventType =
   | 'user_register'
   | 'user_login'
   | 'car_view'
+  | 'listing_share'
 
 export type AnalyticsEvent = {
   id: string
@@ -28,6 +29,12 @@ export type NamedCount = {
   count: number
 }
 
+export type TopViewedCar = {
+  id: string
+  title: string
+  views: number
+}
+
 export type AdminAnalyticsBundle = {
   periodDays: number
   carListings: TimeSeriesPoint[]
@@ -37,8 +44,12 @@ export type AdminAnalyticsBundle = {
   chatActivity: TimeSeriesPoint[]
   favorites: TimeSeriesPoint[]
   registrations: TimeSeriesPoint[]
+  logins: TimeSeriesPoint[]
+  carViews: TimeSeriesPoint[]
+  shares: TimeSeriesPoint[]
   topCarSearches: NamedCount[]
   topServiceSearches: NamedCount[]
+  topViewedCars: TopViewedCar[]
   offerTypeBreakdown: NamedCount[]
   listingTypeBreakdown: NamedCount[]
   serviceCategoryBreakdown: NamedCount[]
@@ -50,6 +61,10 @@ export type AdminAnalyticsBundle = {
     chatMessages: number
     favorites: number
     registrations: number
+    logins: number
+    carViews: number
+    shares: number
     conversations: number
+    totalCarViews: number
   }
 }
