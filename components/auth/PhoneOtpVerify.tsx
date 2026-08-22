@@ -1,12 +1,17 @@
 'use client'
 
 import { useCallback, useEffect, useRef, useState } from 'react'
-import type { ConfirmationResult, RecaptchaVerifier } from 'firebase/auth'
+import type { RecaptchaVerifier } from 'firebase/auth'
 import { useLanguage } from '@/context/LanguageContext'
 import { useAuth } from '@/context/AuthContext'
 import { saveUserProfile } from '@/lib/user-profile-firestore'
 import { isFirebaseConfigured } from '@/lib/firebase'
 import { formatPhoneDisplay, toE164Phone } from '@/lib/phone'
+import {
+  clearPendingPhoneOtp,
+  getPendingPhoneOtp,
+  setPendingPhoneOtp,
+} from '@/lib/phone-otp-session'
 import {
   clearRecaptchaVerifier,
   createRecaptchaVerifier,
@@ -29,18 +34,22 @@ export default function PhoneOtpVerify({
   const { t } = useLanguage()
   const { user } = useAuth()
   const containerRef = useRef<HTMLDivElement>(null)
-  const [phone, setPhone] = useState(defaultPhone ?? '')
+  const pending = typeof window !== 'undefined' ? getPendingPhoneOtp() : null
+  const [phone, setPhone] = useState(
+    () => (pending ? formatPhoneDisplay(pending.e164) : defaultPhone) ?? ''
+  )
   const [code, setCode] = useState('')
-  const [step, setStep] = useState<'phone' | 'code' | 'done'>('phone')
+  const [step, setStep] = useState<'phone' | 'code' | 'done'>(() =>
+    pending ? 'code' : 'phone'
+  )
   const [error, setError] = useState('')
   const [busy, setBusy] = useState(false)
   const [captchaReady, setCaptchaReady] = useState(false)
-  const confirmationRef = useRef<ConfirmationResult | null>(null)
   const verifierRef = useRef<RecaptchaVerifier | null>(null)
 
   useEffect(() => {
-    if (defaultPhone) setPhone(defaultPhone)
-  }, [defaultPhone])
+    if (defaultPhone && step === 'phone') setPhone(defaultPhone)
+  }, [defaultPhone, step])
 
   const destroyVerifier = useCallback(() => {
     clearRecaptchaVerifier(verifierRef.current)
@@ -69,7 +78,6 @@ export default function PhoneOtpVerify({
   const resetCaptcha = useCallback(async () => {
     destroyVerifier()
     if (containerRef.current) containerRef.current.innerHTML = ''
-    // Allow DOM to settle before re-creating widget
     await new Promise((r) => setTimeout(r, 50))
     try {
       await ensureVerifier()
@@ -78,6 +86,13 @@ export default function PhoneOtpVerify({
       setError(t('phoneOtp.recaptchaFailed'))
     }
   }, [destroyVerifier, ensureVerifier, t])
+
+  useEffect(() => {
+    return () => {
+      destroyVerifier()
+      // Do not clear pending OTP session — auth re-renders remount this component
+    }
+  }, [destroyVerifier])
 
   useEffect(() => {
     if (step !== 'phone') return
@@ -100,7 +115,6 @@ export default function PhoneOtpVerify({
     return () => {
       cancelled = true
       destroyVerifier()
-      confirmationRef.current = null
     }
   }, [step, ensureVerifier, destroyVerifier, t])
 
@@ -132,7 +146,7 @@ export default function PhoneOtpVerify({
         ? await linkWithPhoneNumber(user, e164, verifier)
         : await signInWithPhoneNumber(auth, e164, verifier)
 
-      confirmationRef.current = confirmation
+      setPendingPhoneOtp(confirmation, e164)
       setPhone(formatPhoneDisplay(e164))
       setStep('code')
       destroyVerifier()
@@ -146,14 +160,30 @@ export default function PhoneOtpVerify({
   }
 
   const verifyCode = async () => {
-    if (!user || !confirmationRef.current) return
+    if (!user) {
+      setError(t('report.loginRequired'))
+      return
+    }
+    const pendingOtp = getPendingPhoneOtp()
+    if (!pendingOtp) {
+      setError(t('phoneOtp.codeExpired'))
+      setCode('')
+      setStep('phone')
+      return
+    }
+    const otp = code.trim()
+    if (otp.length < 6) {
+      setError(t('phoneOtp.verifyError'))
+      return
+    }
+
     setBusy(true)
     setError('')
     try {
-      await confirmationRef.current.confirm(code.trim())
-      const e164 = toE164Phone(phone)
-      const normalized = e164 ?? phone.trim()
+      await pendingOtp.confirmation.confirm(otp)
+      const normalized = pendingOtp.e164
       await saveUserProfile(user.uid, { phone: normalized, phoneVerified: true })
+      clearPendingPhoneOtp()
       setStep('done')
       onVerified?.(normalized)
     } catch (err) {
@@ -171,8 +201,12 @@ export default function PhoneOtpVerify({
 
   return (
     <div className={`space-y-3 ${compact ? 'mt-2' : 'mt-3'}`}>
-      {!compact && <p className="text-sm text-muted-foreground">{t('phoneOtp.subtitle')}</p>}
-      <p className="text-xs text-muted-foreground">{t('phoneOtp.recaptchaHint')}</p>
+      {!compact && step === 'phone' && (
+        <p className="text-sm text-muted-foreground">{t('phoneOtp.subtitle')}</p>
+      )}
+      {step === 'phone' && (
+        <p className="text-xs text-muted-foreground">{t('phoneOtp.recaptchaHint')}</p>
+      )}
 
       {step === 'phone' ? (
         <>
@@ -223,7 +257,7 @@ export default function PhoneOtpVerify({
           <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap">
             <button
               type="button"
-              disabled={busy || code.trim().length < 4}
+              disabled={busy || code.trim().length < 6}
               onClick={() => void verifyCode()}
               className="w-full rounded-xl bg-primary px-4 py-3 text-sm font-semibold text-primary-foreground hover:bg-primary/90 disabled:opacity-50 sm:w-auto sm:py-2 sm:font-medium"
             >
@@ -233,9 +267,10 @@ export default function PhoneOtpVerify({
               type="button"
               disabled={busy}
               onClick={() => {
-                setStep('phone')
+                clearPendingPhoneOtp()
                 setCode('')
-                confirmationRef.current = null
+                setError('')
+                setStep('phone')
               }}
               className="w-full rounded-xl border border-border px-4 py-3 text-sm font-medium text-foreground hover:bg-secondary disabled:opacity-50 sm:w-auto sm:py-2"
             >

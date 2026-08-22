@@ -1,9 +1,11 @@
-import { collection, doc, getDoc, getDocs, query, where } from 'firebase/firestore/lite'
+import { addDoc, collection, doc, getDoc, getDocs, query, updateDoc, where } from 'firebase/firestore/lite'
 import type { Car } from '@/components/CarCard'
 import { getDb } from '@/lib/firebase-db'
 import { isFirebaseConfigured } from '@/lib/firebase'
 import { docToCar, type FirestoreCarDoc } from '@/lib/cars-mapper'
 import { isListingExpired, isVipListingType, listingSortTime } from '@/lib/listing-lifecycle'
+import type { CarListingPayload } from '@/lib/car-listing'
+import { omitUndefined } from '@/lib/firestore-utils'
 
 function sortCars(cars: Car[]): Car[] {
   return [...cars].sort((a, b) => {
@@ -45,4 +47,29 @@ export async function loadAllCars(): Promise<Car[]> {
   const { mergeCarsWithSample } = await import('@/lib/cars-mapper')
   const firestoreCars = await fetchFirestoreCars()
   return mergeCarsWithSample(firestoreCars)
+}
+
+export async function createCarListing(
+  payload: CarListingPayload,
+  extras: Record<string, unknown>
+): Promise<string> {
+  const cleaned = omitUndefined({
+    ...(payload as Record<string, unknown>),
+    ...extras,
+  })
+  const docRef = await addDoc(collection(getDb(), 'cars'), cleaned)
+  return docRef.id
+}
+
+export async function updateCarListing(
+  carId: string,
+  payload: CarListingPayload,
+  extras?: Record<string, unknown>
+): Promise<void> {
+  const cleaned = omitUndefined({
+    ...(payload as Record<string, unknown>),
+    updatedAt: new Date(),
+    ...extras,
+  })
+  await updateDoc(doc(getDb(), 'cars', carId), cleaned)
 }

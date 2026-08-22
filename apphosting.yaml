@@ -18,7 +18,7 @@ env:
       - BUILD
       - RUNTIME
   - variable: NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN
-    value: "automanqanebi1.firebaseapp.com"
+    value: "automanqanebi.ge"
     availability:
       - BUILD
       - RUNTIME

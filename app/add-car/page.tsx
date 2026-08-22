@@ -1,13 +1,12 @@
 'use client'
 
-import { collection, addDoc } from 'firebase/firestore/lite'
-import { useRouter } from 'next/navigation'
 import RequireAuth from '@/components/RequireAuth'
+import { useRouter } from 'next/navigation'
 import { useAuth } from '@/context/AuthContext'
 import { useLanguage } from '@/context/LanguageContext'
-import { getDb } from '@/lib/firebase-db'
 import CarListingForm from '@/components/CarListingForm'
 import { logAnalyticsEvent } from '@/lib/analytics-firestore'
+import { createCarListing } from '@/lib/cars-firestore'
 
 function AddCarForm() {
   const { t } = useLanguage()
@@ -20,23 +19,23 @@ function AddCarForm() {
       subtitle={t('addCar.subtitle')}
       submitLabel={t('addCar.submit')}
       submittingLabel={t('addCar.submitting')}
-        onSubmit={async (payload) => {
+      onSubmit={async (payload) => {
+        if (!user) throw new Error('auth')
         const { buildListingLifecycleFields } = await import('@/lib/cars-lifecycle-actions')
         const { isVipListingType } = await import('@/lib/listing-lifecycle')
         const lifecycle = buildListingLifecycleFields(payload.listingType)
-        const docRef = await addDoc(collection(getDb(), 'cars'), {
-          ...payload,
-          userId: user?.uid ?? null,
-          userEmail: user?.email ?? null,
+        const carId = await createCarListing(payload, {
+          userId: user.uid,
+          userEmail: user.email ?? null,
           isVip: isVipListingType(payload.listingType),
           ...lifecycle,
         })
         logAnalyticsEvent(
           'listing_car',
           { brand: payload.brand, model: payload.model, offerType: payload.offerType ?? 'sale' },
-          user?.uid
+          user.uid
         )
-        router.push(`/car/${docRef.id}`)
+        router.push(`/car/${carId}`)
       }}
     />
   )

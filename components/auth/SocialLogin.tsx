@@ -1,10 +1,12 @@
 'use client'
 
+import { useEffect } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { Loader2 } from 'lucide-react'
-import { useAuth } from '@/context/AuthContext'
+import { takeGoogleAuthErrorCode, useAuth } from '@/context/AuthContext'
 import { useLanguage } from '@/context/LanguageContext'
 import {
+  authErrorKey,
   getAuthErrorMessage,
   stashGoogleRedirectPath,
 } from '@/lib/auth'
@@ -34,6 +36,11 @@ export default function SocialLogin({
   const searchParams = useSearchParams()
   const redirectTo = searchParams.get('redirect') || '/profile'
   const safeRedirect = redirectTo.startsWith('/') ? redirectTo : '/profile'
+
+  useEffect(() => {
+    const code = takeGoogleAuthErrorCode()
+    if (code) onError(t(authErrorKey(code)))
+  }, [onError, t])
 
   const handleGoogle = async () => {
     onError(null)

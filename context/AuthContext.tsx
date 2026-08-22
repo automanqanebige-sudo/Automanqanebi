@@ -28,6 +28,8 @@ import {
   removeProfilePhoto as authRemoveProfilePhoto,
 } from '@/lib/auth'
 
+const GOOGLE_AUTH_ERROR_KEY = 'am_google_auth_error'
+
 type AuthContextType = {
   user: User | null
   loading: boolean
@@ -66,34 +68,52 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
 
     let cancelled = false
+    let unsubscribe: (() => void) | undefined
 
+    // Await redirect result before attaching auth listener — avoids race on mobile.
     void (async () => {
-      const redirectedUser = await completeGoogleRedirect()
-      if (cancelled || !redirectedUser) return
       try {
-        const { saveUserProfile } = await import('@/lib/user-profile-firestore')
-        const { logAnalyticsEvent } = await import('@/lib/analytics-firestore')
-        await saveUserProfile(redirectedUser.uid, {
-          displayName: redirectedUser.displayName || undefined,
-        }).catch(() => undefined)
-        logAnalyticsEvent(
-          'user_login',
-          { method: 'google', email: redirectedUser.email || undefined },
-          redirectedUser.uid
-        )
-        // Navigation is handled by AuthPageGate via takeGoogleRedirectPath / ?redirect=
-      } catch {
-        /* best-effort post-redirect */
+        const redirectedUser = await completeGoogleRedirect()
+        if (cancelled) return
+        if (redirectedUser) {
+          try {
+            const { saveUserProfile } = await import('@/lib/user-profile-firestore')
+            const { logAnalyticsEvent } = await import('@/lib/analytics-firestore')
+            await saveUserProfile(redirectedUser.uid, {
+              displayName: redirectedUser.displayName || undefined,
+            }).catch(() => undefined)
+            logAnalyticsEvent(
+              'user_login',
+              { method: 'google', email: redirectedUser.email || undefined },
+              redirectedUser.uid
+            )
+          } catch {
+            /* best-effort */
+          }
+        }
+      } catch (err) {
+        console.error('[AuthProvider] Google redirect', err)
+        try {
+          const code =
+            err && typeof err === 'object' && 'code' in err
+              ? String((err as { code: string }).code)
+              : 'auth/redirect-failed'
+          sessionStorage.setItem(GOOGLE_AUTH_ERROR_KEY, code)
+        } catch {
+          /* ignore */
+        }
+      } finally {
+        if (cancelled) return
+        unsubscribe = onAuthStateChanged(getFirebaseAuth(), (nextUser) => {
+          setUser(nextUser)
+          setLoading(false)
+        })
       }
     })()
 
-    const unsubscribe = onAuthStateChanged(getFirebaseAuth(), (nextUser) => {
-      setUser(nextUser)
-      setLoading(false)
-    })
     return () => {
       cancelled = true
-      unsubscribe()
+      unsubscribe?.()
     }
   }, [configured])
 
@@ -167,4 +187,16 @@ export function useAuth() {
     throw new Error('useAuth must be used within AuthProvider')
   }
   return context
+}
+
+/** Read + clear a Google redirect error stashed by AuthProvider. */
+export function takeGoogleAuthErrorCode(): string | null {
+  if (typeof window === 'undefined') return null
+  try {
+    const code = sessionStorage.getItem(GOOGLE_AUTH_ERROR_KEY)
+    if (code) sessionStorage.removeItem(GOOGLE_AUTH_ERROR_KEY)
+    return code
+  } catch {
+    return null
+  }
 }

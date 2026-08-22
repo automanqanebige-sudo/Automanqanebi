@@ -21,6 +21,7 @@ import CurrencyToggle, { type PriceCurrency } from '@/components/CurrencyToggle'
 import PhoneOtpVerify from '@/components/auth/PhoneOtpVerify'
 import { fetchUserProfile } from '@/lib/user-profile-firestore'
 import { isFirebaseConfigured } from '@/lib/firebase'
+import { formatPhoneDisplay } from '@/lib/phone'
 
 function inputClass() {
   return 'w-full rounded-lg border border-input bg-background px-3 py-2.5 text-foreground outline-none transition-all focus:ring-2 focus:ring-primary'
@@ -102,7 +103,14 @@ export default function CarListingForm({
     let cancelled = false
     fetchUserProfile(user.uid)
       .then((p) => {
-        if (!cancelled) setPhoneVerified(Boolean(p.phoneVerified))
+        if (cancelled) return
+        setPhoneVerified(Boolean(p.phoneVerified))
+        if (p.phone) {
+          setValues((prev) => ({
+            ...prev,
+            phone: prev.phone.trim() ? prev.phone : formatPhoneDisplay(p.phone!),
+          }))
+        }
       })
       .finally(() => {
         if (!cancelled) setCheckingPhone(false)
@@ -266,11 +274,15 @@ export default function CarListingForm({
       )
     } catch (err) {
       console.error(err)
-      const msg = err instanceof Error && err.message === 'invalidType'
-        ? t('upload.errorType')
-        : err instanceof Error && err.message === 'tooLarge'
-          ? t('upload.errorSize')
-          : t('addCar.errorSubmit')
+      const code = (err as { code?: string } | null)?.code
+      const msg =
+        err instanceof Error && err.message === 'invalidType'
+          ? t('upload.errorType')
+          : err instanceof Error && err.message === 'tooLarge'
+            ? t('upload.errorSize')
+            : code === 'permission-denied'
+              ? t('addCar.errorSubmit')
+              : t('addCar.errorSubmit')
       setError(msg)
     } finally {
       setUploading(false)
@@ -551,7 +563,14 @@ export default function CarListingForm({
                     <p className="mt-1 text-xs text-muted-foreground">
                       {t('addCar.phoneVerifyRequired')}
                     </p>
-                    <PhoneOtpVerify compact onVerified={() => setPhoneVerified(true)} />
+                    <PhoneOtpVerify
+                      compact
+                      defaultPhone={values.phone}
+                      onVerified={(verifiedPhone) => {
+                        setPhoneVerified(true)
+                        patch({ phone: formatPhoneDisplay(verifiedPhone) })
+                      }}
+                    />
                   </>
                 )}
               </div>

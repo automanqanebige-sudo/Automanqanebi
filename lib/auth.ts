@@ -59,35 +59,89 @@ const POPUP_FALLBACK_CODES = new Set([
   'auth/web-storage-unsupported',
   'auth/network-request-failed',
   'auth/internal-error',
+  'auth/argument-error',
 ])
 
 function shouldPreferGoogleRedirect(): boolean {
   if (typeof window === 'undefined') return true
   const ua = navigator.userAgent || ''
   const isIOS = /iPad|iPhone|iPod/.test(ua)
-  const isInApp = /FBAN|FBAV|Instagram|Line\/|TikTok|Snapchat/i.test(ua)
-  const isSafari = /Safari/i.test(ua) && !/Chrome|CriOS|Edg|OPR|Firefox/i.test(ua)
-  return isIOS || isInApp || isSafari
+  const isAndroid = /Android/i.test(ua)
+  const isMobile =
+    isIOS ||
+    isAndroid ||
+    /Mobile/i.test(ua) ||
+    (navigator.maxTouchPoints > 1 && /Macintosh/i.test(ua))
+  const isInApp =
+    /FBAN|FBAV|Instagram|Line\/|TikTok|Snapchat|WhatsApp|Telegram|MicroMessenger/i.test(
+      ua
+    )
+  const isSafari = /Safari/i.test(ua) && !/Chrome|CriOS|Edg|OPR|Firefox|Chromium/i.test(ua)
+  const coarse = Boolean(window.matchMedia?.('(pointer: coarse)')?.matches)
+  // Redirect is more reliable than popup on phones and storage-partitioned browsers.
+  return isMobile || isInApp || isSafari || coarse
 }
 
-export function stashGoogleRedirectPath(path: string): void {
-  if (typeof window === 'undefined') return
+function writeGoogleRedirectPath(path: string): void {
+  const safe = path.startsWith('/') ? path : '/profile'
+  // localStorage survives OAuth redirects better than sessionStorage on mobile.
   try {
-    sessionStorage.setItem(GOOGLE_REDIRECT_PATH_KEY, path.startsWith('/') ? path : '/profile')
+    localStorage.setItem(GOOGLE_REDIRECT_PATH_KEY, safe)
+  } catch {
+    /* ignore */
+  }
+  try {
+    sessionStorage.setItem(GOOGLE_REDIRECT_PATH_KEY, safe)
   } catch {
     /* ignore */
   }
 }
 
+function readGoogleRedirectPath(): string | null {
+  let path: string | null = null
+  try {
+    path = sessionStorage.getItem(GOOGLE_REDIRECT_PATH_KEY)
+  } catch {
+    /* ignore */
+  }
+  if (!path) {
+    try {
+      path = localStorage.getItem(GOOGLE_REDIRECT_PATH_KEY)
+    } catch {
+      /* ignore */
+    }
+  }
+  return path && path.startsWith('/') ? path : null
+}
+
+function clearGoogleRedirectPath(): void {
+  try {
+    sessionStorage.removeItem(GOOGLE_REDIRECT_PATH_KEY)
+  } catch {
+    /* ignore */
+  }
+  try {
+    localStorage.removeItem(GOOGLE_REDIRECT_PATH_KEY)
+  } catch {
+    /* ignore */
+  }
+}
+
+export function stashGoogleRedirectPath(path: string): void {
+  if (typeof window === 'undefined') return
+  writeGoogleRedirectPath(path)
+}
+
+export function peekGoogleRedirectPath(): string | null {
+  if (typeof window === 'undefined') return null
+  return readGoogleRedirectPath()
+}
+
 export function takeGoogleRedirectPath(): string | null {
   if (typeof window === 'undefined') return null
-  try {
-    const path = sessionStorage.getItem(GOOGLE_REDIRECT_PATH_KEY)
-    sessionStorage.removeItem(GOOGLE_REDIRECT_PATH_KEY)
-    return path && path.startsWith('/') ? path : null
-  } catch {
-    return null
-  }
+  const path = readGoogleRedirectPath()
+  clearGoogleRedirectPath()
+  return path
 }
 
 function googleProvider() {
@@ -135,8 +189,9 @@ export async function completeGoogleRedirect(): Promise<User | null> {
   try {
     const result = await getRedirectResult(getFirebaseAuth(), browserPopupRedirectResolver)
     return result?.user ?? null
-  } catch {
-    return null
+  } catch (err) {
+    console.error('[auth] getRedirectResult', err)
+    throw err
   }
 }
 

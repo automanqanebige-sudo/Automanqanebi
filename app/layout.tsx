@@ -10,6 +10,7 @@ import { SiteSettingsProvider } from '../context/SiteSettingsContext'
 import { FavoritesProvider } from '../context/FavoritesContext'
 import { CompareProvider } from '../context/CompareContext'
 import { AuthProvider } from '../context/AuthContext'
+import GoogleAuthRedirectHandler from '../components/auth/GoogleAuthRedirectHandler'
 import MaintenanceBanner from '../components/MaintenanceBanner'
 import { SiteBannersProvider } from '../context/SiteBannersContext'
 import { SiteBannerGlobalStrip } from '../components/SiteBannerSlot'
@@ -71,6 +72,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <body className="flex min-h-screen flex-col font-sans antialiased">
         <LanguageProvider>
           <AuthProvider>
+            <GoogleAuthRedirectHandler />
             <CurrencyProvider>
               <SiteSettingsProvider>
                 <SiteBannersProvider>

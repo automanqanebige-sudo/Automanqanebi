@@ -1,5 +1,9 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  // Avoid Windows rename races (Desktop/AV) during static export finalize
+  experimental: {
+    cpus: 1,
+  },
   images: {
     remotePatterns: [
       {
@@ -19,6 +23,17 @@ const nextConfig = {
         hostname: 'firebasestorage.googleapis.com',
       },
     ],
+  },
+  // Proxy Firebase Auth helpers onto the app origin (redirect / Safari / Chrome).
+  async rewrites() {
+    return {
+      beforeFiles: [
+        {
+          source: '/__/auth/:path*',
+          destination: 'https://automanqanebi1.firebaseapp.com/__/auth/:path*',
+        },
+      ],
+    }
   },
 };
 

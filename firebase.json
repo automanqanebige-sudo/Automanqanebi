@@ -31,9 +31,16 @@
         "supportEmail": "info@automanqanebi.ge",
         "authorizedRedirectUris": [
           "http://localhost",
+          "http://localhost:3000",
+          "http://127.0.0.1:3000",
           "https://automanqanebi.ge",
+          "https://automanqanebi.ge/__/auth/handler",
+          "https://www.automanqanebi.ge",
+          "https://www.automanqanebi.ge/__/auth/handler",
           "https://automanqanebi1.web.app",
-          "https://automanqanebi1.firebaseapp.com"
+          "https://automanqanebi1.web.app/__/auth/handler",
+          "https://automanqanebi1.firebaseapp.com",
+          "https://automanqanebi1.firebaseapp.com/__/auth/handler"
         ]
       },
       "phoneNumber": true
@@ -41,6 +48,7 @@
     "authorizedDomains": [
       "localhost",
       "automanqanebi.ge",
+      "www.automanqanebi.ge",
       "automanqanebi1.web.app",
       "automanqanebi1.firebaseapp.com"
     ]

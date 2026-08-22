@@ -8,6 +8,7 @@ import {
 import {
   type Auth,
   browserLocalPersistence,
+  browserPopupRedirectResolver,
   getAuth,
   indexedDBLocalPersistence,
   initializeAuth,
@@ -19,16 +20,38 @@ function envValue(primary: string | undefined, fallback?: string): string {
   return v
 }
 
+/**
+ * Same-origin authDomain prevents Google redirect/popup breakage on browsers
+ * that block third-party storage (Chrome/Safari/Firefox). On production host,
+ * always use automanqanebi.ge — not *.firebaseapp.com.
+ */
+export function resolveAuthDomain(configured: string): string {
+  if (typeof window !== 'undefined') {
+    const host = window.location.hostname
+    if (host === 'automanqanebi.ge' || host === 'www.automanqanebi.ge') {
+      return host
+    }
+  }
+  if (
+    process.env.NODE_ENV === 'production' &&
+    (!configured || configured.endsWith('.firebaseapp.com'))
+  ) {
+    return 'automanqanebi.ge'
+  }
+  return configured
+}
+
 export function readFirebaseOptions(): FirebaseOptions {
+  const configuredAuthDomain = envValue(
+    process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN,
+    process.env.FIREBASE_AUTH_DOMAIN
+  )
   const options: FirebaseOptions = {
     apiKey: envValue(
       process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
       process.env.FIREBASE_API_KEY
     ),
-    authDomain: envValue(
-      process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN,
-      process.env.FIREBASE_AUTH_DOMAIN
-    ),
+    authDomain: resolveAuthDomain(configuredAuthDomain),
     projectId: envValue(
       process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID,
       process.env.FIREBASE_PROJECT_ID
@@ -95,11 +118,13 @@ export function getFirebaseAuth(): Auth {
 
   const app = getFirebaseApp()
 
-  // Browser: durable persistence helps Google popup/redirect survive reloads.
+  // Persistence + popupRedirectResolver required for Google on custom domains
+  // (Safari/mobile block third-party storage across firebaseapp.com otherwise).
   if (typeof window !== 'undefined') {
     try {
       authInstance = initializeAuth(app, {
         persistence: [indexedDBLocalPersistence, browserLocalPersistence],
+        popupRedirectResolver: browserPopupRedirectResolver,
       })
     } catch {
       // Already initialized (HMR / second call) — reuse.

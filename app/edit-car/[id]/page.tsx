@@ -3,14 +3,12 @@
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import { doc, updateDoc } from 'firebase/firestore/lite'
 import { ArrowLeft } from 'lucide-react'
 import RequireAuth from '@/components/RequireAuth'
 import CarListingForm from '@/components/CarListingForm'
 import { useAuth } from '@/context/AuthContext'
 import { useLanguage } from '@/context/LanguageContext'
-import { getDb } from '@/lib/firebase-db'
-import { fetchFirestoreCarById } from '@/lib/cars-firestore'
+import { fetchFirestoreCarById, updateCarListing } from '@/lib/cars-firestore'
 import { carToFormValues } from '@/lib/car-listing'
 import type { CarListingFormValues } from '@/lib/car-listing'
 
@@ -93,10 +91,7 @@ function EditCarForm({ id }: { id: string }) {
         submittingLabel={t('editCar.saving')}
         initialValues={initialValues}
         onSubmit={async (payload) => {
-          await updateDoc(doc(getDb(), 'cars', id), {
-            ...payload,
-            updatedAt: new Date(),
-          })
+          await updateCarListing(id, payload)
           router.push(`/car/${id}`)
         }}
       />
