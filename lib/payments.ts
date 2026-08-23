@@ -119,6 +119,7 @@ export async function fetchPaymentOrder(orderId: string): Promise<PaymentOrder |
 
 /**
  * Owner confirms stub payment on checkout page (uses their Firestore auth).
+ * Real providers must fulfill only via signed webhook — never from the browser.
  */
 export async function confirmOwnPayment(
   orderId: string,
@@ -128,6 +129,9 @@ export async function confirmOwnPayment(
   if (!order) return null
   if (order.userId !== userId) throw new Error('not-owner')
   if (order.status === 'paid') return order
+  if (paymentsProvider() !== 'stub' && order.provider !== 'stub') {
+    throw new Error('stub-only-client-fulfill')
+  }
   return fulfillPaymentOrder(orderId)
 }
 

@@ -109,8 +109,39 @@ function ChatContent() {
     if (!activeId) return
 
     loadMessages(activeId)
-    const timer = setInterval(() => loadMessages(activeId), 4000)
-    return () => clearInterval(timer)
+
+    const pollMs = 12000
+    let timer: ReturnType<typeof setInterval> | null = null
+
+    const start = () => {
+      if (timer) return
+      timer = setInterval(() => {
+        if (typeof document !== 'undefined' && document.visibilityState === 'hidden') return
+        void loadMessages(activeId)
+      }, pollMs)
+    }
+    const stop = () => {
+      if (timer) {
+        clearInterval(timer)
+        timer = null
+      }
+    }
+
+    const onVisibility = () => {
+      if (document.visibilityState === 'visible') {
+        void loadMessages(activeId)
+        start()
+      } else {
+        stop()
+      }
+    }
+
+    start()
+    document.addEventListener('visibilitychange', onVisibility)
+    return () => {
+      stop()
+      document.removeEventListener('visibilitychange', onVisibility)
+    }
   }, [activeId, loadMessages])
 
   const activeConversation = useMemo(

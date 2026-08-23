@@ -230,5 +230,6 @@ export const sampleCars: Car[] = [
 ]
 
 export function getCarById(id: string): Car | undefined {
-  return sampleCars.find((car) => car.id === id)
+  const car = sampleCars.find((c) => c.id === id)
+  return car ? { ...car, isTest: true } : undefined
 }

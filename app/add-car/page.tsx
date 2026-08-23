@@ -22,12 +22,11 @@ function AddCarForm() {
       onSubmit={async (payload) => {
         if (!user) throw new Error('auth')
         const { buildListingLifecycleFields } = await import('@/lib/cars-lifecycle-actions')
-        const { isVipListingType } = await import('@/lib/listing-lifecycle')
-        const lifecycle = buildListingLifecycleFields(payload.listingType)
+        // VIP is granted only after paid fulfill — create always starts as standard.
+        const lifecycle = buildListingLifecycleFields('standard')
         const carId = await createCarListing(payload, {
           userId: user.uid,
           userEmail: user.email ?? null,
-          isVip: isVipListingType(payload.listingType),
           ...lifecycle,
         })
         logAnalyticsEvent(

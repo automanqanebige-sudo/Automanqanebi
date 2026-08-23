@@ -1,26 +1,74 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { doc, getDoc } from 'firebase/firestore/lite'
 import { getDb } from '@/lib/firebase-db'
-import { isFirebaseConfigured } from '@/lib/firebase'
+import { isFirebaseConfigured, readFirebaseOptions } from '@/lib/firebase'
+
+async function verifyFirebaseIdToken(
+  idToken: string
+): Promise<{ uid: string } | null> {
+  const apiKey = readFirebaseOptions().apiKey
+  if (!apiKey || !idToken) return null
+  try {
+    const res = await fetch(
+      `https://identitytoolkit.googleapis.com/v1/accounts:lookup?key=${apiKey}`,
+      {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ idToken }),
+        signal: AbortSignal.timeout(8000),
+      }
+    )
+    if (!res.ok) return null
+    const data = (await res.json()) as { users?: { localId?: string }[] }
+    const uid = data.users?.[0]?.localId
+    return uid ? { uid } : null
+  } catch {
+    return null
+  }
+}
 
 /**
  * Send FCM web push to a user's stored fcmToken.
- * Requires FCM_SERVER_KEY (legacy HTTP). Optional until key is set.
+ * Requires Firebase ID token of a conversation participant.
  */
 export async function POST(req: NextRequest) {
   if (!isFirebaseConfigured()) {
     return NextResponse.json({ error: 'Firebase not configured' }, { status: 503 })
   }
 
+  const authHeader = req.headers.get('authorization') || ''
+  const idToken = authHeader.startsWith('Bearer ') ? authHeader.slice(7).trim() : ''
+  const verified = await verifyFirebaseIdToken(idToken)
+  if (!verified) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  }
+
   const body = (await req.json().catch(() => null)) as {
     recipientId?: string
+    conversationId?: string
     title?: string
     text?: string
     url?: string
   } | null
 
-  if (!body?.recipientId || !body?.title) {
-    return NextResponse.json({ error: 'recipientId and title required' }, { status: 400 })
+  if (!body?.recipientId || !body?.title || !body?.conversationId) {
+    return NextResponse.json(
+      { error: 'recipientId, conversationId and title required' },
+      { status: 400 }
+    )
+  }
+
+  if (body.recipientId === verified.uid) {
+    return NextResponse.json({ ok: true, skipped: true, reason: 'self' })
+  }
+
+  const convSnap = await getDoc(doc(getDb(), 'conversations', body.conversationId))
+  if (!convSnap.exists()) {
+    return NextResponse.json({ error: 'conversation not found' }, { status: 404 })
+  }
+  const participants = (convSnap.data()?.participants as string[]) || []
+  if (!participants.includes(verified.uid) || !participants.includes(body.recipientId)) {
+    return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
   }
 
   const snap = await getDoc(doc(getDb(), 'users', body.recipientId))
@@ -47,8 +95,8 @@ export async function POST(req: NextRequest) {
     body: JSON.stringify({
       to: token,
       notification: {
-        title: body.title,
-        body: body.text || '',
+        title: String(body.title).slice(0, 120),
+        body: String(body.text || '').slice(0, 200),
         icon: '/icon-192.png',
       },
       data: {
@@ -58,6 +106,7 @@ export async function POST(req: NextRequest) {
         fcm_options: { link: body.url || '/chat' },
       },
     }),
+    signal: AbortSignal.timeout(8000),
   })
 
   if (!res.ok) {

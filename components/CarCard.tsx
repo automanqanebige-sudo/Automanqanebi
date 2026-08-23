@@ -3,12 +3,13 @@
 import { useState } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
-import { Heart, MapPin, Gauge, Fuel, Crown, Eye, Calendar, Columns2 } from 'lucide-react'
+import { Heart, MapPin, Gauge, Fuel, Crown, Eye, Calendar, Columns2, BadgeCheck, FlaskConical } from 'lucide-react'
 import { useLanguage } from '@/context/LanguageContext'
 import { useCurrency } from '@/context/CurrencyContext'
 import { useFavorites } from '@/context/FavoritesContext'
 import { useCompare } from '@/context/CompareContext'
 import { formatListingDate } from '@/lib/listing-lifecycle'
+import { isTestListing, isVerifiedListing } from '@/lib/listing-trust'
 
 export type Car = {
   id: string
@@ -51,6 +52,9 @@ export type Car = {
   contactWhatsApp?: boolean
   contactViber?: boolean
   userId?: string
+  userEmail?: string
+  /** Admin/demo/sample listing — shown as სატესტო */
+  isTest?: boolean
   createdAt?: string
   updatedAt?: string
   expiresAt?: string
@@ -127,6 +131,27 @@ export default function CarCard({ car, onFavoriteToggle }: CarCardProps) {
               <span>VIP</span>
             </div>
           )}
+
+          {/* Test vs verified seller listing */}
+          {isTestListing(car) ? (
+            <div
+              className={`absolute left-3 flex items-center gap-1 rounded-md bg-amber-700/95 px-2 py-1 text-[11px] font-semibold text-white shadow-md ${
+                car.isVip ? 'top-12' : 'top-3'
+              }`}
+            >
+              <FlaskConical className="h-3 w-3" />
+              <span>{t('car.badge.test')}</span>
+            </div>
+          ) : isVerifiedListing(car) ? (
+            <div
+              className={`absolute left-3 flex items-center gap-1 rounded-md bg-emerald-700/95 px-2 py-1 text-[11px] font-semibold text-white shadow-md ${
+                car.isVip ? 'top-12' : 'top-3'
+              }`}
+            >
+              <BadgeCheck className="h-3 w-3" />
+              <span>{t('car.badge.verified')}</span>
+            </div>
+          ) : null}
 
           {/* Favorite + Compare */}
           <div className="absolute top-3 right-3 flex flex-col gap-2">

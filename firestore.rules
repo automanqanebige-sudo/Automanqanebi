@@ -33,10 +33,21 @@ service cloud.firestore {
         );
     }
 
+    function isVipListingType(t) {
+      return t in ['vip', 'vip_plus', 'super_vip', 'silver', 'gold', 'platinum'];
+    }
+
+    /** New listings cannot self-assign VIP — only payment fulfill / admin may upgrade. */
+    function isSafeNewCar() {
+      return request.resource.data.userId == request.auth.uid
+        && request.resource.data.get('isVip', false) == false
+        && !isVipListingType(request.resource.data.get('listingType', 'standard'))
+        && !('vipExpiresAt' in request.resource.data.keys());
+    }
+
     match /cars/{carId} {
       allow read: if true;
-      allow create: if request.auth != null
-        && request.resource.data.userId == request.auth.uid;
+      allow create: if request.auth != null && isSafeNewCar();
       allow update: if onlyViewsIncrement()
         || onlyFavoriteCountChange()
         || (request.auth != null
@@ -64,10 +75,19 @@ service cloud.firestore {
     }
 
     match /users/{userId} {
+      // Public read kept for dealer pages / chat display names; sensitive fields
+      // (fcmToken, phone) should not be written for others — clients must not rely on secrecy.
       allow read: if true;
-      allow create: if request.auth != null && request.auth.uid == userId;
-      allow update: if request.auth != null
-        && (request.auth.uid == userId || isAdmin());
+      allow create: if request.auth != null && request.auth.uid == userId
+        && request.resource.data.get('dealerApproved', false) == false;
+      // Users may request dealer role; only admin may flip dealerApproved or grant other roles.
+      allow update: if isAdmin()
+        || (request.auth != null
+          && request.auth.uid == userId
+          && request.resource.data.get('dealerApproved', false)
+            == resource.data.get('dealerApproved', false)
+          && request.resource.data.get('role', 'user') in ['user', 'dealer']
+          && resource.data.get('role', 'user') in ['user', 'dealer']);
       allow delete: if false;
     }
 
@@ -77,7 +97,6 @@ service cloud.firestore {
 
     match /users/{userId}/notifications/{notifId} {
       allow read, update: if request.auth != null && request.auth.uid == userId;
-      // Any signed-in user may create a notification for another user (chat, VIP, etc.)
       allow create: if request.auth != null
         && request.resource.data.keys().hasAll(['title', 'body', 'createdAt', 'read'])
         && request.resource.data.title is string
@@ -94,9 +113,19 @@ service cloud.firestore {
       allow read: if request.auth != null
         && (resource.data.userId == request.auth.uid || isAdmin());
       allow create: if request.auth != null
-        && request.resource.data.userId == request.auth.uid;
+        && request.resource.data.userId == request.auth.uid
+        && request.resource.data.status == 'pending';
+      // Stub checkout may mark paid; real bank fulfill must use webhook + secret (Admin/server).
       allow update: if isAdmin()
-        || (request.auth != null && resource.data.userId == request.auth.uid);
+        || (request.auth != null
+          && resource.data.userId == request.auth.uid
+          && resource.data.status == 'pending'
+          && resource.data.provider == 'stub'
+          && request.resource.data.status == 'paid'
+          && request.resource.data.userId == resource.data.userId
+          && request.resource.data.kind == resource.data.kind
+          && request.resource.data.carId == resource.data.carId
+          && request.resource.data.amountGel == resource.data.amountGel);
       allow delete: if false;
     }
 
@@ -112,7 +141,10 @@ service cloud.firestore {
           && request.auth.uid in get(/databases/$(database)/documents/conversations/$(convId)).data.participants;
         allow create: if request.auth != null
           && request.auth.uid == request.resource.data.senderId
-          && request.auth.uid in get(/databases/$(database)/documents/conversations/$(convId)).data.participants;
+          && request.auth.uid in get(/databases/$(database)/documents/conversations/$(convId)).data.participants
+          && request.resource.data.text is string
+          && request.resource.data.text.size() > 0
+          && request.resource.data.text.size() <= 4000;
       }
     }
 
@@ -123,6 +155,7 @@ service cloud.firestore {
 
     match /analyticsEvents/{eventId} {
       allow create: if request.resource.data.type is string
+        && request.resource.data.type.size() <= 64
         && request.resource.data.createdAt is string;
       allow read: if isAdmin();
       allow update, delete: if false;
@@ -135,7 +168,8 @@ service cloud.firestore {
 
     match /reports/{reportId} {
       allow create: if request.resource.data.listingId is string
-        && request.resource.data.reason is string;
+        && request.resource.data.reason is string
+        && request.resource.data.reason.size() <= 500;
       allow read, update, delete: if isAdmin();
     }
 

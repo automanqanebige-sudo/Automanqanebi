@@ -49,6 +49,7 @@ export default function SocialLogin({
       return
     }
 
+    // Sync work only before signInWithPopup (browser gesture / popup blocker).
     onLoadingChange(true)
     stashGoogleRedirectPath(safeRedirect)
 

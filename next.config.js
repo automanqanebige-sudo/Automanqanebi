@@ -1,10 +1,9 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  // Avoid Windows rename races (Desktop/AV) during static export finalize
-  experimental: {
-    cpus: 1,
-  },
   images: {
+    // Firebase Hosting Image Optimization fails for Storage URLs (/_next/image → 500).
+    // Serve remote images directly so listing photos display.
+    unoptimized: true,
     remotePatterns: [
       {
         protocol: 'https',
@@ -22,7 +21,29 @@ const nextConfig = {
         protocol: 'https',
         hostname: 'firebasestorage.googleapis.com',
       },
+      {
+        protocol: 'https',
+        hostname: 'storage.googleapis.com',
+      },
+      {
+        protocol: 'https',
+        hostname: 'automanqanebi1.firebasestorage.app',
+      },
     ],
+  },
+  // Required for Google signInWithPopup (keeps window.opener link alive).
+  async headers() {
+    return [
+      {
+        source: '/:path*',
+        headers: [
+          {
+            key: 'Cross-Origin-Opener-Policy',
+            value: 'same-origin-allow-popups',
+          },
+        ],
+      },
+    ]
   },
   // Proxy Firebase Auth helpers onto the app origin (redirect / Safari / Chrome).
   async rewrites() {

@@ -12,7 +12,19 @@ import {
   type CarListingFormValues,
   formValuesToPayload,
 } from '@/lib/car-listing'
-import { CAR_FEATURES } from '@/types/filters'
+import { CAR_FEATURES, CAR_COLORS, COLOR_EMOJI, CUSTOMS_STATUSES, IMPORT_REGIONS } from '@/types/filters'
+import FilterChipGroup from '@/components/FilterChipGroup'
+import {
+  BODY_EMOJI,
+  CATEGORY_EMOJI,
+  CUSTOMS_EMOJI,
+  DRIVE_EMOJI,
+  FUEL_EMOJI,
+  FEATURE_EMOJI,
+  IMPORT_EMOJI,
+  STEERING_EMOJI,
+  TRANSMISSION_EMOJI,
+} from '@/lib/filter-emojis'
 import { uploadCarImages } from '@/lib/upload-car-image'
 import CarImagesUpload, { urlsToSlots, type ImageSlot } from '@/components/CarImagesUpload'
 import { UploadingOverlay } from '@/components/CarImageUpload'
@@ -26,6 +38,78 @@ import { formatPhoneDisplay } from '@/lib/phone'
 function inputClass() {
   return 'w-full rounded-lg border border-input bg-background px-3 py-2.5 text-foreground outline-none transition-all focus:ring-2 focus:ring-primary'
 }
+
+function SectionTitle({ icon, children }: { icon: string; children: React.ReactNode }) {
+  return (
+    <h2 className="flex items-center gap-2 border-b border-border pb-2 text-sm font-semibold text-foreground">
+      <span aria-hidden>{icon}</span>
+      {children}
+    </h2>
+  )
+}
+
+function SelectField({
+  label,
+  value,
+  onChange,
+  disabled,
+  children,
+}: {
+  label: string
+  value: string
+  onChange: (value: string) => void
+  disabled?: boolean
+  children: React.ReactNode
+}) {
+  return (
+    <div>
+      <label className="mb-1.5 block text-xs font-medium text-muted-foreground">{label}</label>
+      <select
+        className={inputClass()}
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        disabled={disabled}
+      >
+        {children}
+      </select>
+    </div>
+  )
+}
+
+function ChipField({
+  label,
+  value,
+  onChange,
+  disabled,
+  options,
+}: {
+  label: string
+  value: string
+  onChange: (value: string) => void
+  disabled?: boolean
+  options: { value: string; label: string; emoji?: string }[]
+}) {
+  return (
+    <div className={disabled ? 'pointer-events-none opacity-60' : undefined}>
+      <label className="mb-2 block text-xs font-semibold text-foreground">{label}</label>
+      <FilterChipGroup options={options} value={value} onChange={onChange} rounded="lg" />
+    </div>
+  )
+}
+
+const BODY_TYPES = [
+  'sedan',
+  'suv',
+  'hatchback',
+  'coupe',
+  'wagon',
+  'pickup',
+  'van',
+  'special_tech',
+] as const
+
+const CYLINDER_OPTIONS = ['3', '4', '5', '6', '8', '10', '12']
+const DOOR_OPTIONS = ['2', '3', '4', '5']
 
 const emptyValues: CarListingFormValues = {
   brand: '',
@@ -86,7 +170,6 @@ export default function CarListingForm({
   const [loadingAI, setLoadingAI] = useState(false)
   const [uploading, setUploading] = useState(false)
   const [submitting, setSubmitting] = useState(false)
-  const [showAdvanced, setShowAdvanced] = useState(false)
   const [error, setError] = useState('')
   const [vin, setVin] = useState('')
   const [vinLoading, setVinLoading] = useState(false)
@@ -292,8 +375,84 @@ export default function CarListingForm({
 
   const busy = submitting || uploading
 
+  const categoryOptions = [
+    { value: 'car', label: t('filter.category.car'), emoji: CATEGORY_EMOJI.car },
+    { value: 'suv', label: t('filter.category.suv'), emoji: CATEGORY_EMOJI.suv },
+    { value: 'van', label: t('filter.category.van'), emoji: CATEGORY_EMOJI.van },
+    { value: 'truck', label: t('filter.category.truck'), emoji: CATEGORY_EMOJI.truck },
+    { value: 'motorcycle', label: t('filter.category.motorcycle'), emoji: CATEGORY_EMOJI.motorcycle },
+  ]
+
+  const bodyOptions = [
+    { value: '', label: t('search.any'), emoji: '🌐' },
+    ...BODY_TYPES.map((body) => ({
+      value: body,
+      label: t(`filter.body.${body}`),
+      emoji: BODY_EMOJI[body],
+    })),
+  ]
+
+  const fuelOptions = [
+    { value: 'petrol', label: t('fuel.Petrol'), emoji: FUEL_EMOJI.petrol },
+    { value: 'diesel', label: t('fuel.Diesel'), emoji: FUEL_EMOJI.diesel },
+    { value: 'hybrid', label: t('fuel.Hybrid'), emoji: FUEL_EMOJI.hybrid },
+    { value: 'electric', label: t('fuel.Electric'), emoji: FUEL_EMOJI.electric },
+    { value: 'lpg', label: t('fuel.LPG'), emoji: FUEL_EMOJI.lpg },
+  ]
+
+  const transmissionOptions = [
+    { value: 'automatic', label: t('transmission.Automatic'), emoji: TRANSMISSION_EMOJI.automatic },
+    { value: 'manual', label: t('transmission.Manual'), emoji: TRANSMISSION_EMOJI.manual },
+    {
+      value: 'semi-automatic',
+      label: t('transmission.Semi-Automatic'),
+      emoji: TRANSMISSION_EMOJI['semi-automatic'],
+    },
+  ]
+
+  const driveOptions = [
+    { value: '', label: t('search.any'), emoji: '🛞' },
+    { value: 'fwd', label: t('filter.drive.fwd'), emoji: DRIVE_EMOJI.fwd },
+    { value: 'rwd', label: t('filter.drive.rwd'), emoji: DRIVE_EMOJI.rwd },
+    { value: 'awd', label: t('filter.drive.awd'), emoji: DRIVE_EMOJI.awd },
+    { value: '4wd', label: t('filter.drive.4wd'), emoji: DRIVE_EMOJI['4wd'] },
+  ]
+
+  const steeringOptions = [
+    { value: '', label: t('search.any'), emoji: '🎯' },
+    { value: 'left', label: t('filter.steering.left'), emoji: STEERING_EMOJI.left },
+    { value: 'right', label: t('filter.steering.right'), emoji: STEERING_EMOJI.right },
+  ]
+
+  const importOptions = [
+    { value: '', label: t('search.any'), emoji: IMPORT_EMOJI[''] },
+    ...IMPORT_REGIONS.filter(Boolean).map((region) => ({
+      value: region,
+      label: t(`filter.import.${region}`),
+      emoji: IMPORT_EMOJI[region],
+    })),
+  ]
+
+  const customsOptions = [
+    { value: '', label: t('search.any'), emoji: CUSTOMS_EMOJI[''] },
+    ...CUSTOMS_STATUSES.filter(Boolean).map((status) => ({
+      value: status,
+      label: t(`filter.customs.${status}`),
+      emoji: CUSTOMS_EMOJI[status],
+    })),
+  ]
+
+  const colorOptions = [
+    { value: '', label: t('filter.color.all'), emoji: '🌈' },
+    ...CAR_COLORS.filter(Boolean).map((color) => ({
+      value: color,
+      label: t(`filter.color.${color}`),
+      emoji: COLOR_EMOJI[color],
+    })),
+  ]
+
   return (
-    <div className="mx-auto max-w-2xl px-4 py-10">
+    <div className="mx-auto max-w-3xl px-4 py-10">
       <div className="rounded-2xl border border-border bg-card p-6 shadow-sm sm:p-8">
         <h1 className="mb-2 text-2xl font-bold text-foreground">{title}</h1>
         <p className="mb-6 text-sm text-muted-foreground">{subtitle}</p>
@@ -370,6 +529,164 @@ export default function CarListingForm({
               </select>
             </div>
           </div>
+
+          <section className="space-y-5 rounded-xl border-2 border-primary/25 bg-primary/5 p-4 sm:p-5">
+            <SectionTitle icon="🚗">{t('filter.section.basic')}</SectionTitle>
+            <ChipField
+              label={t('filter.category')}
+              value={values.category}
+              onChange={(category) => patch({ category })}
+              disabled={busy}
+              options={categoryOptions}
+            />
+            <ChipField
+              label={t('filter.body')}
+              value={values.bodyType}
+              onChange={(bodyType) => patch({ bodyType })}
+              disabled={busy}
+              options={bodyOptions}
+            />
+          </section>
+
+          <section className="space-y-5 rounded-xl border border-border bg-secondary/10 p-4 sm:p-5">
+            <SectionTitle icon="⚙️">{t('filter.section.technical')}</SectionTitle>
+            <ChipField
+              label={t('search.fuelType')}
+              value={values.fuelType}
+              onChange={(fuelType) => patch({ fuelType })}
+              disabled={busy}
+              options={fuelOptions}
+            />
+            <ChipField
+              label={t('search.transmission')}
+              value={values.transmission}
+              onChange={(transmission) => patch({ transmission })}
+              disabled={busy}
+              options={transmissionOptions}
+            />
+            <ChipField
+              label={t('filter.drive')}
+              value={values.driveType}
+              onChange={(driveType) => patch({ driveType })}
+              disabled={busy}
+              options={driveOptions}
+            />
+            <ChipField
+              label={t('filter.steering')}
+              value={values.steering}
+              onChange={(steering) => patch({ steering })}
+              disabled={busy}
+              options={steeringOptions}
+            />
+            <div className="grid gap-4 sm:grid-cols-2">
+              <div>
+                <label className="mb-1.5 block text-xs font-semibold text-foreground">
+                  {t('filter.engineVolume')} (L)
+                </label>
+                <input
+                  className={inputClass()}
+                  type="number"
+                  min={0.5}
+                  max={8}
+                  step={0.1}
+                  placeholder="2.0"
+                  value={values.engineVolume}
+                  onChange={(e) => patch({ engineVolume: e.target.value })}
+                  disabled={busy}
+                />
+              </div>
+              <SelectField
+                label={t('filter.cylinders')}
+                value={values.cylinders}
+                onChange={(cylinders) => patch({ cylinders })}
+                disabled={busy}
+              >
+                <option value="">{t('search.any')}</option>
+                {CYLINDER_OPTIONS.map((n) => (
+                  <option key={n} value={n}>
+                    {n}
+                  </option>
+                ))}
+              </SelectField>
+              <SelectField
+                label={t('filter.doors')}
+                value={values.doors}
+                onChange={(doors) => patch({ doors })}
+                disabled={busy}
+              >
+                <option value="">{t('search.any')}</option>
+                {DOOR_OPTIONS.map((n) => (
+                  <option key={n} value={n}>
+                    {n}
+                  </option>
+                ))}
+              </SelectField>
+            </div>
+            <ChipField
+              label={t('filter.section.colors')}
+              value={values.color}
+              onChange={(color) => patch({ color })}
+              disabled={busy}
+              options={colorOptions}
+            />
+          </section>
+
+          <section className="space-y-5 rounded-xl border border-border bg-secondary/10 p-4 sm:p-5">
+            <SectionTitle icon="🌍">{t('addCar.sectionImport')}</SectionTitle>
+            <ChipField
+              label={t('filter.section.import')}
+              value={values.importRegion}
+              onChange={(importRegion) => patch({ importRegion })}
+              disabled={busy}
+              options={importOptions}
+            />
+            <ChipField
+              label={t('filter.section.status')}
+              value={values.customsStatus}
+              onChange={(customsStatus) => patch({ customsStatus })}
+              disabled={busy}
+              options={customsOptions}
+            />
+          </section>
+
+          <section className="space-y-4 rounded-xl border border-border bg-secondary/10 p-4 sm:p-5">
+            <SectionTitle icon="⭐">{t('filter.section.features')}</SectionTitle>
+            <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
+              {CAR_FEATURES.map((feature) => {
+                const checked = values.features.includes(feature)
+                return (
+                  <label
+                    key={feature}
+                    className={`flex cursor-pointer items-center gap-2 rounded-lg border px-3 py-2 text-xs transition-colors ${
+                      checked
+                        ? 'border-primary bg-primary/10 text-foreground'
+                        : 'border-input bg-background text-muted-foreground hover:border-primary/40'
+                    }`}
+                  >
+                    <input
+                      type="checkbox"
+                      checked={checked}
+                      onChange={(e) => {
+                        patch({
+                          features: e.target.checked
+                            ? [...values.features, feature]
+                            : values.features.filter((f) => f !== feature),
+                        })
+                      }}
+                      disabled={busy}
+                      className="h-4 w-4 rounded border-input text-primary focus:ring-primary"
+                    />
+                    <span className="leading-tight">
+                      <span className="mr-1" aria-hidden>
+                        {FEATURE_EMOJI[feature]}
+                      </span>
+                      {t(`filter.feature.${feature}`)}
+                    </span>
+                  </label>
+                )
+              })}
+            </div>
+          </section>
 
           <div>
             <label className="mb-2 block text-xs font-medium text-muted-foreground">
@@ -494,41 +811,6 @@ export default function CarListingForm({
             </div>
           </div>
 
-          <div className="grid gap-4 sm:grid-cols-2">
-            <div>
-              <label className="mb-1.5 block text-xs font-medium text-muted-foreground">
-                {t('search.fuelType')}
-              </label>
-              <select
-                className={inputClass()}
-                value={values.fuelType}
-                onChange={(e) => patch({ fuelType: e.target.value })}
-                disabled={busy}
-              >
-                <option value="petrol">{t('fuel.Petrol')}</option>
-                <option value="diesel">{t('fuel.Diesel')}</option>
-                <option value="hybrid">{t('fuel.Hybrid')}</option>
-                <option value="electric">{t('fuel.Electric')}</option>
-                <option value="lpg">{t('fuel.LPG')}</option>
-              </select>
-            </div>
-            <div>
-              <label className="mb-1.5 block text-xs font-medium text-muted-foreground">
-                {t('search.transmission')}
-              </label>
-              <select
-                className={inputClass()}
-                value={values.transmission}
-                onChange={(e) => patch({ transmission: e.target.value })}
-                disabled={busy}
-              >
-                <option value="automatic">{t('transmission.Automatic')}</option>
-                <option value="manual">{t('transmission.Manual')}</option>
-                <option value="semi-automatic">{t('transmission.Semi-Automatic')}</option>
-              </select>
-            </div>
-          </div>
-
           <div>
             <label className="mb-1.5 block text-xs font-medium text-muted-foreground">
               {t('addCar.phone')} *
@@ -576,114 +858,6 @@ export default function CarListingForm({
               </div>
             )}
           </div>
-
-          <button
-            type="button"
-            onClick={() => setShowAdvanced((v) => !v)}
-            className="text-sm font-medium text-primary hover:underline"
-          >
-            {showAdvanced ? t('search.hideMore') : t('search.showMore')}
-          </button>
-
-          {showAdvanced && (
-            <div className="space-y-4 rounded-xl border border-border bg-secondary/20 p-4">
-              <div className="grid gap-4 sm:grid-cols-2">
-                <div>
-                  <label className="mb-1.5 block text-xs font-medium text-muted-foreground">
-                    {t('search.category')}
-                  </label>
-                  <select className={inputClass()} value={values.category} onChange={(e) => patch({ category: e.target.value })} disabled={busy}>
-                    <option value="car">{t('category.car')}</option>
-                    <option value="suv">{t('category.suv')}</option>
-                    <option value="van">{t('category.van')}</option>
-                    <option value="truck">{t('category.truck')}</option>
-                    <option value="motorcycle">{t('category.motorcycle')}</option>
-                  </select>
-                </div>
-                <div>
-                  <label className="mb-1.5 block text-xs font-medium text-muted-foreground">
-                    {t('search.bodyType')}
-                  </label>
-                  <select className={inputClass()} value={values.bodyType} onChange={(e) => patch({ bodyType: e.target.value })} disabled={busy}>
-                    <option value="">{t('search.any')}</option>
-                    <option value="sedan">{t('filter.body.sedan')}</option>
-                    <option value="suv">{t('filter.body.suv')}</option>
-                    <option value="hatchback">{t('filter.body.hatchback')}</option>
-                    <option value="coupe">{t('filter.body.coupe')}</option>
-                    <option value="wagon">{t('filter.body.wagon')}</option>
-                    <option value="pickup">{t('filter.body.pickup')}</option>
-                    <option value="special_tech">{t('filter.body.special_tech')}</option>
-                  </select>
-                </div>
-                <div>
-                  <label className="mb-1.5 block text-xs font-medium text-muted-foreground">
-                    {t('search.driveType')}
-                  </label>
-                  <select className={inputClass()} value={values.driveType} onChange={(e) => patch({ driveType: e.target.value })} disabled={busy}>
-                    <option value="">{t('search.any')}</option>
-                    <option value="fwd">{t('driveType.fwd')}</option>
-                    <option value="rwd">{t('driveType.rwd')}</option>
-                    <option value="awd">{t('driveType.awd')}</option>
-                    <option value="4wd">{t('driveType.4wd')}</option>
-                  </select>
-                </div>
-                <div>
-                  <label className="mb-1.5 block text-xs font-medium text-muted-foreground">
-                    {t('search.steering')}
-                  </label>
-                  <select className={inputClass()} value={values.steering} onChange={(e) => patch({ steering: e.target.value })} disabled={busy}>
-                    <option value="">{t('search.any')}</option>
-                    <option value="left">{t('steering.left')}</option>
-                    <option value="right">{t('steering.right')}</option>
-                  </select>
-                </div>
-                <div>
-                  <label className="mb-1.5 block text-xs font-medium text-muted-foreground">
-                    {t('search.color')}
-                  </label>
-                  <select className={inputClass()} value={values.color} onChange={(e) => patch({ color: e.target.value })} disabled={busy}>
-                    <option value="">{t('search.any')}</option>
-                    <option value="white">{t('color.white')}</option>
-                    <option value="black">{t('color.black')}</option>
-                    <option value="red">{t('color.red')}</option>
-                    <option value="blue">{t('color.blue')}</option>
-                    <option value="green">{t('color.green')}</option>
-                    <option value="silver">{t('color.silver')}</option>
-                    <option value="gray">{t('color.gray')}</option>
-                  </select>
-                </div>
-                <div>
-                  <label className="mb-1.5 block text-xs font-medium text-muted-foreground">
-                    {t('search.doors')}
-                  </label>
-                  <input className={inputClass()} type="number" min={2} max={5} value={values.doors} onChange={(e) => patch({ doors: e.target.value })} disabled={busy} />
-                </div>
-              </div>
-
-              <div>
-                <p className="mb-2 text-xs font-medium text-muted-foreground">{t('search.features')}</p>
-                <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
-                  {CAR_FEATURES.map((feature) => (
-                    <label key={feature} className="flex items-center gap-2 text-xs text-foreground">
-                      <input
-                        type="checkbox"
-                        checked={values.features.includes(feature)}
-                        onChange={(e) => {
-                          patch({
-                            features: e.target.checked
-                              ? [...values.features, feature]
-                              : values.features.filter((f) => f !== feature),
-                          })
-                        }}
-                        disabled={busy}
-                      />
-                      {t(`feature.${feature}`)}
-                    </label>
-                  ))}
-                </div>
-              </div>
-            </div>
-          )}
 
           <div className="space-y-2">
             <button

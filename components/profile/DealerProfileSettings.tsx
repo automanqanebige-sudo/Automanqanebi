@@ -45,7 +45,6 @@ export default function DealerProfileSettings() {
         dealerName: dealerName.trim(),
         dealerSlug: slug,
         dealerLogo: dealerLogo.trim() || undefined,
-        dealerApproved: approved ? true : false,
       })
       setDealerSlug(slug)
       setMsg(t('dealer.requestSaved'))

@@ -4,10 +4,12 @@ import { useEffect, useState, useMemo } from 'react'
 import Link from 'next/link'
 import {
   ArrowLeft,
+  BadgeCheck,
   Calendar,
   Columns2,
   Crown,
   Eye,
+  FlaskConical,
   Heart,
   MapPin,
   MessageCircle,
@@ -26,11 +28,12 @@ import ShareListingButton from '@/components/ShareListingButton'
 import VehicleToolsCalculators from '@/components/calculators/VehicleToolsCalculators'
 import { SITE_URL } from '@/lib/site'
 import { getCarById } from '@/data/cars'
-import { fetchFirestoreCarById, loadAllCars } from '@/lib/cars-firestore'
+import { fetchFirestoreCarById, fetchSimilarCarsFor } from '@/lib/cars-firestore'
 import { incrementCarViews } from '@/lib/cars-lifecycle-actions'
 import { formatListingDate } from '@/lib/listing-lifecycle'
-import { findSimilarCars } from '@/lib/similar-cars'
+import { isTestListing, isVerifiedListing } from '@/lib/listing-trust'
 import { getCarImages } from '@/lib/car-images'
+import { carShareDescription, carShareTitle } from '@/lib/car-share-meta'
 import { FEATURE_EMOJI } from '@/lib/filter-emojis'
 import { COLOR_EMOJI } from '@/types/filters'
 import { useLanguage } from '@/context/LanguageContext'
@@ -54,7 +57,7 @@ export default function CarPage({ params }: { params: { id: string } }) {
   const { user } = useAuth()
   const router = useRouter()
   const [car, setCar] = useState<Car | null>(null)
-  const [allCars, setAllCars] = useState<Car[]>([])
+  const [similarCars, setSimilarCars] = useState<Car[]>([])
   const [loading, setLoading] = useState(true)
   const [compareFull, setCompareFull] = useState(false)
 
@@ -71,29 +74,52 @@ export default function CarPage({ params }: { params: { id: string } }) {
   }
 
   useEffect(() => {
-    const found = getCarById(params.id)
-    if (found) {
-      setCar(found)
-      setLoading(false)
-    } else {
-      fetch(`/api/cars/${params.id}`)
-        .then((res) => (res.ok ? res.json() : null))
-        .then(async (data) => {
-          if (data) {
-            setCar(data)
-            return
+    let cancelled = false
+
+    const load = async () => {
+      try {
+        const found = getCarById(params.id)
+        let resolved: Car | null = found ?? null
+
+        if (!resolved) {
+          try {
+            resolved = await fetchFirestoreCarById(params.id)
+          } catch {
+            resolved = null
           }
-          const fromDb = await fetchFirestoreCarById(params.id)
-          if (fromDb) setCar(fromDb)
-        })
-        .finally(() => setLoading(false))
+        }
+
+        if (!resolved) {
+          try {
+            const apiRes = await fetch(`/api/cars/${params.id}`)
+            if (apiRes.ok) resolved = (await apiRes.json()) as Car
+          } catch {
+            /* ignore */
+          }
+        }
+
+        if (cancelled) return
+        setCar(resolved)
+
+        if (resolved) {
+          void incrementCarViews(params.id)
+          void fetchSimilarCarsFor(resolved, 4)
+            .then((list) => {
+              if (!cancelled) setSimilarCars(list)
+            })
+            .catch(() => {
+              if (!cancelled) setSimilarCars([])
+            })
+        }
+      } finally {
+        if (!cancelled) setLoading(false)
+      }
     }
 
-    loadAllCars()
-      .then(setAllCars)
-      .catch(() => setAllCars([]))
-
-    void incrementCarViews(params.id)
+    void load()
+    return () => {
+      cancelled = true
+    }
   }, [params.id])
 
   const formatMileage = (mileage: number) =>
@@ -116,11 +142,6 @@ export default function CarPage({ params }: { params: { id: string } }) {
     const digits = car.phone.replace(/\D/g, '')
     return digits ? `tel:+${digits.startsWith('995') ? digits : `995${digits}`}` : `tel:${car.phone}`
   }, [car?.phone])
-
-  const similarCars = useMemo(
-    () => (car ? findSimilarCars(allCars, car, 4) : []),
-    [allCars, car]
-  )
 
   if (loading) {
     return <CarDetailSkeleton />
@@ -229,8 +250,31 @@ export default function CarPage({ params }: { params: { id: string } }) {
                   VIP
                 </div>
               )}
+              {isTestListing(car) ? (
+                <div
+                  className={`absolute left-4 flex items-center gap-1.5 rounded-full bg-amber-700/95 px-3 py-1.5 text-sm font-semibold text-white shadow-lg ${
+                    car.isVip ? 'top-14' : 'top-4'
+                  }`}
+                >
+                  <FlaskConical className="h-4 w-4" />
+                  {t('car.badge.test')}
+                </div>
+              ) : isVerifiedListing(car) ? (
+                <div
+                  className={`absolute left-4 flex items-center gap-1.5 rounded-full bg-emerald-700/95 px-3 py-1.5 text-sm font-semibold text-white shadow-lg ${
+                    car.isVip ? 'top-14' : 'top-4'
+                  }`}
+                >
+                  <BadgeCheck className="h-4 w-4" />
+                  {t('car.badge.verified')}
+                </div>
+              ) : null}
               {offerBadge && (
-                <div className="absolute left-4 top-14 flex items-center gap-1.5 rounded-full bg-card/95 px-3 py-1.5 text-sm font-semibold text-foreground shadow-lg backdrop-blur-sm">
+                <div
+                  className={`absolute left-4 flex items-center gap-1.5 rounded-full bg-card/95 px-3 py-1.5 text-sm font-semibold text-foreground shadow-lg backdrop-blur-sm ${
+                    car.isVip || isTestListing(car) || isVerifiedListing(car) ? 'top-24' : 'top-4'
+                  }`}
+                >
                   <Tag className="h-4 w-4 text-primary" />
                   {offerBadge}
                 </div>
@@ -269,13 +313,8 @@ export default function CarPage({ params }: { params: { id: string } }) {
               <ShareListingButton
                 payload={{
                   url: `${SITE_URL}/car/${car.id}`,
-                  title: `${car.year} ${car.brand} ${car.model} — ${formatPrice(car.price)}`,
-                  text: [
-                    `${car.year} ${car.brand} ${car.model}`,
-                    formatPrice(car.price),
-                    `${new Intl.NumberFormat('en-US').format(car.mileage)} km`,
-                    car.location,
-                  ].join(' · '),
+                  title: carShareTitle(car),
+                  text: carShareDescription(car),
                   imageUrl: galleryImages[0],
                 }}
               />

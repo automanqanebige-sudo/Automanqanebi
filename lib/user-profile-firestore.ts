@@ -31,7 +31,7 @@ export async function saveUserProfile(uid: string, data: UserProfile): Promise<v
   if (typeof data.dealerSlug === 'string') clean.dealerSlug = data.dealerSlug.trim().toLowerCase()
   if (typeof data.dealerName === 'string') clean.dealerName = data.dealerName.trim()
   if (typeof data.dealerLogo === 'string') clean.dealerLogo = data.dealerLogo.trim()
-  if (typeof data.dealerApproved === 'boolean') clean.dealerApproved = data.dealerApproved
+  // dealerApproved is admin-only (enforced in Firestore rules) — never set from client helpers.
   if (typeof data.fcmToken === 'string') clean.fcmToken = data.fcmToken
   if (typeof data.lastVipTier === 'string') clean.lastVipTier = data.lastVipTier
   if (typeof data.lastVipPaymentStatus === 'string') {

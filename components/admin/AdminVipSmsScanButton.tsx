@@ -15,9 +15,15 @@ export default function AdminVipSmsScanButton() {
     setBusy(true)
     setResult(null)
     try {
+      const { getFirebaseAuth } = await import('@/lib/firebase')
+      const idToken = await getFirebaseAuth().currentUser?.getIdToken()
+      if (!idToken) throw new Error('auth')
       const res = await fetch('/api/cron/vip-sms-reminders', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${idToken}`,
+        },
         body: JSON.stringify({ scan: true }),
       })
       const data = (await res.json()) as { notified?: number; skipped?: number; error?: string }

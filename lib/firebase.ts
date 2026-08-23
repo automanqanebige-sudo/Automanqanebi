@@ -15,29 +15,46 @@ import {
 } from 'firebase/auth'
 import { type FirebaseStorage, getStorage } from 'firebase/storage'
 
+const FIREBASE_AUTH_HOST = 'automanqanebi1.firebaseapp.com'
+const PRODUCTION_AUTH_HOST = 'automanqanebi.ge'
+
 function envValue(primary: string | undefined, fallback?: string): string {
   const v = primary?.trim() || fallback?.trim() || ''
   return v
 }
 
 /**
- * Same-origin authDomain prevents Google redirect/popup breakage on browsers
- * that block third-party storage (Chrome/Safari/Firefox). On production host,
- * always use automanqanebi.ge — not *.firebaseapp.com.
+ * authDomain must match the page origin for redirect, and must NEVER point at the
+ * custom domain while developing on localhost (breaks Google OAuth).
+ *
+ * Production custom domain keeps same-origin auth helpers via /__/auth rewrite.
+ * Localhost always uses *.firebaseapp.com.
  */
 export function resolveAuthDomain(configured: string): string {
   if (typeof window !== 'undefined') {
     const host = window.location.hostname
+    if (host === 'localhost' || host === '127.0.0.1') {
+      return FIREBASE_AUTH_HOST
+    }
     if (host === 'automanqanebi.ge' || host === 'www.automanqanebi.ge') {
+      return PRODUCTION_AUTH_HOST
+    }
+    if (host.endsWith('.web.app') || host.endsWith('.firebaseapp.com')) {
       return host
     }
   }
+
+  if (configured === 'localhost' || !configured) {
+    return FIREBASE_AUTH_HOST
+  }
+
   if (
     process.env.NODE_ENV === 'production' &&
-    (!configured || configured.endsWith('.firebaseapp.com'))
+    configured.endsWith('.firebaseapp.com')
   ) {
-    return 'automanqanebi.ge'
+    return PRODUCTION_AUTH_HOST
   }
+
   return configured
 }
 

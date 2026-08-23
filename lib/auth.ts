@@ -57,34 +57,23 @@ const POPUP_FALLBACK_CODES = new Set([
   'auth/cancelled-popup-request',
   'auth/operation-not-supported-in-this-environment',
   'auth/web-storage-unsupported',
-  'auth/network-request-failed',
-  'auth/internal-error',
-  'auth/argument-error',
 ])
 
-function shouldPreferGoogleRedirect(): boolean {
-  if (typeof window === 'undefined') return true
+/**
+ * Prefer popup almost everywhere — redirect silently fails in modern browsers
+ * when third-party storage is blocked (Chrome/Safari/Firefox).
+ * Only force redirect inside in-app browsers where popups are unreliable.
+ */
+function shouldForceGoogleRedirect(): boolean {
+  if (typeof window === 'undefined') return false
   const ua = navigator.userAgent || ''
-  const isIOS = /iPad|iPhone|iPod/.test(ua)
-  const isAndroid = /Android/i.test(ua)
-  const isMobile =
-    isIOS ||
-    isAndroid ||
-    /Mobile/i.test(ua) ||
-    (navigator.maxTouchPoints > 1 && /Macintosh/i.test(ua))
-  const isInApp =
-    /FBAN|FBAV|Instagram|Line\/|TikTok|Snapchat|WhatsApp|Telegram|MicroMessenger/i.test(
-      ua
-    )
-  const isSafari = /Safari/i.test(ua) && !/Chrome|CriOS|Edg|OPR|Firefox|Chromium/i.test(ua)
-  const coarse = Boolean(window.matchMedia?.('(pointer: coarse)')?.matches)
-  // Redirect is more reliable than popup on phones and storage-partitioned browsers.
-  return isMobile || isInApp || isSafari || coarse
+  return /FBAN|FBAV|Instagram|Line\/|TikTok|Snapchat|WhatsApp|Telegram|MicroMessenger|GSA\//i.test(
+    ua
+  )
 }
 
 function writeGoogleRedirectPath(path: string): void {
   const safe = path.startsWith('/') ? path : '/profile'
-  // localStorage survives OAuth redirects better than sessionStorage on mobile.
   try {
     localStorage.setItem(GOOGLE_REDIRECT_PATH_KEY, safe)
   } catch {
@@ -160,23 +149,25 @@ export type GoogleSignInResult = {
 export async function signInWithGoogle(): Promise<GoogleSignInResult> {
   const auth = requireFirebaseAuth()
   const provider = googleProvider()
+  const resolver = browserPopupRedirectResolver
 
-  if (shouldPreferGoogleRedirect()) {
-    await signInWithRedirect(auth, provider, browserPopupRedirectResolver)
+  if (shouldForceGoogleRedirect()) {
+    await signInWithRedirect(auth, provider, resolver)
     return { method: 'redirect' }
   }
 
   try {
-    const cred = await signInWithPopup(auth, provider, browserPopupRedirectResolver)
+    // Popup is called synchronously from the click chain — do not await anything
+    // before this line (gesture / popup-blocker).
+    const cred = await signInWithPopup(auth, provider, resolver)
     return { method: 'popup', user: cred.user }
   } catch (err) {
     const code = (err as { code?: string } | null)?.code
-    // User closed the popup — do not force redirect.
     if (code === 'auth/popup-closed-by-user') {
       throw err
     }
     if (code && POPUP_FALLBACK_CODES.has(code)) {
-      await signInWithRedirect(auth, provider, browserPopupRedirectResolver)
+      await signInWithRedirect(auth, provider, resolver)
       return { method: 'redirect' }
     }
     throw err
@@ -187,9 +178,21 @@ export async function signInWithGoogle(): Promise<GoogleSignInResult> {
 export async function completeGoogleRedirect(): Promise<User | null> {
   if (!isFirebaseConfigured()) return null
   try {
-    const result = await getRedirectResult(getFirebaseAuth(), browserPopupRedirectResolver)
+    const result = await getRedirectResult(
+      getFirebaseAuth(),
+      browserPopupRedirectResolver
+    )
     return result?.user ?? null
   } catch (err) {
+    const code = (err as { code?: string } | null)?.code
+    // No pending redirect — not an error.
+    if (
+      code === 'auth/no-auth-event' ||
+      code === 'auth/argument-error' ||
+      code === 'auth/invalid-credential'
+    ) {
+      return null
+    }
     console.error('[auth] getRedirectResult', err)
     throw err
   }
@@ -214,7 +217,11 @@ async function reauthenticate(currentPassword?: string) {
     const cred = EmailAuthProvider.credential(user.email, currentPassword ?? '')
     await reauthenticateWithCredential(user, cred)
   } else {
-    await reauthenticateWithPopup(user, googleProvider(), browserPopupRedirectResolver)
+    await reauthenticateWithPopup(
+      user,
+      googleProvider(),
+      browserPopupRedirectResolver
+    )
   }
   return user
 }

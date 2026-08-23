@@ -23,6 +23,7 @@ export type FirestoreCarDoc = {
   contactViber?: boolean
   userId?: string | null
   userEmail?: string | null
+  isTest?: boolean
   createdAt?: unknown
   updatedAt?: unknown
   expiresAt?: unknown
@@ -85,6 +86,8 @@ export function docToCar(id: string, data: FirestoreCarDoc): Car {
     contactWhatsApp: Boolean(data.contactWhatsApp),
     contactViber: Boolean(data.contactViber),
     userId: data.userId ?? undefined,
+    userEmail: data.userEmail?.trim() || undefined,
+    isTest: data.isTest === true,
     isVip,
     listingType: listingType || (isVip ? 'vip' : 'standard'),
     offerType: data.offerType === 'rent' ? 'rent' : 'sale',
@@ -116,9 +119,11 @@ export function mergeCarsWithSample(firestoreCars: Car[]): Car[] {
 
   const sampleIds = new Set(sampleCars.map((c) => c.id))
   const uniqueFirestore = firestoreCars.filter((c) => !sampleIds.has(c.id))
-  return [...sampleCars, ...uniqueFirestore]
+  const markedSample = sampleCars.map((c) => ({ ...c, isTest: true as const }))
+  return [...markedSample, ...uniqueFirestore]
 }
 
 export function getSampleCarById(id: string): Car | undefined {
-  return sampleCars.find((c) => c.id === id)
+  const car = sampleCars.find((c) => c.id === id)
+  return car ? { ...car, isTest: true } : undefined
 }

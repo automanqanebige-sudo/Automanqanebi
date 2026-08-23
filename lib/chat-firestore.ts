@@ -3,6 +3,7 @@ import {
   doc,
   getDoc,
   getDocs,
+  limit,
   orderBy,
   query,
   setDoc,
@@ -94,21 +95,25 @@ export async function fetchUserConversations(userId: string): Promise<Conversati
 export async function fetchMessages(conversationId: string): Promise<ChatMessage[]> {
   if (!isFirebaseConfigured()) return []
 
+  // Cap history per poll so long threads don't explode under load.
   const q = query(
     collection(getDb(), 'conversations', conversationId, 'messages'),
-    orderBy('createdAt', 'asc')
+    orderBy('createdAt', 'desc'),
+    limit(200)
   )
   const snap = await getDocs(q)
 
-  return snap.docs.map((d) => {
-    const data = d.data()
-    return {
-      id: d.id,
-      senderId: data.senderId ?? '',
-      text: data.text ?? '',
-      createdAt: data.createdAt ?? '',
-    }
-  })
+  return snap.docs
+    .map((d) => {
+      const data = d.data()
+      return {
+        id: d.id,
+        senderId: data.senderId ?? '',
+        text: data.text ?? '',
+        createdAt: data.createdAt ?? '',
+      }
+    })
+    .reverse()
 }
 
 export async function sendMessage(
@@ -150,16 +155,24 @@ export async function sendMessage(
         body: trimmed.slice(0, 120),
         url: chatUrl,
       })
-      void fetch('/api/notify-chat', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          recipientId,
-          title: `💬 ${carTitle}`,
-          text: trimmed.slice(0, 120),
-          url: chatUrl,
-        }),
-      }).catch(() => undefined)
+      const { getFirebaseAuth } = await import('@/lib/firebase')
+      const idToken = await getFirebaseAuth().currentUser?.getIdToken().catch(() => null)
+      if (idToken) {
+        void fetch('/api/notify-chat', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${idToken}`,
+          },
+          body: JSON.stringify({
+            recipientId,
+            conversationId,
+            title: `💬 ${carTitle}`,
+            text: trimmed.slice(0, 120),
+            url: chatUrl,
+          }),
+        }).catch(() => undefined)
+      }
     }
   } catch {
     /* ignore notify failures */
