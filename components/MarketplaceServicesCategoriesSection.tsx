@@ -18,7 +18,6 @@ export default function MarketplaceServicesCategoriesSection(
     <ServiceCategoriesSection
       titleKey="services.section.list"
       entries={entries}
-      mobileSheet
       {...props}
     />
   )
