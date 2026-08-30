@@ -16,7 +16,7 @@ function BannerAdPlaceholder({ compact = false }: { compact?: boolean }) {
   const { t } = useLanguage()
   return (
     <div
-      className={`flex w-full items-center justify-center rounded-xl bg-white px-4 text-center ${
+      className={`flex w-full items-center justify-center rounded-xl border border-dashed border-border bg-card px-4 text-center ${
         compact ? 'min-h-[64px] py-3 sm:min-h-[80px]' : 'min-h-[100px] py-6 sm:min-h-[140px]'
       }`}
       role="img"
@@ -54,7 +54,7 @@ export function SiteBannerGlobalStrip({ placement }: { placement: BannerPlacemen
   const visible = filterBannersForPlacement(banners, placement).slice(0, 2)
 
   return (
-    <div className="border-b border-border/60 bg-white">
+    <div className="border-b border-border/60 bg-background/95 backdrop-blur-sm">
       <div className="mx-auto max-w-7xl space-y-2 px-2 py-2 sm:px-4">
         {visible.length === 0 ? (
           <BannerAdPlaceholder compact />

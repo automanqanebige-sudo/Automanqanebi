@@ -56,7 +56,7 @@ type ServiceListingFormProps = {
 }
 
 function inputClass() {
-  return 'w-full rounded-lg border border-input bg-background px-3 py-2.5 text-foreground outline-none transition-all focus:ring-2 focus:ring-primary disabled:opacity-60'
+  return 'input-premium disabled:opacity-60'
 }
 
 function FormSection({
@@ -606,7 +606,7 @@ export default function ServiceListingForm({
       <button
         type="submit"
         disabled={submitting || uploading || !canSubmit}
-        className="w-full rounded-xl bg-primary py-3 font-semibold text-primary-foreground transition-colors hover:bg-primary/90 disabled:opacity-60"
+        className="btn-primary w-full rounded-xl py-3 disabled:opacity-60"
       >
         {submitLabel}
       </button>

@@ -30,10 +30,10 @@ export default function FilterChipGroup({
             key={opt.value || '__all'}
             type="button"
             onClick={() => onChange(opt.value)}
-            className={`inline-flex items-center gap-1.5 px-3 py-2 text-sm font-medium transition-colors ${radius} ${
+            className={`inline-flex items-center gap-1.5 border px-3 py-2 text-sm font-medium transition-all duration-200 ${radius} ${
               active
-                ? 'bg-primary text-primary-foreground'
-                : 'bg-secondary text-secondary-foreground hover:bg-secondary/80'
+                ? 'border-primary bg-primary text-primary-foreground shadow-sm'
+                : 'border-border bg-card text-foreground hover:border-primary/30 hover:bg-primary/5'
             }`}
           >
             {opt.emoji && (

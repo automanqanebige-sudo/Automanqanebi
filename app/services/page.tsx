@@ -234,7 +234,7 @@ function ServicesPageContent() {
         />
       )}
 
-      <div className="mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:px-8">
+      <div className="mx-auto max-w-7xl section-padding">
         <Link
           href="/"
           className="mb-6 inline-flex items-center gap-2 text-sm text-muted-foreground transition-colors hover:text-foreground"
@@ -250,7 +250,7 @@ function ServicesPageContent() {
           </div>
           <Link
             href="/services/add"
-            className="inline-flex shrink-0 items-center gap-2 rounded-xl bg-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground transition-colors hover:bg-primary/90"
+            className="btn-primary inline-flex shrink-0 rounded-xl px-5 py-2.5 text-sm"
           >
             <Plus className="h-4 w-4" />
             {baseT('services.addService')}
@@ -294,7 +294,7 @@ function ServicesPageContent() {
             <p className="text-muted-foreground">{baseT('services.empty')}</p>
             <Link
               href="/services/add"
-              className="mt-4 inline-flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90"
+              className="btn-primary mt-4 inline-flex rounded-xl px-4 py-2 text-sm"
             >
               <Plus className="h-4 w-4" />
               {baseT('services.addService')}

@@ -39,7 +39,7 @@ export default function SearchFilters({
 
   return (
     <div className="overflow-hidden rounded-2xl border border-border/80 bg-card shadow-lg shadow-primary/5">
-      <div className="border-b border-border/60 bg-white px-4 py-3 sm:px-6">
+      <div className="border-b border-border/60 bg-secondary/40 px-4 py-3 sm:px-6">
         <div className="text-sm font-semibold text-foreground">
           {t('search.detailedFilters')}
         </div>

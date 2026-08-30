@@ -99,7 +99,7 @@ export default function SearchInputWithSuggestions({
           spellCheck={false}
           className={
             inputClassName ||
-            'w-full rounded-xl border border-border bg-background py-3.5 pl-12 pr-11 text-base text-foreground shadow-sm placeholder:text-muted-foreground focus:border-transparent focus:outline-none focus:ring-2 focus:ring-primary'
+            'input-premium w-full py-3.5 pl-12 pr-11 text-base'
           }
         />
         {value ? (

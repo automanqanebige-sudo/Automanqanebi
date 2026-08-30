@@ -128,16 +128,16 @@ function EditServiceForm({ id }: { id: string }) {
   if (!initialValues) return null
 
   return (
-    <div className="mx-auto max-w-3xl px-4 py-10 sm:px-6 lg:px-8">
+    <div className="mx-auto max-w-3xl section-padding">
       <Link
         href="/profile"
-        className="mb-6 inline-flex items-center gap-2 text-sm text-muted-foreground transition-colors hover:text-foreground"
+        className="mb-6 inline-flex items-center gap-2 text-sm text-muted-foreground transition-colors hover:text-primary"
       >
         <ArrowLeft className="h-4 w-4" />
         {t('nav.profile')}
       </Link>
 
-      <div className="rounded-2xl border border-border bg-card p-6 shadow-sm sm:p-8">
+      <div className="rounded-2xl border border-border bg-card p-6 shadow-card sm:p-8">
         <div className="mb-4 flex items-center gap-3">
           <div className="rounded-xl bg-primary/10 p-2.5">
             <Pencil className="h-6 w-6 text-primary" />

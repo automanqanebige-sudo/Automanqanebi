@@ -112,7 +112,7 @@ export default function MobileNavMenu() {
                   <Link
                     href="/profile"
                     onClick={() => setOpen(false)}
-                    className="flex flex-1 items-center justify-center gap-2 rounded-lg bg-primary px-3 py-2.5 text-sm font-medium text-primary-foreground"
+                    className="btn-primary flex flex-1 rounded-xl px-3 py-2.5 text-sm"
                   >
                     {t('nav.profile')}
                   </Link>
@@ -141,7 +141,7 @@ export default function MobileNavMenu() {
                   <Link
                     href="/register"
                     onClick={() => setOpen(false)}
-                    className="flex flex-1 items-center justify-center gap-2 rounded-lg bg-primary px-3 py-2.5 text-sm font-medium text-primary-foreground"
+                    className="btn-primary flex flex-1 rounded-xl px-3 py-2.5 text-sm"
                   >
                     <UserPlus className="h-4 w-4" />
                     {t('nav.register')}

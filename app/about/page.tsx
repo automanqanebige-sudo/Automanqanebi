@@ -9,7 +9,7 @@ export default function AboutPage() {
   const { t } = useLanguage()
 
   return (
-    <div className="mx-auto max-w-3xl px-4 py-12">
+    <div className="mx-auto max-w-3xl section-padding">
       <Link
         href="/"
         className="mb-6 inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-primary"

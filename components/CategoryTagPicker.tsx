@@ -47,7 +47,7 @@ export function CategoryTagGrid({
             } ${
               selected
                 ? 'border-primary bg-primary text-primary-foreground'
-                : 'border-border bg-white text-foreground hover:border-primary/40 hover:bg-primary/5'
+                : 'border-border bg-card text-foreground hover:border-primary/40 hover:bg-primary/5'
             }`}
           >
             <Plus
@@ -112,7 +112,7 @@ export function CategoryTagPickerSheet({
       />
 
       <div
-        className="relative z-10 flex max-h-[85vh] w-full max-w-lg flex-col rounded-t-2xl bg-white shadow-xl sm:rounded-2xl"
+        className="relative z-10 flex max-h-[85vh] w-full max-w-lg flex-col rounded-t-2xl bg-card shadow-xl sm:rounded-2xl"
         onMouseDown={(e) => e.stopPropagation()}
         onTouchStart={(e) => e.stopPropagation()}
       >
@@ -140,7 +140,7 @@ export function CategoryTagPickerSheet({
               onConfirm(draft)
               onClose()
             }}
-            className="w-full rounded-xl bg-[#1e2433] py-3.5 text-base font-semibold text-white transition-opacity hover:opacity-90"
+            className="btn-primary w-full rounded-xl py-3.5 text-base"
           >
             {t('picker.select')}
           </button>
@@ -171,7 +171,7 @@ export function CategoryTagPickerField({
       className={`flex w-full items-center justify-between rounded-xl border px-4 py-3.5 text-left transition-colors ${
         selectedLabel
           ? 'border-primary bg-primary/5 hover:border-primary'
-          : 'border-border bg-white hover:border-primary/40'
+          : 'border-border bg-surface hover:border-primary/40'
       }`}
     >
       <span className="text-xs font-medium text-muted-foreground">{label}</span>

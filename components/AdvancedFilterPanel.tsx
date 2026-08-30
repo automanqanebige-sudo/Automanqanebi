@@ -31,6 +31,7 @@ interface AdvancedFilterPanelProps {
   onApply: () => void
   onReset: () => void
   resultCount: number
+  hideFooter?: boolean
 }
 
 function SectionTitle({ children }: { children: React.ReactNode }) {
@@ -58,7 +59,7 @@ function FilterSelect({
       <select
         value={value}
         onChange={(e) => onChange(e.target.value)}
-        className="w-full cursor-pointer appearance-none rounded-lg border border-input bg-background px-3 py-2.5 text-sm text-foreground transition-all focus:outline-none focus:ring-2 focus:ring-primary"
+        className="select-premium"
       >
         {options.map((o) => (
           <option key={o.value || '__any'} value={o.value}>
@@ -76,6 +77,7 @@ export default function AdvancedFilterPanel({
   onApply,
   onReset,
   resultCount,
+  hideFooter = false,
 }: AdvancedFilterPanelProps) {
   const { t } = useLanguage()
   const { currency, fromBasePrice, toBasePrice } = useCurrency()
@@ -328,11 +330,12 @@ export default function AdvancedFilterPanel({
       </section>
 
       {/* Footer */}
+      {!hideFooter && (
       <div className="flex flex-col gap-3 border-t border-border/60 pt-4 sm:flex-row sm:items-center sm:justify-between">
         <button
           type="button"
           onClick={onReset}
-          className="flex items-center justify-center gap-2 rounded-lg border border-input bg-background px-4 py-2.5 text-sm font-medium text-foreground transition-all hover:bg-secondary"
+          className="btn-secondary rounded-xl px-4 py-2.5 text-sm"
         >
           <RotateCcw className="h-4 w-4" />
           {t('filter.clear')}
@@ -344,11 +347,12 @@ export default function AdvancedFilterPanel({
         <button
           type="button"
           onClick={onApply}
-          className="rounded-xl bg-primary px-8 py-2.5 font-semibold text-primary-foreground transition-all hover:bg-primary/90"
+          className="btn-primary rounded-xl px-8 py-2.5"
         >
           {t('filter.apply')}
         </button>
       </div>
+      )}
     </div>
   )
 }

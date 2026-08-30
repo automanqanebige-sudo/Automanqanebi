@@ -58,7 +58,7 @@ export default function ListingQuickSearch({
             onKeyDown={(e) => e.key === 'Enter' && handleSubmit()}
             placeholder={t('search.placeholder')}
             aria-label={t('search.placeholder')}
-            className="w-full rounded-lg border border-border bg-white py-3.5 pl-12 pr-11 text-base text-foreground placeholder:text-muted-foreground focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/30"
+            className="input-premium w-full py-3.5 pl-12 pr-11 text-base"
             autoComplete="off"
           />
           {search && (
@@ -115,7 +115,7 @@ export default function ListingQuickSearch({
         <button
           type="button"
           onClick={handleSubmit}
-          className="inline-flex shrink-0 items-center justify-center gap-2 rounded-lg bg-primary px-8 py-3.5 text-base font-semibold text-primary-foreground transition-colors hover:bg-primary/90 active:scale-[0.98]"
+          className="btn-primary inline-flex shrink-0 rounded-xl px-8 py-3.5 text-base"
         >
           <Search className="h-5 w-5" />
           {t('search.button')}
@@ -125,7 +125,7 @@ export default function ListingQuickSearch({
       <div className="flex flex-wrap items-center gap-3">
         <span className="text-xs font-medium text-muted-foreground">{t('filter.section.offerType')}:</span>
         <div
-          className="inline-flex rounded-xl border border-border bg-white p-0.5"
+          className="inline-flex rounded-xl border border-border bg-card p-0.5"
           role="group"
           aria-label={t('filter.section.offerType')}
         >

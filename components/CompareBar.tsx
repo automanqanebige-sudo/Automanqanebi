@@ -15,7 +15,7 @@ export default function CompareBar() {
 
   return (
     <div className="pointer-events-none fixed inset-x-0 bottom-[4.5rem] z-40 flex justify-center px-3 md:bottom-6">
-      <div className="pointer-events-auto flex max-w-lg items-center gap-2 rounded-2xl border border-border bg-card/95 px-3 py-2.5 shadow-xl backdrop-blur">
+      <div className="pointer-events-auto flex max-w-lg items-center gap-2 rounded-2xl border border-border bg-card/95 px-3 py-2.5 shadow-card-hover backdrop-blur transition-transform duration-300 hover:-translate-y-0.5">
         <Columns2 className="h-4 w-4 shrink-0 text-primary" />
         <p className="min-w-0 flex-1 text-sm text-foreground">
           {t('compare.barCount')
@@ -24,7 +24,7 @@ export default function CompareBar() {
         </p>
         <Link
           href={`/compare?ids=${ids.join(',')}`}
-          className="shrink-0 rounded-xl bg-primary px-3 py-1.5 text-xs font-semibold text-primary-foreground hover:bg-primary/90"
+          className="btn-primary shrink-0 rounded-xl px-3 py-1.5 text-xs"
         >
           {t('compare.open')}
         </Link>

@@ -1,13 +1,14 @@
 'use client'
 
 import { useEffect, useState, useMemo } from 'react'
-import Link from 'next/link'
 import CarCard, { type Car } from '@/components/CarCard'
 import { CarCardSkeletonGrid } from '@/components/ui/Skeleton'
 import { useLanguage } from '@/context/LanguageContext'
 import { useFavorites } from '@/context/FavoritesContext'
 import { loadAllCars } from '@/lib/cars-firestore'
 import { Heart } from 'lucide-react'
+import PageHeader from '@/components/ui/PageHeader'
+import EmptyState from '@/components/ui/EmptyState'
 
 export default function FavoritesPage() {
   const { t } = useLanguage()
@@ -28,13 +29,13 @@ export default function FavoritesPage() {
   )
 
   return (
-    <div className="min-h-screen bg-white px-4 py-8 sm:px-6 lg:px-8">
+    <div className="min-h-screen bg-background section-padding">
       <div className="mx-auto max-w-7xl">
-        <h1 className="mb-2 flex items-center gap-3 text-2xl font-bold text-foreground">
-          <Heart className="h-7 w-7 text-primary" />
-          {t('favorites.title')}
-        </h1>
-        <p className="mb-8 text-sm text-muted-foreground">{t('favorites.hint')}</p>
+        <PageHeader
+          icon={<Heart className="h-7 w-7 text-primary" aria-hidden />}
+          title={t('favorites.title')}
+          subtitle={t('favorites.hint')}
+        />
 
         {!ready || loadingCars ? (
           <CarCardSkeletonGrid count={4} />
@@ -45,15 +46,12 @@ export default function FavoritesPage() {
             ))}
           </div>
         ) : (
-          <div className="rounded-xl border border-dashed border-border bg-card px-6 py-12 text-center">
-            <p className="text-muted-foreground">{t('favorites.empty')}</p>
-            <Link
-              href="/"
-              className="mt-4 inline-block rounded-lg bg-primary px-5 py-2.5 text-sm font-medium text-primary-foreground hover:bg-primary/90"
-            >
-              {t('nav.home')}
-            </Link>
-          </div>
+          <EmptyState
+            icon={<Heart className="h-8 w-8 text-muted-foreground" aria-hidden />}
+            title={t('favorites.empty')}
+            actionLabel={t('nav.home')}
+            actionHref="/"
+          />
         )}
       </div>
     </div>

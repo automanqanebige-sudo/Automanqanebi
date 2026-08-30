@@ -234,7 +234,7 @@ export default function PhoneOtpVerify({
             type="button"
             disabled={busy || !captchaReady || phone.replace(/\D/g, '').length < 9}
             onClick={() => void sendCode()}
-            className="w-full rounded-xl bg-primary px-4 py-3 text-sm font-semibold text-primary-foreground hover:bg-primary/90 disabled:opacity-50 sm:w-auto sm:py-2 sm:font-medium"
+            className="btn-primary w-full rounded-xl px-4 py-3 text-sm disabled:opacity-50 sm:w-auto sm:py-2"
           >
             {busy ? t('auth.loading') : t('phoneOtp.send')}
           </button>
@@ -259,7 +259,7 @@ export default function PhoneOtpVerify({
               type="button"
               disabled={busy || code.trim().length < 6}
               onClick={() => void verifyCode()}
-              className="w-full rounded-xl bg-primary px-4 py-3 text-sm font-semibold text-primary-foreground hover:bg-primary/90 disabled:opacity-50 sm:w-auto sm:py-2 sm:font-medium"
+              className="btn-primary w-full rounded-xl px-4 py-3 text-sm disabled:opacity-50 sm:w-auto sm:py-2"
             >
               {busy ? t('auth.loading') : t('phoneOtp.verify')}
             </button>

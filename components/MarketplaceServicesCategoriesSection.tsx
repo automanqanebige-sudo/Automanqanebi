@@ -47,7 +47,7 @@ export default function MarketplaceServicesCategoriesSection({
               className={`inline-flex min-h-[44px] items-center gap-1.5 rounded-lg border px-2.5 py-2.5 text-left text-xs font-medium shadow-sm transition-colors sm:px-3 sm:text-sm ${
                 selected
                   ? 'border-primary bg-primary text-primary-foreground'
-                  : 'border-border bg-white text-foreground hover:border-primary/40 hover:bg-primary/5'
+                  : 'border-border bg-card text-foreground hover:border-primary/40 hover:bg-primary/5'
               }`}
             >
               <Plus

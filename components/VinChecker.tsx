@@ -76,7 +76,7 @@ export default function VinChecker({
 
   return (
     <div
-      className={`rounded-2xl border border-border bg-card shadow-sm ${
+      className={`rounded-2xl border border-border bg-card shadow-card ${
         compact ? 'p-4 sm:p-5' : 'p-5 sm:p-6'
       } ${className}`}
     >
@@ -103,13 +103,13 @@ export default function VinChecker({
           }}
           maxLength={17}
           placeholder={t('vin.placeholder')}
-          className="flex-1 rounded-xl border border-input bg-background px-4 py-3 font-mono text-sm uppercase tracking-wider text-foreground outline-none transition-all focus:ring-2 focus:ring-primary"
+          className="input-premium flex-1 py-3 font-mono uppercase tracking-wider"
           aria-label={t('vin.placeholder')}
         />
         <button
           type="submit"
           disabled={loading || vin.trim().length === 0}
-          className="inline-flex items-center justify-center gap-2 rounded-xl bg-primary px-6 py-3 text-sm font-semibold text-primary-foreground transition-colors hover:bg-primary/90 disabled:opacity-60"
+          className="btn-primary inline-flex rounded-xl px-6 py-3 text-sm disabled:opacity-60"
         >
           {loading ? (
             <>

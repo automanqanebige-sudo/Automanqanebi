@@ -211,7 +211,7 @@ export default function LoginForm() {
         <button
           type="submit"
           disabled={formLoading || !configured || (showCaptcha && !captchaOk)}
-          className="flex w-full items-center justify-center gap-2 rounded-lg bg-primary py-3 font-semibold text-primary-foreground transition-colors hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-60"
+          className="btn-primary w-full rounded-xl py-3 disabled:cursor-not-allowed disabled:opacity-60"
         >
           {formLoading && <Loader2 className="h-4 w-4 animate-spin" />}
           {resetMode ? t('auth.submit.reset') : t('auth.submit.login')}

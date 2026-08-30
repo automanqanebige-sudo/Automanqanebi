@@ -174,7 +174,7 @@ function ChatContent() {
   }
 
   return (
-    <div className="mx-auto max-w-6xl px-4 py-8">
+    <div className="mx-auto max-w-6xl section-padding pb-28 lg:pb-10">
       <Link
         href="/"
         className="mb-6 inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-primary"
@@ -192,7 +192,7 @@ function ChatContent() {
         <button
           type="button"
           onClick={enablePush}
-          className="inline-flex items-center gap-2 rounded-lg border border-border px-3 py-2 text-sm text-foreground hover:bg-secondary"
+          className="btn-secondary inline-flex items-center gap-2 rounded-xl px-3 py-2 text-sm"
         >
           <Bell className="h-4 w-4 text-primary" />
           {t('push.enable')}
@@ -201,10 +201,18 @@ function ChatContent() {
       </div>
 
       {loading ? (
-        <p className="text-muted-foreground">{t('auth.loading')}</p>
+        <div className="space-y-3 rounded-2xl border border-border bg-card p-4">
+          {Array.from({ length: 4 }, (_, i) => (
+            <div key={i} className="skeleton-shimmer h-14 rounded-xl" />
+          ))}
+        </div>
       ) : (
-        <div className="grid gap-4 overflow-hidden rounded-2xl border border-border bg-card lg:grid-cols-[280px_1fr]">
-          <aside className="border-b border-border lg:border-b-0 lg:border-r">
+        <div className="grid gap-4 overflow-hidden rounded-2xl border border-border bg-card shadow-card lg:grid-cols-[minmax(0,280px)_1fr]">
+          <aside
+            className={`border-b border-border lg:border-b-0 lg:border-r ${
+              activeConversation ? 'hidden lg:block' : ''
+            }`}
+          >
             <p className="border-b border-border px-4 py-3 text-sm font-semibold text-foreground">
               {t('chat.conversations')}
             </p>
@@ -231,10 +239,18 @@ function ChatContent() {
             </div>
           </aside>
 
-          <section className="flex min-h-[420px] flex-col">
+          <section className={`flex min-h-[420px] flex-col ${!activeConversation ? 'hidden lg:flex' : ''}`}>
             {activeConversation ? (
               <>
                 <div className="border-b border-border px-4 py-3">
+                  <button
+                    type="button"
+                    onClick={() => setActiveId(null)}
+                    className="mb-2 inline-flex items-center gap-1 text-sm text-muted-foreground transition-colors hover:text-primary lg:hidden"
+                  >
+                    <ArrowLeft className="h-4 w-4" />
+                    {t('chat.conversations')}
+                  </button>
                   <p className="font-semibold text-foreground">{activeConversation.carTitle}</p>
                   <Link
                     href={`/car/${activeConversation.carId}`}
@@ -272,13 +288,13 @@ function ChatContent() {
                     onChange={(e) => setDraft(e.target.value)}
                     onKeyDown={(e) => e.key === 'Enter' && handleSend()}
                     placeholder={t('chat.placeholder')}
-                    className="flex-1 rounded-xl border border-input bg-background px-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-primary"
+                    className="input-premium flex-1 py-2.5 text-sm"
                   />
                   <button
                     type="button"
                     onClick={handleSend}
                     disabled={sending || !draft.trim()}
-                    className="inline-flex items-center gap-2 rounded-xl bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground hover:bg-primary/90 disabled:opacity-60"
+                    className="btn-primary inline-flex rounded-xl px-4 py-2.5 text-sm disabled:opacity-60"
                   >
                     <Send className="h-4 w-4" />
                     {t('chat.send')}
@@ -302,8 +318,8 @@ export default function ChatPage() {
     <RequireAuth>
       <Suspense
         fallback={
-          <div className="flex min-h-[40vh] items-center justify-center text-muted-foreground">
-            Loading...
+          <div className="mx-auto max-w-5xl section-padding">
+            <div className="skeleton-shimmer h-[420px] rounded-2xl" />
           </div>
         }
       >

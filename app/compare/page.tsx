@@ -11,6 +11,8 @@ import { useCompare, COMPARE_MAX } from '@/context/CompareContext'
 import { fetchFirestoreCarById } from '@/lib/cars-firestore'
 import { getCarById } from '@/data/cars'
 import type { Car } from '@/components/CarCard'
+import { CarCardSkeletonGrid } from '@/components/ui/Skeleton'
+import EmptyState from '@/components/ui/EmptyState'
 
 type RowDef = {
   key: string
@@ -161,27 +163,18 @@ function CompareInner() {
   }
 
   if (loading) {
-    return (
-      <div className="flex items-center justify-center gap-2 py-20 text-muted-foreground">
-        <Loader2 className="h-5 w-5 animate-spin" />
-        {t('auth.loading')}
-      </div>
-    )
+    return <CarCardSkeletonGrid count={3} />
   }
 
   if (cars.length === 0) {
     return (
-      <div className="rounded-2xl border border-dashed border-border bg-card px-6 py-14 text-center">
-        <Columns2 className="mx-auto h-10 w-10 text-muted-foreground" />
-        <h1 className="mt-4 text-xl font-bold text-foreground">{t('compare.title')}</h1>
-        <p className="mt-2 text-sm text-muted-foreground">{t('compare.empty')}</p>
-        <Link
-          href="/"
-          className="mt-6 inline-flex rounded-xl bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground hover:bg-primary/90"
-        >
-          {t('compare.browse')}
-        </Link>
-      </div>
+      <EmptyState
+        icon={<Columns2 className="h-8 w-8 text-muted-foreground" aria-hidden />}
+        title={t('compare.title')}
+        description={t('compare.empty')}
+        actionLabel={t('compare.browse')}
+        actionHref="/"
+      />
     )
   }
 
@@ -203,7 +196,7 @@ function CompareInner() {
             clearCompare()
             router.replace('/compare')
           }}
-          className="inline-flex items-center gap-1.5 rounded-lg border border-border px-3 py-2 text-sm hover:bg-secondary"
+          className="inline-flex items-center gap-1 rounded-xl border border-border bg-card px-3 py-2 text-sm transition-colors hover:bg-secondary"
         >
           <Trash2 className="h-4 w-4" />
           {t('compare.clear')}
@@ -281,7 +274,7 @@ function CompareInner() {
 
 export default function ComparePage() {
   return (
-    <div className="mx-auto max-w-6xl px-4 py-10">
+    <div className="mx-auto max-w-6xl bg-background section-padding">
       <Suspense
         fallback={
           <div className="flex justify-center py-20 text-muted-foreground">

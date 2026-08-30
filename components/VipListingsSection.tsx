@@ -80,7 +80,7 @@ export default function VipListingsSection({ cars, onFavoriteToggle }: VipListin
         <div className="mt-8 text-center">
           <Link
             href="/#listings"
-            className="inline-flex items-center gap-2 rounded-xl bg-primary px-6 py-3 font-semibold text-primary-foreground shadow-lg shadow-primary/25 transition-all duration-300 hover:-translate-y-0.5 hover:bg-primary/90 hover:shadow-xl hover:shadow-primary/30"
+            className="btn-primary inline-flex items-center gap-2 rounded-xl px-6 py-3"
           >
             {t('vip.viewAll')}
             <ChevronRight className="h-4 w-4" />

@@ -34,7 +34,7 @@ export default function ServiceSearchResults({
   const total = catalogMatches.length + userServices.length
 
   return (
-    <div className="border-b border-border bg-white px-4 py-5 sm:px-6 lg:px-8">
+    <div className="border-b border-border bg-background/95 px-4 py-5 backdrop-blur-sm sm:px-6 lg:px-8">
       <div className="mx-auto max-w-7xl">
         <p className="mb-4 text-sm text-muted-foreground">
           {baseT('services.searchResults').replace('{{count}}', String(total))}

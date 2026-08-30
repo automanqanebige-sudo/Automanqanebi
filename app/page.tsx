@@ -8,6 +8,10 @@ import { initialFilters } from '@/components/SearchFilters'
 import VipListingsSection from '@/components/VipListingsSection'
 import SiteBannerSlot from '@/components/SiteBannerSlot'
 import VinChecker from '@/components/VinChecker'
+import ActiveFilterChips from '@/components/ActiveFilterChips'
+import PopularBrandsSection from '@/components/PopularBrandsSection'
+import RecentlyAddedSection from '@/components/RecentlyAddedSection'
+import HomeTrustCta from '@/components/HomeTrustCta'
 import { CarCardSkeletonGrid } from '@/components/ui/Skeleton'
 import { loadAllCars } from '@/lib/cars-firestore'
 import { applyCarFilters } from '@/lib/apply-car-filters'
@@ -183,7 +187,17 @@ function HomePageContent() {
 
       <SiteBannerSlot placement="home_below_hero" className="px-4 pb-4 pt-2 sm:px-6 lg:px-8" />
 
+      <PopularBrandsSection
+        selectedBrand={filters.brand}
+        onBrandSelect={(brand) => {
+          updateFilters({ ...filters, brand, model: '' })
+          document.getElementById('listings')?.scrollIntoView({ behavior: 'smooth' })
+        }}
+      />
+
       <VipListingsSection cars={vipCars} />
+
+      <RecentlyAddedSection cars={cars} />
 
       <SiteBannerSlot placement="home_mid" className="px-4 py-6 sm:px-6 lg:px-8" />
 
@@ -219,6 +233,12 @@ function HomePageContent() {
               </select>
             </div>
           </div>
+
+          <ActiveFilterChips
+            filters={activeFilters}
+            onChange={updateFilters}
+            onClearAll={handleReset}
+          />
 
           {loadError && !loadingCars ? (
             <div className="rounded-xl border border-destructive/30 bg-destructive/5 px-6 py-10 text-center">
@@ -276,6 +296,8 @@ function HomePageContent() {
           )}
         </div>
       </section>
+
+      <HomeTrustCta />
     </>
   )
 }

@@ -115,7 +115,7 @@ function CheckoutInner() {
         <p className="mt-1 text-sm text-muted-foreground">{t('vip.checkoutSubtitle')}</p>
       </div>
 
-      <div className="rounded-2xl border border-border bg-card p-6 shadow-sm">
+      <div className="rounded-2xl border border-border bg-card p-6 shadow-card">
         {order.provider === 'stub' && !isPaid && (
           <p className="mb-4 rounded-lg border border-amber-500/30 bg-amber-500/10 px-3 py-2 text-xs text-amber-900 dark:text-amber-100">
             {t('vip.demoCheckoutHint')}
@@ -163,7 +163,7 @@ function CheckoutInner() {
             <div className="flex flex-wrap gap-2">
               <Link
                 href={`/car/${order.carId}`}
-                className="rounded-xl bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground hover:bg-primary/90"
+                className="btn-primary rounded-xl px-4 py-2.5 text-sm"
               >
                 {t('vip.viewListing')}
               </Link>
@@ -183,7 +183,7 @@ function CheckoutInner() {
                 type="button"
                 disabled={paying}
                 onClick={() => void confirmPay()}
-                className="flex w-full items-center justify-center gap-2 rounded-xl bg-primary px-5 py-3 text-sm font-semibold text-primary-foreground hover:bg-primary/90 disabled:opacity-50"
+                className="btn-primary flex w-full rounded-xl px-5 py-3 text-sm disabled:opacity-50"
               >
                 {paying ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
                 {t('vip.confirmPay').replace('{amount}', String(order.amountGel))}
@@ -210,12 +210,10 @@ function CheckoutInner() {
 export default function PaymentCheckoutPage() {
   return (
     <RequireAuth>
-      <div className="mx-auto max-w-6xl px-4 py-10">
+      <div className="mx-auto max-w-6xl section-padding">
         <Suspense
           fallback={
-            <div className="flex justify-center py-20 text-muted-foreground">
-              <Loader2 className="h-5 w-5 animate-spin" />
-            </div>
+            <div className="skeleton-shimmer mx-auto max-w-lg rounded-2xl p-8" style={{ minHeight: 280 }} />
           }
         >
           <CheckoutInner />

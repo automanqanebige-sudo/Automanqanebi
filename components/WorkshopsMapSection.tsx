@@ -197,7 +197,7 @@ export default function WorkshopsMapSection({ mapServices, listServices }: Works
           placeholder={t('workshops.mapSearchPlaceholder')}
           suggestions={searchSuggestions}
           showHistory={false}
-          inputClassName="w-full rounded-xl border border-border bg-background py-3 pl-12 pr-11 text-sm text-foreground shadow-sm placeholder:text-muted-foreground focus:border-transparent focus:outline-none focus:ring-2 focus:ring-primary disabled:opacity-60"
+          inputClassName="input-premium w-full py-3 pl-12 pr-11 text-sm disabled:opacity-60"
         />
         {searching ? (
           <p className="text-xs text-muted-foreground">{t('services.formMapSearching')}</p>
@@ -208,7 +208,7 @@ export default function WorkshopsMapSection({ mapServices, listServices }: Works
           <button
             type="button"
             onClick={nearMe}
-            className="inline-flex items-center gap-2 rounded-xl bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground hover:bg-primary/90"
+            className="btn-primary inline-flex rounded-xl px-4 py-2 text-sm"
           >
             <Navigation className="h-4 w-4" />
             {t('workshops.nearMe')}

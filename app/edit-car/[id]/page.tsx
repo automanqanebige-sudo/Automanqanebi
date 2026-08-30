@@ -6,6 +6,8 @@ import { useRouter } from 'next/navigation'
 import { ArrowLeft } from 'lucide-react'
 import RequireAuth from '@/components/RequireAuth'
 import CarListingForm from '@/components/CarListingForm'
+import EmptyState from '@/components/ui/EmptyState'
+import { CarDetailSkeleton } from '@/components/ui/Skeleton'
 import { useAuth } from '@/context/AuthContext'
 import { useLanguage } from '@/context/LanguageContext'
 import { fetchFirestoreCarById, updateCarListing } from '@/lib/cars-firestore'
@@ -42,31 +44,33 @@ function EditCarForm({ id }: { id: string }) {
 
   if (loading) {
     return (
-      <div className="flex min-h-[40vh] items-center justify-center text-muted-foreground">
-        {t('car.loading')}
+      <div className="mx-auto max-w-3xl section-padding">
+        <CarDetailSkeleton />
       </div>
     )
   }
 
   if (notFound) {
     return (
-      <div className="mx-auto max-w-lg px-4 py-16 text-center">
-        <h1 className="text-xl font-bold text-foreground">{t('car.notFound')}</h1>
-        <Link href="/profile" className="mt-4 inline-block text-primary hover:underline">
-          {t('nav.profile')}
-        </Link>
+      <div className="mx-auto max-w-lg section-padding">
+        <EmptyState
+          title={t('car.notFound')}
+          actionLabel={t('nav.profile')}
+          actionHref="/profile"
+        />
       </div>
     )
   }
 
   if (forbidden) {
     return (
-      <div className="mx-auto max-w-lg px-4 py-16 text-center">
-        <h1 className="text-xl font-bold text-foreground">{t('editCar.forbidden')}</h1>
-        <p className="mt-2 text-muted-foreground">{t('editCar.forbiddenDesc')}</p>
-        <Link href="/profile" className="mt-4 inline-block text-primary hover:underline">
-          {t('nav.profile')}
-        </Link>
+      <div className="mx-auto max-w-lg section-padding">
+        <EmptyState
+          title={t('editCar.forbidden')}
+          description={t('editCar.forbiddenDesc')}
+          actionLabel={t('nav.profile')}
+          actionHref="/profile"
+        />
       </div>
     )
   }
@@ -75,7 +79,7 @@ function EditCarForm({ id }: { id: string }) {
 
   return (
     <>
-      <div className="mx-auto max-w-2xl px-4 pt-8">
+      <div className="mx-auto max-w-3xl px-4 pt-2 sm:px-6">
         <Link
           href="/profile"
           className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-primary"

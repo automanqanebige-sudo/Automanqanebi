@@ -22,7 +22,7 @@ export default function SiteBannerDisplay({ banner, className = '' }: SiteBanner
   if (!bannerHasMedia(banner) && !banner.title) {
     return (
       <div
-        className={`relative flex items-center justify-center overflow-hidden rounded-xl bg-white px-4 text-center ${sizeClass} ${className}`}
+        className={`relative flex items-center justify-center overflow-hidden rounded-xl border border-dashed border-border bg-card px-4 text-center ${sizeClass} ${className}`}
       >
         <p className="text-sm font-medium text-muted-foreground sm:text-base">{placeholderText}</p>
       </div>

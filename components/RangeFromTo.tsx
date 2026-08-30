@@ -35,8 +35,7 @@ export default function RangeFromTo({
   suffix,
   className = '',
 }: RangeFromToProps) {
-  const inputClass =
-    'w-full rounded-lg border border-input bg-background px-3 py-2.5 text-sm text-foreground outline-none transition-all focus:ring-2 focus:ring-primary'
+  const inputClass = 'input-premium'
 
   return (
     <div className={`rounded-xl border border-border/70 bg-secondary/20 p-3 sm:p-4 ${className}`}>

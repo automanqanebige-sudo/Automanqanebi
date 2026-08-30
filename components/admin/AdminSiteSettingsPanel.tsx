@@ -140,7 +140,7 @@ export default function AdminSiteSettingsPanel() {
       <button
         type="submit"
         disabled={saving}
-        className="inline-flex items-center gap-2 rounded-lg bg-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground hover:bg-primary/90 disabled:opacity-60"
+        className="btn-primary inline-flex rounded-xl px-5 py-2.5 text-sm disabled:opacity-60"
       >
         <Save className="h-4 w-4" />
         {saving ? t('services.formSaving') : t('services.formSave')}

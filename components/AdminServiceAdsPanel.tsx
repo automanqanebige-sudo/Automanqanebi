@@ -155,7 +155,7 @@ export default function AdminServiceAdsPanel({
         <button
           type="button"
           onClick={openCreate}
-          className="inline-flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground hover:bg-primary/90"
+          className="btn-primary inline-flex rounded-xl px-4 py-2 text-sm"
         >
           <Plus className="h-4 w-4" />
           {t('admin.adAdd')}
@@ -312,7 +312,7 @@ export default function AdminServiceAdsPanel({
             <button
               type="submit"
               disabled={saving || uploading}
-              className="rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground hover:bg-primary/90 disabled:opacity-60"
+              className="btn-primary rounded-xl px-4 py-2 text-sm disabled:opacity-60"
             >
               {saving ? t('services.formSaving') : t('services.formSave')}
             </button>

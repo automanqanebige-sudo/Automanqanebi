@@ -1,7 +1,7 @@
 'use client'
 
-import { useMemo, useState } from 'react'
-import { ChevronDown, RotateCcw, Search } from 'lucide-react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
+import { ChevronDown, RotateCcw, Search, SlidersHorizontal } from 'lucide-react'
 import { carBrands } from '@/data/car-brands'
 import AdvancedFilterPanel from '@/components/AdvancedFilterPanel'
 import SearchInputWithSuggestions from '@/components/SearchInputWithSuggestions'
@@ -13,6 +13,7 @@ import {
   CategoryTagPickerSheet,
 } from '@/components/CategoryTagPicker'
 import HeroBanner from '@/components/HeroBanner'
+import BottomSheet from '@/components/ui/BottomSheet'
 import { useLanguage } from '@/context/LanguageContext'
 import { countActiveFilters } from '@/lib/apply-car-filters'
 import {
@@ -51,7 +52,28 @@ export default function HomeSearchPanel({
 }: HomeSearchPanelProps) {
   const { t } = useLanguage()
   const [advancedOpen, setAdvancedOpen] = useState(false)
+  const [filterSheetOpen, setFilterSheetOpen] = useState(false)
   const [categorySheetOpen, setCategorySheetOpen] = useState(false)
+  const [isMobile, setIsMobile] = useState(false)
+
+  useEffect(() => {
+    const mq = window.matchMedia('(max-width: 767px)')
+    const sync = () => setIsMobile(mq.matches)
+    sync()
+    mq.addEventListener('change', sync)
+    return () => mq.removeEventListener('change', sync)
+  }, [])
+
+  const openAdvanced = useCallback(() => {
+    if (isMobile) {
+      setFilterSheetOpen(true)
+      setAdvancedOpen(false)
+    } else {
+      setAdvancedOpen((v) => !v)
+    }
+  }, [isMobile])
+
+  const closeFilterSheet = useCallback(() => setFilterSheetOpen(false), [])
 
   const vehicleGroup = (filters.vehicleGroup || 'automobile') as VehicleGroup
 
@@ -258,12 +280,16 @@ export default function HomeSearchPanel({
             <div className="mt-5 flex flex-col gap-3 border-t border-border pt-4 sm:flex-row sm:items-center sm:justify-between">
               <button
                 type="button"
-                onClick={() => setAdvancedOpen(!advancedOpen)}
+                onClick={openAdvanced}
                 className="inline-flex items-center gap-2 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
               >
-                <ChevronDown
-                  className={`h-4 w-4 transition-transform ${advancedOpen ? 'rotate-180' : ''}`}
-                />
+                {isMobile ? (
+                  <SlidersHorizontal className="h-4 w-4" />
+                ) : (
+                  <ChevronDown
+                    className={`h-4 w-4 transition-transform ${advancedOpen ? 'rotate-180' : ''}`}
+                  />
+                )}
                 {t('home.searchTab.moreFilters')}
                 {activeFilterCount > 0 && (
                   <span className="rounded-full bg-primary px-2 py-0.5 text-xs text-primary-foreground">
@@ -283,7 +309,7 @@ export default function HomeSearchPanel({
             </div>
           </div>
 
-          {advancedOpen && (
+          {!isMobile && advancedOpen && (
             <div className="border-t border-border px-4 pb-6 pt-4 sm:px-6">
               <AdvancedFilterPanel
                 filters={filters}
@@ -296,6 +322,49 @@ export default function HomeSearchPanel({
           )}
         </div>
       </section>
+
+      <BottomSheet
+        open={filterSheetOpen}
+        onClose={closeFilterSheet}
+        title={t('home.searchTab.moreFilters')}
+        footer={
+          <div className="flex gap-3">
+            <button
+              type="button"
+              onClick={() => {
+                onReset()
+              }}
+              className="btn-secondary flex-1 rounded-xl px-4 py-3"
+            >
+              <RotateCcw className="h-4 w-4" />
+              {t('filter.clear')}
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                closeFilterSheet()
+                onSearch()
+              }}
+              className="btn-primary flex-[2] rounded-xl px-4 py-3"
+            >
+              <Search className="h-4 w-4" />
+              {t('search.button')} ({resultCount})
+            </button>
+          </div>
+        }
+      >
+        <AdvancedFilterPanel
+          filters={filters}
+          onChange={onFiltersChange}
+          onApply={() => {
+            closeFilterSheet()
+            onSearch()
+          }}
+          onReset={onReset}
+          resultCount={resultCount}
+          hideFooter
+        />
+      </BottomSheet>
     </HeroBanner>
   )
 }

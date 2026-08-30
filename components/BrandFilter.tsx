@@ -65,14 +65,9 @@ export default function BrandFilter({
 
   const models = carBrands.find((b) => b.brand === selectedBrand)?.models ?? []
 
-  const selectClass =
-    'w-full rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-white outline-none transition-colors focus:border-primary focus:ring-2 focus:ring-primary/40'
-
   return (
-    <div className="rounded-2xl bg-slate-900 p-4 shadow-inner sm:p-5 lg:p-6">
-      <h3 className="mb-4 text-base font-semibold text-white">
-        {t('search.topBrands')}
-      </h3>
+    <div className="rounded-2xl border border-border bg-card p-4 shadow-card sm:p-5 lg:p-6">
+      <h3 className="mb-4 text-base font-semibold text-foreground">{t('search.topBrands')}</h3>
 
       <div className="mb-6 grid grid-cols-5 gap-2 sm:grid-cols-10 sm:gap-1.5 lg:gap-2">
         {TOP_BRAND_NAMES.map((brand) => {
@@ -89,14 +84,14 @@ export default function BrandFilter({
                 onBrandChange(selected ? '' : brand)
               }}
               className={`flex w-full min-w-0 flex-col items-center gap-1 rounded-xl p-1 transition-all hover:-translate-y-0.5 sm:gap-1.5 sm:p-1.5 ${
-                selected ? 'ring-2 ring-amber-400 ring-offset-1 ring-offset-slate-900' : ''
+                selected ? 'ring-2 ring-primary ring-offset-2 ring-offset-background' : ''
               }`}
               aria-pressed={selected}
             >
-              <div className="flex aspect-square w-full items-center justify-center rounded-xl bg-white p-2 shadow-sm sm:p-2.5 lg:p-3">
+              <div className="flex aspect-square w-full items-center justify-center rounded-xl border border-border bg-surface p-2 shadow-sm sm:p-2.5 lg:p-3">
                 <BrandLogo src={item.logo} alt={item.brand} size="lg" />
               </div>
-              <span className="w-full truncate text-center text-[9px] font-medium leading-tight text-white sm:text-[10px] lg:text-[11px]">
+              <span className="w-full truncate text-center text-[9px] font-medium leading-tight text-foreground sm:text-[10px] lg:text-[11px]">
                 {item.brand}
               </span>
             </button>
@@ -109,13 +104,11 @@ export default function BrandFilter({
         onChange={(e) => {
           onBrandChange(e.target.value)
         }}
-        className={`${selectClass} mb-4`}
+        className="select-premium mb-4"
       >
-        <option value="" className="bg-slate-900 text-white">
-          {t('search.selectBrand')}
-        </option>
+        <option value="">{t('search.selectBrand')}</option>
         {sortedBrands.map((brand) => (
-          <option key={brand.brand} value={brand.brand} className="bg-slate-900 text-white">
+          <option key={brand.brand} value={brand.brand}>
             {brand.brand}
           </option>
         ))}
@@ -123,17 +116,15 @@ export default function BrandFilter({
 
       {selectedBrand && (
         <>
-          <h3 className="mb-2 text-sm font-semibold text-white">{t('search.model')}</h3>
+          <h3 className="mb-2 text-sm font-semibold text-foreground">{t('search.model')}</h3>
           <select
             value={selectedModel}
             onChange={(e) => onModelChange(e.target.value)}
-            className={selectClass}
+            className="select-premium"
           >
-            <option value="" className="bg-slate-900 text-white">
-              {t('search.selectModel')}
-            </option>
+            <option value="">{t('search.selectModel')}</option>
             {models.map((model) => (
-              <option key={model} value={model} className="bg-slate-900 text-white">
+              <option key={model} value={model}>
                 {model}
               </option>
             ))}

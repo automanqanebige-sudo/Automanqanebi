@@ -97,7 +97,7 @@ export default function WorkshopsPage() {
       <div className="mb-4 hidden sm:mb-6 sm:flex sm:justify-end">
         <Link
           href={addWorkshopHref}
-          className="inline-flex items-center justify-center gap-2 rounded-xl bg-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground hover:bg-primary/90"
+          className="btn-primary inline-flex items-center justify-center gap-2 rounded-xl px-5 py-2.5 text-sm"
         >
           <Plus className="h-4 w-4" />
           {t('workshops.addWorkshop')}
@@ -106,7 +106,7 @@ export default function WorkshopsPage() {
 
       <Link
         href={addWorkshopHref}
-        className="fixed bottom-[calc(4.5rem+env(safe-area-inset-bottom))] left-4 right-4 z-40 inline-flex items-center justify-center gap-2 rounded-xl bg-primary px-5 py-3 text-sm font-semibold text-primary-foreground shadow-lg shadow-primary/25 hover:bg-primary/90 sm:hidden"
+        className="btn-primary fixed bottom-[calc(4.5rem+env(safe-area-inset-bottom))] left-4 right-4 z-40 rounded-xl px-5 py-3 text-sm shadow-lg shadow-primary/25 sm:hidden"
       >
         <Plus className="h-4 w-4" />
         {t('workshops.addWorkshop')}
@@ -126,7 +126,7 @@ export default function WorkshopsPage() {
             <p className="text-muted-foreground">{t('workshops.empty')}</p>
             <Link
               href={addWorkshopHref}
-              className="mt-4 inline-flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90"
+              className="btn-primary mt-4 inline-flex items-center gap-2 rounded-xl px-4 py-2 text-sm"
             >
               <Plus className="h-4 w-4" />
               {t('workshops.addWorkshop')}

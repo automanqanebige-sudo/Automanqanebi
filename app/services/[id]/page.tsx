@@ -36,13 +36,15 @@ import {
   filterServices,
 } from '@/lib/service-search'
 import { getWindowQueryString, softReplaceUrl } from '@/lib/soft-url'
+import { CarDetailSkeleton } from '@/components/ui/Skeleton'
+import EmptyState from '@/components/ui/EmptyState'
 
 export default function ServiceDetailPage({ params }: { params: { id: string } }) {
   return (
     <Suspense
       fallback={
-        <div className="flex min-h-[50vh] items-center justify-center text-muted-foreground">
-          Loading...
+        <div className="bg-background section-padding">
+          <CarDetailSkeleton />
         </div>
       }
     >
@@ -114,19 +116,23 @@ function ServiceDetailContent({ id }: { id: string }) {
 
   if (loading) {
     return (
-      <div className="flex min-h-[50vh] items-center justify-center text-muted-foreground">
-        {t('car.loading')}
+      <div className="bg-background section-padding">
+        <CarDetailSkeleton />
       </div>
     )
   }
 
   if (!service) {
     return (
-      <div className="mx-auto max-w-lg px-4 py-16 text-center">
-        <h1 className="text-xl font-bold text-foreground">{t('services.notFound')}</h1>
-        <Link href="/services" className="mt-4 inline-block text-primary hover:underline">
-          {t('services.backToServices')}
-        </Link>
+      <div className="bg-background section-padding">
+        <div className="mx-auto max-w-lg">
+          <EmptyState
+            icon={<Wrench className="h-8 w-8 text-muted-foreground" aria-hidden />}
+            title={t('services.notFound')}
+            actionLabel={t('services.backToServices')}
+            actionHref="/services"
+          />
+        </div>
       </div>
     )
   }
@@ -140,8 +146,8 @@ function ServiceDetailContent({ id }: { id: string }) {
   const hasSearch = Boolean(searchQuery.trim())
 
   return (
-    <div className="min-h-screen bg-white">
-      <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
+    <div className="min-h-screen bg-background">
+      <div className="mx-auto max-w-7xl section-padding">
         <Link
           href="/services"
           className="mb-4 inline-flex items-center gap-2 text-sm text-muted-foreground transition-colors hover:text-foreground"
@@ -221,7 +227,7 @@ function ServiceDetailContent({ id }: { id: string }) {
               <div className="flex flex-wrap gap-3">
                 <a
                   href={`tel:${service.phone.replace(/\s/g, '')}`}
-                  className="inline-flex items-center gap-2 rounded-xl bg-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground hover:bg-primary/90"
+                  className="btn-primary inline-flex rounded-xl px-5 py-2.5 text-sm"
                 >
                   <Phone className="h-4 w-4" />
                   {service.phone}

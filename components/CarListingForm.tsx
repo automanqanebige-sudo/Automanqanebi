@@ -43,7 +43,11 @@ import {
 } from '@/lib/vehicle-categories'
 
 function inputClass() {
-  return 'w-full rounded-lg border border-input bg-background px-3 py-2.5 text-foreground outline-none transition-all focus:ring-2 focus:ring-primary'
+  return 'input-premium disabled:opacity-60'
+}
+
+function selectClass() {
+  return 'select-premium disabled:opacity-60'
 }
 
 function SectionTitle({ children }: { children: React.ReactNode }) {
@@ -71,7 +75,7 @@ function SelectField({
     <div>
       <label className="mb-1.5 block text-xs font-medium text-muted-foreground">{label}</label>
       <select
-        className={inputClass()}
+        className={selectClass()}
         value={value}
         onChange={(e) => onChange(e.target.value)}
         disabled={disabled}
@@ -456,8 +460,8 @@ export default function CarListingForm({
   ]
 
   return (
-    <div className="mx-auto max-w-3xl px-4 py-10">
-      <div className="rounded-2xl border border-border bg-card p-6 shadow-sm sm:p-8">
+    <div className="mx-auto max-w-3xl section-padding">
+      <div className="rounded-2xl border border-border bg-card p-6 shadow-card sm:p-8">
         <h1 className="mb-2 text-2xl font-bold text-foreground">{title}</h1>
         <p className="mb-6 text-sm text-muted-foreground">{subtitle}</p>
 
@@ -496,7 +500,7 @@ export default function CarListingForm({
                 {t('search.selectBrand')} *
               </label>
               <select
-                className={inputClass()}
+                className={selectClass()}
                 value={values.brand}
                 onChange={(e) => patch({ brand: e.target.value, model: '' })}
                 required
@@ -515,7 +519,7 @@ export default function CarListingForm({
                 {t('search.model')} *
               </label>
               <select
-                className={inputClass()}
+                className={selectClass()}
                 value={values.model}
                 onChange={(e) => patch({ model: e.target.value })}
                 required
@@ -812,7 +816,7 @@ export default function CarListingForm({
                 {t('car.location')}
               </label>
               <select
-                className={inputClass()}
+                className={selectClass()}
                 value={values.location}
                 onChange={(e) => patch({ location: e.target.value })}
                 disabled={busy}
@@ -901,7 +905,7 @@ export default function CarListingForm({
           <button
             type="submit"
             disabled={busy}
-            className="w-full rounded-xl bg-primary py-3.5 font-bold text-primary-foreground transition-colors hover:bg-primary/90 disabled:opacity-60"
+            className="btn-primary w-full rounded-xl py-3.5 disabled:opacity-60"
           >
             {busy ? submittingLabel : submitLabel}
           </button>

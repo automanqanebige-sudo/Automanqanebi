@@ -9,7 +9,7 @@ import { safeAppPath } from '@/lib/safe-redirect'
 export function AuthLoadingScreen() {
   const { t } = useLanguage()
   return (
-    <div className="flex min-h-screen items-center justify-center text-gray-500">
+    <div className="flex min-h-screen items-center justify-center text-muted-foreground">
       {t('auth.loading')}
     </div>
   )
@@ -17,7 +17,7 @@ export function AuthLoadingScreen() {
 
 export function AuthFormFallback() {
   const { t } = useLanguage()
-  return <p className="py-6 text-center text-sm text-gray-500">{t('auth.loading')}</p>
+  return <p className="py-6 text-center text-sm text-muted-foreground">{t('auth.loading')}</p>
 }
 
 function AuthPageGateContent({ children }: { children: ReactNode }) {

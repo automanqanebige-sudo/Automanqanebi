@@ -149,7 +149,7 @@ export default function VipMonetizationPanel({
             type="button"
             disabled={busy}
             onClick={() => void startCheckout()}
-            className="mt-4 inline-flex items-center justify-center gap-2 rounded-xl bg-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground hover:bg-primary/90 disabled:opacity-50"
+            className="btn-primary mt-4 inline-flex rounded-xl px-5 py-2.5 text-sm disabled:opacity-50"
           >
             {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : <Check className="h-4 w-4" />}
             {t('vip.goToCheckout')}

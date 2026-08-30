@@ -167,8 +167,8 @@ export default function ProfilePage() {
   const initial = (user.displayName || user.email || '?').charAt(0).toUpperCase()
 
   return (
-    <div className="mx-auto max-w-3xl px-4 py-10">
-      <div className="rounded-2xl border border-border bg-card p-8 text-center shadow-sm">
+    <div className="mx-auto max-w-3xl section-padding">
+      <div className="rounded-2xl border border-border bg-card p-8 text-center shadow-card">
         {user.photoURL ? (
           <Image
             src={user.photoURL}
@@ -202,14 +202,14 @@ export default function ProfilePage() {
         <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:justify-center">
           <Link
             href="/add-car"
-            className="inline-flex items-center justify-center gap-2 rounded-lg bg-primary px-5 py-2.5 font-medium text-primary-foreground transition-colors hover:bg-primary/90"
+            className="btn-primary rounded-xl px-5 py-2.5"
           >
             <Car className="h-4 w-4" />
             {t('nav.addCar')}
           </Link>
           <Link
             href="/services/add"
-            className="inline-flex items-center justify-center gap-2 rounded-lg border border-border px-5 py-2.5 font-medium text-foreground transition-colors hover:bg-secondary"
+            className="btn-secondary rounded-xl px-5 py-2.5"
           >
             <Wrench className="h-4 w-4" />
             {t('services.addService')}
@@ -217,7 +217,7 @@ export default function ProfilePage() {
           <button
             type="button"
             onClick={() => setShowSettings((v) => !v)}
-            className="inline-flex items-center justify-center gap-2 rounded-lg border border-border px-5 py-2.5 font-medium text-foreground transition-colors hover:bg-secondary"
+            className="btn-secondary rounded-xl px-5 py-2.5"
           >
             <Settings className="h-4 w-4" />
             {t('profile.settings.title')}
@@ -225,7 +225,7 @@ export default function ProfilePage() {
           <button
             type="button"
             onClick={() => logout().then(() => router.push('/'))}
-            className="inline-flex items-center justify-center gap-2 rounded-lg border border-border px-5 py-2.5 font-medium text-foreground transition-colors hover:bg-secondary"
+            className="btn-secondary rounded-xl px-5 py-2.5"
           >
             <LogOut className="h-4 w-4" />
             {t('auth.logout')}
@@ -255,7 +255,7 @@ export default function ProfilePage() {
                     setVipCarId(car.id)
                     setShowVipPanel(true)
                   }}
-                  className="rounded-lg bg-primary px-3 py-1.5 text-primary-foreground"
+                  className="btn-primary rounded-xl px-3 py-1.5 text-sm"
                 >
                   {t('profile.renewVip')}
                 </button>
@@ -317,7 +317,7 @@ export default function ProfilePage() {
             <p className="text-muted-foreground">{t('profile.noListings')}</p>
             <Link
               href="/add-car"
-              className="mt-4 inline-flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90"
+              className="btn-primary mt-4 inline-flex rounded-xl px-4 py-2 text-sm"
             >
               <Car className="h-4 w-4" />
               {t('nav.addCar')}
@@ -428,7 +428,7 @@ export default function ProfilePage() {
             <p className="text-muted-foreground">{t('profile.noServices')}</p>
             <Link
               href="/services/add"
-              className="mt-4 inline-flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90"
+              className="btn-primary mt-4 inline-flex rounded-xl px-4 py-2 text-sm"
             >
               <Wrench className="h-4 w-4" />
               {t('services.addService')}

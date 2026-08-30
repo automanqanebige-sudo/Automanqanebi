@@ -8,5 +8,5 @@ type HeroBackgroundLayerProps = {
 }
 
 export default function HeroBackgroundLayer(_props: HeroBackgroundLayerProps) {
-  return <div className="absolute inset-0 bg-white" aria-hidden />
+  return <div className="absolute inset-0 bg-background" aria-hidden />
 }

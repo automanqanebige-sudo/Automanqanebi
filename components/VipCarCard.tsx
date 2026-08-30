@@ -45,9 +45,8 @@ export default function VipCarCard({ car, onFavoriteToggle }: VipCarCardProps) {
 
   return (
     <Link href={`/car/${car.id}`} className="block group flex-shrink-0">
-      <article className="relative w-80 sm:w-96 overflow-hidden rounded-2xl border-2 border-primary/30 bg-gradient-to-br from-primary/10 via-card to-primary/5 shadow-lg transition-all duration-500 group-hover:-translate-y-2 group-hover:scale-[1.02] group-hover:shadow-2xl">
-        <div className="pointer-events-none absolute inset-0 bg-gradient-to-br from-primary/10 via-transparent to-primary/5" />
-        <div className="pointer-events-none absolute right-0 top-0 h-24 w-24 bg-gradient-to-bl from-primary/20 to-transparent" />
+      <article className="card-premium relative w-80 flex-shrink-0 overflow-hidden border-primary/25 sm:w-96">
+        <div className="pointer-events-none absolute inset-0 bg-gradient-to-br from-primary/8 via-transparent to-transparent" />
 
         <div className="relative aspect-[16/10] overflow-hidden bg-muted">
           {!imageError ? (
@@ -55,7 +54,7 @@ export default function VipCarCard({ car, onFavoriteToggle }: VipCarCardProps) {
               src={car.image}
               alt={`${car.year} ${car.brand} ${car.model}`}
               fill
-              className="object-cover transition-transform duration-500 group-hover:scale-110"
+              className="object-cover transition-transform duration-500 group-hover:scale-105"
               onError={() => setImageError(true)}
               sizes="(max-width: 640px) 320px, 384px"
             />
@@ -65,9 +64,9 @@ export default function VipCarCard({ car, onFavoriteToggle }: VipCarCardProps) {
             </div>
           )}
 
-          <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/10 to-transparent" />
+          <div className="absolute inset-0 bg-gradient-to-t from-black/55 via-black/10 to-transparent" />
 
-          <div className="absolute left-4 top-4 rounded-full bg-primary px-4 py-2 text-sm font-bold text-primary-foreground">
+          <div className="badge-premium absolute left-4 top-4 bg-primary px-3 py-1.5 text-primary-foreground shadow-md">
             VIP
           </div>
 
@@ -99,10 +98,10 @@ export default function VipCarCard({ car, onFavoriteToggle }: VipCarCardProps) {
             </button>
           </div>
 
-          <div className="absolute bottom-4 left-4 right-4 flex items-end justify-between">
-            <div className="rounded-xl bg-primary px-5 py-2.5 text-primary-foreground shadow-xl shadow-primary/30">
-              <span className="text-2xl font-bold tracking-tight">{formatPrice(car.price)}</span>
-            </div>
+          <div className="absolute bottom-4 left-4 right-4">
+            <p className="price-display inline-block rounded-xl bg-surface-elevated/90 px-4 py-2 text-white shadow-lg backdrop-blur-sm">
+              {formatPrice(car.price)}
+            </p>
           </div>
         </div>
 
