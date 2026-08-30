@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { Heart, Home, Plus, User as UserIcon, Wrench } from 'lucide-react'
+import { Building2, Home, Plus, User as UserIcon, Wrench } from 'lucide-react'
 import { useLanguage } from '@/context/LanguageContext'
 import { useAuth } from '@/context/AuthContext'
 
@@ -14,8 +14,8 @@ export default function MobileBottomNav() {
   const links = [
     { href: '/', key: 'nav.home', icon: Home },
     { href: '/services', key: 'nav.services', icon: Wrench },
+    { href: '/workshops', key: 'nav.workshops', icon: Building2 },
     { href: '/add-car', key: 'nav.addCar', icon: Plus, primary: true as const },
-    { href: '/favorites', key: 'nav.favorites', icon: Heart },
     {
       href: user ? '/profile' : '/login',
       key: user ? 'nav.profile' : 'nav.login',
@@ -31,13 +31,15 @@ export default function MobileBottomNav() {
       <ul className="mx-auto flex max-w-lg items-stretch justify-around px-1 pt-1">
         {links.map((item) => {
           const isActive =
-            item.href === '/' ? pathname === '/' : pathname.startsWith(item.href.replace('/login', '/profile')) || pathname === item.href
+            item.href === '/'
+              ? pathname === '/'
+              : pathname === item.href || pathname.startsWith(`${item.href}/`)
           const Icon = item.icon
           return (
             <li key={item.key} className="flex-1">
               <Link
                 href={item.href}
-                className={`flex flex-col items-center gap-0.5 px-1 py-2 text-[10px] font-medium ${
+                className={`flex flex-col items-center gap-0.5 px-0.5 py-2 text-[10px] font-medium ${
                   isActive ? 'text-primary' : 'text-muted-foreground'
                 }`}
               >
@@ -52,7 +54,7 @@ export default function MobileBottomNav() {
                 >
                   <Icon className="h-4 w-4" />
                 </span>
-                {t(item.key)}
+                <span className="max-w-[4.5rem] truncate text-center leading-tight">{t(item.key)}</span>
               </Link>
             </li>
           )

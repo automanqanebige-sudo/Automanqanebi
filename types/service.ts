@@ -1,8 +1,10 @@
-export type { ServiceCategory, MobileServiceCategoryEntry } from '@/types/service-category'
+export type { ServiceCategory, MobileServiceCategoryEntry, WorkshopCategoryEntry } from '@/types/service-category'
 export {
   SERVICE_CATEGORIES,
   FILTERABLE_SERVICE_CATEGORIES,
   WORKSHOP_PAGE_CATEGORIES,
+  WORKSHOP_PAGE_CATEGORY_ENTRIES,
+  LEGACY_WORKSHOP_CATEGORIES,
   MOBILE_SERVICE_CATEGORIES,
   SERVICE_CATEGORY_ICONS,
   normalizeServiceCategory,

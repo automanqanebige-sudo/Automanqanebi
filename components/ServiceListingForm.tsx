@@ -45,6 +45,10 @@ import { RENTAL_SUB_EMOJI, RENTAL_TRANSPORT_EMOJI } from '@/lib/filter-emojis'
 type ServiceListingFormProps = {
   mode: 'create' | 'edit'
   initialValues?: ServiceListingFormValues
+  categoryOptions?: ServiceCategory[]
+  getCategoryLabel?: (category: ServiceCategory) => string
+  submitLabelKey?: string
+  submittingLabelKey?: string
   submitting?: boolean
   uploading?: boolean
   error?: string
@@ -78,6 +82,10 @@ function FormSection({
 export default function ServiceListingForm({
   mode,
   initialValues,
+  categoryOptions,
+  getCategoryLabel,
+  submitLabelKey,
+  submittingLabelKey,
   submitting,
   uploading,
   error,
@@ -86,6 +94,8 @@ export default function ServiceListingForm({
   const { t } = useLanguage()
   const { currency } = useCurrency()
   const currencyLabel = currency === 'GEL' ? '₾' : '$'
+
+  const selectableCategories = categoryOptions ?? SERVICE_CATEGORIES
 
   const [values, setValues] = useState<ServiceListingFormValues>(
     initialValues ?? emptyServiceFormValues()
@@ -183,8 +193,11 @@ export default function ServiceListingForm({
         ? t('services.formSaving')
         : t('services.formSave')
       : submitting
-        ? t('services.formSubmitting')
-        : t('services.formSubmit')
+        ? t(submittingLabelKey ?? 'services.formSubmitting')
+        : t(submitLabelKey ?? 'services.formSubmit')
+
+  const labelForCategory = (cat: ServiceCategory) =>
+    getCategoryLabel ? getCategoryLabel(cat) : t(`services.cat.${cat}`)
 
   return (
     <form className="space-y-6" onSubmit={handleSubmit}>
@@ -213,9 +226,9 @@ export default function ServiceListingForm({
             className={inputClass()}
             disabled={submitting}
           >
-            {SERVICE_CATEGORIES.map((cat) => (
+            {selectableCategories.map((cat) => (
               <option key={cat} value={cat}>
-                {t(`services.cat.${cat}`)}
+                {labelForCategory(cat)}
               </option>
             ))}
           </select>

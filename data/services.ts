@@ -22,6 +22,16 @@ export const sampleServices: Service[] = [
     longitude: 44.789,
   },
   {
+    id: 'w4',
+    name: 'TirePro Vulcanization',
+    category: 'vulcanization',
+    location: 'თბილისი, საბურავების ქუჩა',
+    phone: '+995 555 66 77 88',
+    description: 'საბურავის შეკეხვა, ვულკანიზაცია და შინომონტაჟი',
+    latitude: 41.732,
+    longitude: 44.801,
+  },
+  {
     id: 'w1',
     name: 'ავტო სერვისი ვაკე',
     category: 'workshop',

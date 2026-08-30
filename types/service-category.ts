@@ -10,11 +10,14 @@ export type ServiceCategory =
   | 'electric'
   | 'ev'
   | 'tires'
+  | 'vulcanization'
   | 'discs'
   | 'alignment'
   | 'brakes'
   | 'exhaust'
   | 'cooling'
+  | 'oilChange'
+  | 'freon'
   | 'fuel'
   | 'fuelDrain'
   | 'steering'
@@ -88,14 +91,37 @@ export const FILTERABLE_SERVICE_CATEGORIES: ServiceCategory[] = [
 ]
 
 /** Categories shown on /workshops */
-export const WORKSHOP_PAGE_CATEGORIES: ServiceCategory[] = [
-  'fullService',
+export type WorkshopCategoryEntry = {
+  category: ServiceCategory
+  /** Override label key; defaults to `services.cat.{category}` */
+  labelKey?: string
+}
+
+export const WORKSHOP_PAGE_CATEGORY_ENTRIES: WorkshopCategoryEntry[] = [
+  { category: 'fullService' },
+  { category: 'mechanic' },
+  { category: 'electric' },
+  { category: 'vulcanization' },
+  { category: 'accessories' },
+  { category: 'tires' },
+  { category: 'discs' },
+  { category: 'fuelDrain' },
+  { category: 'locksmith', labelKey: 'services.sub.mobileDoorOpen' },
+  { category: 'lpg' },
+  { category: 'glass', labelKey: 'workshops.cat.glassTint' },
+  { category: 'upholstery', labelKey: 'workshops.cat.upholsteryInterior' },
+  { category: 'oilChange', labelKey: 'workshops.cat.oilChange' },
+  { category: 'freon', labelKey: 'workshops.cat.freon' },
+]
+
+export const WORKSHOP_PAGE_CATEGORIES: ServiceCategory[] =
+  WORKSHOP_PAGE_CATEGORY_ENTRIES.map((entry) => entry.category)
+
+/** Legacy workshop listings still shown when browsing all */
+export const LEGACY_WORKSHOP_CATEGORIES: ServiceCategory[] = [
   'workshop',
-  'mechanic',
   'diagnostics',
   'bodywork',
-  'tires',
-  'electric',
   'brakes',
 ]
 
@@ -111,11 +137,14 @@ export const SERVICE_CATEGORY_ICONS: Record<ServiceCategory, string> = {
   electric: '',
   ev: '',
   tires: '',
+  vulcanization: '',
   discs: '',
   alignment: '',
   brakes: '',
   exhaust: '',
   cooling: '',
+  oilChange: '',
+  freon: '',
   fuel: '',
   fuelDrain: '',
   steering: '',
@@ -176,6 +205,12 @@ const CATEGORY_ALIASES: Record<string, ServiceCategory> = {
   workshop: 'electric',
   diagnostics: 'electric',
   alignment: 'tires',
+  vulcanization: 'vulcanization',
+  vulcan: 'vulcanization',
+  oilchange: 'oilChange',
+  'oil-change': 'oilChange',
+  freon: 'freon',
+  ac: 'freon',
   brakes: 'tires',
   cooling: 'electric',
   steering: 'electric',

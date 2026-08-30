@@ -17,6 +17,8 @@ type CategoryTagGridProps = {
   className?: string
   /** When false, clicking the active tag keeps it selected (filter UX). */
   allowDeselect?: boolean
+  /** Two-column grid on mobile; flex wrap from sm up */
+  mobileGrid?: boolean
 }
 
 export function CategoryTagGrid({
@@ -25,9 +27,14 @@ export function CategoryTagGrid({
   onChange,
   className = '',
   allowDeselect = false,
+  mobileGrid = false,
 }: CategoryTagGridProps) {
+  const containerClass = mobileGrid
+    ? `grid grid-cols-2 gap-2 sm:flex sm:flex-wrap ${className}`
+    : `flex flex-wrap gap-2 ${className}`
+
   return (
-    <div className={`flex flex-wrap gap-2 ${className}`}>
+    <div className={containerClass}>
       {options.map((option) => {
         const selected = value === option.value
         return (
@@ -35,7 +42,9 @@ export function CategoryTagGrid({
             key={option.value}
             type="button"
             onClick={() => onChange(selected && allowDeselect ? '' : option.value)}
-            className={`inline-flex items-center gap-1.5 rounded-lg border px-3 py-2.5 text-sm font-medium transition-colors ${
+            className={`inline-flex items-center gap-1.5 rounded-lg border px-2.5 py-2.5 text-left text-xs font-medium transition-colors sm:px-3 sm:text-sm ${
+              mobileGrid ? 'w-full sm:w-auto sm:text-left' : ''
+            } ${
               selected
                 ? 'border-primary bg-primary text-primary-foreground'
                 : 'border-border bg-white text-foreground hover:border-primary/40 hover:bg-primary/5'
@@ -45,7 +54,7 @@ export function CategoryTagGrid({
               className={`h-3.5 w-3.5 shrink-0 ${selected ? 'text-primary-foreground' : 'text-muted-foreground'}`}
               strokeWidth={2.5}
             />
-            {option.label}
+            <span className="min-w-0 flex-1 leading-snug">{option.label}</span>
           </button>
         )
       })}

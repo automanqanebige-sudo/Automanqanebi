@@ -12,19 +12,14 @@ import ServiceDiscFilters from '@/components/ServiceDiscFilters'
 import ServiceCategoryAdsSection from '@/components/ServiceCategoryAdsSection'
 import SiteBannerSlot from '@/components/SiteBannerSlot'
 import MobileServicesCategoriesSection from '@/components/MobileServicesCategoriesSection'
-import {
-  CategoryTagGrid,
-  CategoryTagPickerField,
-  CategoryTagPickerSheet,
-} from '@/components/CategoryTagPicker'
-import { useServiceCatalogT } from '@/hooks/useServiceCatalogT'
-import { useLanguage } from '@/context/LanguageContext'
+import MarketplaceServicesCategoriesSection from '@/components/MarketplaceServicesCategoriesSection'
 import {
   FILTERABLE_SERVICE_CATEGORIES,
-  SERVICE_CATEGORIES,
   type Service,
   type ServiceCategory,
 } from '@/types/service'
+import { useServiceCatalogT } from '@/hooks/useServiceCatalogT'
+import { useLanguage } from '@/context/LanguageContext'
 import { sampleServices } from '@/data/services'
 import { loadAllServices, getCachedServices } from '@/lib/services-firestore'
 import {
@@ -75,7 +70,6 @@ function ServicesPageContent() {
   const [categoryAds, setCategoryAds] = useState<ServiceCategoryAd[]>(cachedAds ?? [])
   const [loading, setLoading] = useState(!cachedServices)
   const [urlReady, setUrlReady] = useState(false)
-  const [categorySheetOpen, setCategorySheetOpen] = useState(false)
 
   useEffect(() => {
     const liveQs = getWindowQueryString()
@@ -215,20 +209,11 @@ function ServicesPageContent() {
     if (searchQuery) setSearchQuery('')
   }
 
-  const categoryOptions = useMemo(
-    () =>
-      SERVICE_CATEGORIES.map((cat) => ({
-        value: cat,
-        label: categoryLabel(cat),
-      })),
-    [categoryLabel]
-  )
-
   const showListings = Boolean(selectedCategory || hasSearch)
 
   return (
     <div className="min-h-screen bg-white">
-      <div className="sticky top-14 z-30 border-b border-border bg-white backdrop-blur-md sm:top-[4.25rem]">
+      <div className="sticky top-[6.5rem] z-30 border-b border-border bg-white backdrop-blur-md md:top-[7rem]">
         <ServicesTopSearch
           value={searchQuery}
           onChange={setSearchQuery}
@@ -280,35 +265,11 @@ function ServicesPageContent() {
           onChange={selectCategory}
         />
 
-        <div className="mb-8">
-          <div className="md:hidden">
-            <CategoryTagPickerField
-              label={baseT('filter.category')}
-              placeholder={baseT('picker.chooseCategory')}
-              selectedLabel={selectedCategory ? categoryLabel(selectedCategory) : ''}
-              onOpen={() => setCategorySheetOpen(true)}
-            />
-            <CategoryTagPickerSheet
-              open={categorySheetOpen}
-              onClose={() => setCategorySheetOpen(false)}
-              title={baseT('filter.category')}
-              options={categoryOptions}
-              value={selectedCategory ?? ''}
-              onConfirm={(value) => selectCategory((value as ServiceCategory) || null)}
-            />
-          </div>
-
-          <div className="hidden md:block">
-            <p className="mb-3 text-center text-base font-semibold text-foreground">
-              {baseT('filter.category')}
-            </p>
-            <CategoryTagGrid
-              options={categoryOptions}
-              value={selectedCategory ?? ''}
-              onChange={(value) => selectCategory((value as ServiceCategory) || null)}
-            />
-          </div>
-        </div>
+        <MarketplaceServicesCategoriesSection
+          className="mb-8"
+          value={selectedCategory}
+          onChange={selectCategory}
+        />
 
         {selectedCategory === 'discs' && (
           <ServiceDiscFilters filters={discFilters} onChange={setDiscFilters} />

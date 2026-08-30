@@ -2,21 +2,23 @@
 
 import ServiceCategoriesSection from '@/components/ServiceCategoriesSection'
 import {
-  MOBILE_SERVICE_CATEGORIES,
+  WORKSHOP_PAGE_CATEGORY_ENTRIES,
   type ServiceCategory,
 } from '@/types/service'
 
-type MobileServicesCategoriesSectionProps = {
+type WorkshopsCategoriesSectionProps = {
   value: ServiceCategory | null
   onChange: (category: ServiceCategory | null) => void
   className?: string
 }
 
-export default function MobileServicesCategoriesSection(props: MobileServicesCategoriesSectionProps) {
+export default function WorkshopsCategoriesSection(props: WorkshopsCategoriesSectionProps) {
   return (
     <ServiceCategoriesSection
-      titleKey="services.section.mobile"
-      entries={MOBILE_SERVICE_CATEGORIES}
+      titleKey="filter.category"
+      entries={WORKSHOP_PAGE_CATEGORY_ENTRIES}
+      mobileGrid
+      allowDeselect
       {...props}
     />
   )

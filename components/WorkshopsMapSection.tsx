@@ -1,16 +1,35 @@
 'use client'
 
 import { useEffect, useMemo, useState } from 'react'
+import dynamic from 'next/dynamic'
 import Link from 'next/link'
 import { MapPin, Navigation, Star } from 'lucide-react'
 import SearchInputWithSuggestions from '@/components/SearchInputWithSuggestions'
 import { useLanguage } from '@/context/LanguageContext'
 import { geocodeAddress } from '@/lib/geocode'
+import { isPhysicalAutoService } from '@/lib/service-map-eligibility'
+import {
+  resolveMissingServiceCoordinates,
+  servicesWithStoredCoords,
+  type MappedService,
+} from '@/lib/resolve-service-coordinates'
 import { sortByDistance, withDistanceKm } from '@/lib/geo-distance'
 import type { Service } from '@/types/service'
 
+const ServicesLeafletMap = dynamic(() => import('@/components/ServicesLeafletMap'), {
+  ssr: false,
+  loading: () => (
+    <div className="flex h-72 items-center justify-center rounded-xl border border-border bg-muted/30 sm:h-80 lg:h-[420px]">
+      <p className="text-sm text-muted-foreground">…</p>
+    </div>
+  ),
+})
+
 type WorkshopsMapSectionProps = {
-  services: Service[]
+  /** All workshops / auto services for the map (Georgia-wide) */
+  mapServices: Service[]
+  /** Optional subset for the sidebar list (e.g. category filter) */
+  listServices?: Service[]
 }
 
 type MapPin = {
@@ -18,8 +37,6 @@ type MapPin = {
   lng: number
   label: string
 }
-
-const DEFAULT_CENTER = { lat: 41.7151, lng: 44.8271 }
 
 function workshopSuggestionLabel(service: Service) {
   return `${service.name} — ${service.location}`
@@ -42,7 +59,7 @@ function findWorkshopByQuery(services: Service[], query: string): Service | unde
   )
 }
 
-export default function WorkshopsMapSection({ services }: WorkshopsMapSectionProps) {
+export default function WorkshopsMapSection({ mapServices, listServices }: WorkshopsMapSectionProps) {
   const { t } = useLanguage()
   const [userPos, setUserPos] = useState<{ latitude: number; longitude: number } | null>(null)
   const [geoError, setGeoError] = useState('')
@@ -51,23 +68,41 @@ export default function WorkshopsMapSection({ services }: WorkshopsMapSectionPro
   const [searching, setSearching] = useState(false)
   const [selectedId, setSelectedId] = useState<string | null>(null)
   const [mapPin, setMapPin] = useState<MapPin | null>(null)
-
-  const withCoords = useMemo(
-    () =>
-      services.filter(
-        (s) =>
-          typeof s.latitude === 'number' &&
-          typeof s.longitude === 'number' &&
-          Number.isFinite(s.latitude) &&
-          Number.isFinite(s.longitude)
-      ),
-    [services]
+  const [mappedServices, setMappedServices] = useState<MappedService[]>(() =>
+    servicesWithStoredCoords(mapServices.filter(isPhysicalAutoService))
   )
+  const [geocoding, setGeocoding] = useState(false)
+
+  const sidebarSource = listServices ?? mapServices
+
+  useEffect(() => {
+    const eligible = mapServices.filter(isPhysicalAutoService)
+    setMappedServices(servicesWithStoredCoords(eligible))
+
+    let cancelled = false
+    setGeocoding(true)
+
+    void resolveMissingServiceCoordinates(eligible, (batch) => {
+      if (!cancelled) setMappedServices(batch)
+    }).finally(() => {
+      if (!cancelled) setGeocoding(false)
+    })
+
+    return () => {
+      cancelled = true
+    }
+  }, [mapServices])
+
+  const mappedById = useMemo(() => new Map(mappedServices.map((s) => [s.id, s])), [mappedServices])
 
   const ranked = useMemo(() => {
-    if (!userPos) return withCoords.map((s) => ({ ...s, distanceKm: null as number | null }))
-    return sortByDistance(withDistanceKm(withCoords, userPos))
-  }, [withCoords, userPos])
+    const listItems = sidebarSource
+      .map((s) => mappedById.get(s.id))
+      .filter((s): s is MappedService => Boolean(s))
+
+    if (!userPos) return listItems.map((s) => ({ ...s, distanceKm: null as number | null }))
+    return sortByDistance(withDistanceKm(listItems, userPos))
+  }, [sidebarSource, mappedById, userPos])
 
   const filteredList = useMemo(() => {
     const q = searchQuery.trim().toLowerCase()
@@ -86,29 +121,9 @@ export default function WorkshopsMapSection({ services }: WorkshopsMapSectionPro
       .slice(0, 8)
   }, [searchQuery, ranked])
 
-  const selected = ranked.find((s) => s.id === selectedId)
+  const selected = mappedServices.find((s) => s.id === selectedId)
 
-  const mapCenter = useMemo(() => {
-    if (selected?.latitude != null && selected.longitude != null) {
-      return { lat: selected.latitude, lng: selected.longitude, precise: true }
-    }
-    if (mapPin) {
-      return { lat: mapPin.lat, lng: mapPin.lng, precise: true }
-    }
-    if (userPos) {
-      return { lat: userPos.latitude, lng: userPos.longitude, precise: false }
-    }
-    return { ...DEFAULT_CENTER, precise: false }
-  }, [selected, mapPin, userPos])
-
-  const bboxPad = mapCenter.precise
-    ? { lng: 0.012, lat: 0.008 }
-    : { lng: 0.08, lat: 0.05 }
-
-  const bbox = `${mapCenter.lng - bboxPad.lng},${mapCenter.lat - bboxPad.lat},${mapCenter.lng + bboxPad.lng},${mapCenter.lat + bboxPad.lat}`
-  const embedUrl = `https://www.openstreetmap.org/export/embed.html?bbox=${encodeURIComponent(bbox)}&layer=mapnik&marker=${mapCenter.lat}%2C${mapCenter.lng}`
-
-  const selectWorkshop = (service: Service) => {
+  const selectWorkshop = (service: Service | MappedService) => {
     setSelectedId(service.id)
     setMapPin(null)
     setSearchError('')
@@ -122,8 +137,8 @@ export default function WorkshopsMapSection({ services }: WorkshopsMapSectionPro
     setSearchError('')
     setSearchQuery(q)
 
-    const workshop = findWorkshopByQuery(ranked, q)
-    if (workshop) {
+    const workshop = findWorkshopByQuery(sidebarSource, q)
+    if (workshop && mappedById.has(workshop.id)) {
       selectWorkshop(workshop)
       return
     }
@@ -166,12 +181,6 @@ export default function WorkshopsMapSection({ services }: WorkshopsMapSectionPro
     )
   }
 
-  useEffect(() => {
-    if (ranked[0] && !selectedId && !mapPin && !searchQuery) {
-      setSelectedId(ranked[0].id)
-    }
-  }, [ranked, selectedId, mapPin, searchQuery])
-
   return (
     <div className="grid gap-4 lg:grid-cols-2">
       <div className="space-y-3">
@@ -207,6 +216,10 @@ export default function WorkshopsMapSection({ services }: WorkshopsMapSectionPro
           {userPos ? (
             <span className="text-xs text-muted-foreground">{t('workshops.sortedByDistance')}</span>
           ) : null}
+          <span className="text-xs text-muted-foreground">
+            {t('workshops.mapPinCount').replace('{n}', String(mappedServices.length))}
+            {geocoding ? ` · ${t('workshops.mapGeocoding')}` : ''}
+          </span>
         </div>
         {geoError ? <p className="text-sm text-destructive">{geoError}</p> : null}
 
@@ -248,9 +261,11 @@ export default function WorkshopsMapSection({ services }: WorkshopsMapSectionPro
       </div>
 
       <div className="space-y-3">
-        <div className="overflow-hidden rounded-xl border border-border">
-          <iframe title="workshops-map" src={embedUrl} className="h-72 w-full" loading="lazy" />
-        </div>
+        <ServicesLeafletMap
+          services={mappedServices}
+          selectedId={selectedId}
+          onSelect={setSelectedId}
+        />
         {selected ? (
           <div className="rounded-xl border border-border bg-card p-4">
             <h3 className="font-bold text-foreground">{selected.name}</h3>
