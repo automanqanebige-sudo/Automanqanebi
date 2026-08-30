@@ -187,27 +187,29 @@ function HomePageContent() {
 
       <SiteBannerSlot placement="home_mid" className="px-4 py-6 sm:px-6 lg:px-8" />
 
-      <section id="listings" className="px-4 py-8 sm:px-6 lg:px-8">
+      <section id="listings" className="section-padding">
         <div className="mx-auto max-w-7xl">
           <SiteBannerSlot placement="listings_top" className="mb-6" />
-          <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+          <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
             <div className="flex items-center gap-3">
-              <h2 className="text-2xl font-bold text-foreground">{t('home.allListings')}</h2>
+              <h2 className="text-2xl font-bold tracking-tight text-foreground sm:text-3xl">
+                {t('home.allListings')}
+              </h2>
               {!loadingCars && (
-                <span className="rounded-full bg-secondary px-3 py-1 text-sm font-medium text-secondary-foreground">
+                <span className="rounded-full bg-primary/10 px-3 py-1 text-sm font-semibold text-primary">
                   {filteredAndSortedCars.length} {countLabel}
                 </span>
               )}
             </div>
             <div className="flex items-center gap-2">
-              <label htmlFor="sort" className="text-sm text-muted-foreground">
+              <label htmlFor="sort" className="text-sm font-medium text-muted-foreground">
                 {t('home.sortBy')}:
               </label>
               <select
                 id="sort"
                 value={sortBy}
                 onChange={(e) => updateSort(e.target.value as SortOption)}
-                className="cursor-pointer rounded-lg border border-input bg-card px-4 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+                className="select-premium w-auto min-w-[160px] py-2"
               >
                 <option value="newest">{t('home.sort.featured')}</option>
                 <option value="price-low">{t('home.sort.priceLow')}</option>
@@ -224,7 +226,7 @@ function HomePageContent() {
               <button
                 type="button"
                 onClick={fetchCars}
-                className="rounded-lg bg-primary px-6 py-2.5 font-medium text-primary-foreground transition-colors hover:bg-primary/90"
+                className="btn-primary rounded-xl px-6 py-2.5"
               >
                 {t('home.loadErrorRetry')}
               </button>
@@ -232,7 +234,7 @@ function HomePageContent() {
           ) : loadingCars ? (
             <CarCardSkeletonGrid count={8} />
           ) : (
-            <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+            <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 sm:gap-6 lg:grid-cols-3 xl:grid-cols-4">
               {paginatedCars.map((car) => (
                 <CarCard key={car.id} car={car} />
               ))}
@@ -251,8 +253,8 @@ function HomePageContent() {
           )}
 
           {!loadingCars && filteredAndSortedCars.length === 0 && (
-            <div className="px-4 py-16 text-center">
-              <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-secondary">
+            <div className="rounded-2xl border border-dashed border-border bg-card px-6 py-16 text-center shadow-card">
+              <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-secondary">
                 <svg className="h-8 w-8 text-muted-foreground" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path
                     strokeLinecap="round"
@@ -266,7 +268,7 @@ function HomePageContent() {
               <p className="mx-auto mb-6 max-w-md text-muted-foreground">{t('home.empty.desc')}</p>
               <button
                 onClick={handleReset}
-                className="rounded-lg bg-primary px-6 py-2.5 font-medium text-primary-foreground transition-colors hover:bg-primary/90"
+                className="btn-primary rounded-xl px-6 py-2.5"
               >
                 {t('home.empty.clear')}
               </button>

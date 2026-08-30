@@ -73,7 +73,7 @@ export async function resolveMissingServiceCoordinates(
     }
   }
 
-  onBatch?.([...mapped.values()])
+  onBatch?.(Array.from(mapped.values()))
 
   const pending = services.filter((s) => !mapped.has(s.id))
   for (const service of pending) {
@@ -92,11 +92,11 @@ export async function resolveMissingServiceCoordinates(
         longitude: result.lng,
         geocoded: true,
       })
-      onBatch?.([...mapped.values()])
+      onBatch?.(Array.from(mapped.values()))
     } catch {
       /* skip failed geocode */
     }
   }
 
-  return [...mapped.values()]
+  return Array.from(mapped.values())
 }

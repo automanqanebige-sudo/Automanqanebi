@@ -3,6 +3,7 @@ export type AnalyticsEventType =
   | 'search_services'
   | 'listing_car'
   | 'listing_service'
+  | 'listing_workshop'
   | 'favorite_add'
   | 'chat_message'
   | 'user_register'

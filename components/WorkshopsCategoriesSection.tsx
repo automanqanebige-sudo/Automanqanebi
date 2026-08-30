@@ -32,7 +32,7 @@ export default function WorkshopsCategoriesSection({
 
   return (
     <section
-      className={`rounded-2xl border border-border bg-card p-4 shadow-sm sm:p-5 ${className}`}
+      className={`relative z-20 rounded-2xl border border-border bg-card p-4 shadow-sm sm:p-5 ${className}`}
       aria-label={t('filter.category')}
     >
       <h2 className="mb-3 text-center text-base font-semibold text-foreground sm:text-lg">
@@ -47,10 +47,10 @@ export default function WorkshopsCategoriesSection({
               key={option.value}
               type="button"
               onClick={() => onChange(selected ? null : option.value)}
-              className={`flex min-h-[44px] w-full items-center gap-1.5 rounded-lg border px-2.5 py-2 text-left text-xs font-medium transition-colors sm:min-h-0 sm:w-auto sm:px-3 sm:py-2.5 sm:text-sm ${
+              className={`flex min-h-[44px] w-full items-center gap-1.5 rounded-lg border px-2.5 py-2 text-left text-xs font-medium shadow-sm transition-colors sm:min-h-0 sm:w-auto sm:px-3 sm:py-2.5 sm:text-sm ${
                 selected
-                  ? 'border-primary bg-primary text-primary-foreground shadow-sm'
-                  : 'border-border bg-white text-foreground shadow-sm hover:border-primary/40 hover:bg-primary/5'
+                  ? 'border-primary bg-primary text-primary-foreground'
+                  : 'border-border bg-white text-foreground hover:border-primary/40 hover:bg-primary/5'
               }`}
             >
               <Plus

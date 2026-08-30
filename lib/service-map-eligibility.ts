@@ -7,8 +7,8 @@ import {
 } from '@/types/service'
 
 /** Categories shown on the Georgia services/workshops map */
-export const MAP_SERVICE_CATEGORIES: ServiceCategory[] = [
-  ...new Set([
+export const MAP_SERVICE_CATEGORIES: ServiceCategory[] = Array.from(
+  new Set([
     ...WORKSHOP_PAGE_CATEGORIES,
     ...LEGACY_WORKSHOP_CATEGORIES,
     ...FILTERABLE_SERVICE_CATEGORIES,
@@ -20,8 +20,8 @@ export const MAP_SERVICE_CATEGORIES: ServiceCategory[] = [
     'parts',
     'mobile',
     'towing',
-  ]),
-]
+  ])
+) as ServiceCategory[]
 
 const NON_PHYSICAL_PATTERNS = [/online/i, /\(online\)/i]
 

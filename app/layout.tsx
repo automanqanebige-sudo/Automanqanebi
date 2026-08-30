@@ -4,6 +4,8 @@ import './globals.css'
 import Navbar from '../components/Navbar'
 import Footer from '../components/Footer'
 import MobileBottomNav from '../components/MobileBottomNav'
+import LoadingScreen from '../components/ui/LoadingScreen'
+import PageTransition from '../components/ui/PageTransition'
 import { CurrencyProvider } from '../context/CurrencyContext'
 import { LanguageProvider } from '../context/LanguageContext'
 import { SiteSettingsProvider } from '../context/SiteSettingsContext'
@@ -60,16 +62,30 @@ export const metadata: Metadata = {
 }
 
 export const viewport: Viewport = {
-  themeColor: '#16a34a',
+  themeColor: '#1a7a4c',
   width: 'device-width',
   initialScale: 1,
   maximumScale: 5,
 }
 
+const themeScript = `
+(function(){
+  try {
+    var t = localStorage.getItem('theme');
+    if (t === 'dark' || (!t && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+      document.documentElement.classList.add('dark');
+    }
+  } catch(e) {}
+})();
+`
+
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="ka" className={`${inter.variable} ${notoGeorgian.variable} bg-white`}>
-      <body className="flex min-h-screen flex-col bg-white font-sans antialiased">
+    <html lang="ka" className={`${inter.variable} ${notoGeorgian.variable}`} suppressHydrationWarning>
+      <head>
+        <script dangerouslySetInnerHTML={{ __html: themeScript }} />
+      </head>
+      <body className="flex min-h-screen flex-col bg-background font-sans antialiased">
         <LanguageProvider>
           <AuthProvider>
             <GoogleAuthRedirectHandler />
@@ -78,10 +94,13 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                 <SiteBannersProvider>
                   <FavoritesProvider>
                     <CompareProvider>
+                      <LoadingScreen />
                       <Navbar />
                       <MaintenanceBanner />
                       <SiteBannerGlobalStrip placement="global_top" />
-                      <main className="flex-1 pb-20 md:pb-0">{children}</main>
+                      <main className="flex-1 pb-20 md:pb-0">
+                        <PageTransition>{children}</PageTransition>
+                      </main>
                       <SiteBannerGlobalStrip placement="global_footer" />
                       <Footer />
                       <MobileBottomNav />

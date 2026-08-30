@@ -27,17 +27,15 @@ export default function ServiceCard({ service, categoryLabel }: ServiceCardProps
       : null
 
   return (
-    <Link
-      href={`/services/${service.id}`}
-      className="group block overflow-hidden rounded-xl border border-border bg-card transition-all hover:border-primary/30 hover:shadow-lg"
-    >
+    <Link href={`/services/${service.id}`} className="group block">
+      <article className="card-premium overflow-hidden">
       {coverImage && (
         <div className="relative aspect-[16/9] bg-muted">
           <Image
             src={coverImage}
             alt={service.name}
             fill
-            className="object-cover transition-transform duration-300 group-hover:scale-[1.02]"
+            className="object-cover transition-transform duration-500 ease-premium group-hover:scale-[1.04]"
             sizes="(max-width: 768px) 100vw, 33vw"
           />
           {imageCount > 1 && (
@@ -174,6 +172,7 @@ export default function ServiceCard({ service, categoryLabel }: ServiceCardProps
           </span>
         </div>
       </div>
+      </article>
     </Link>
   )
 }

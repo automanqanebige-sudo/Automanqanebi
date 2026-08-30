@@ -87,11 +87,12 @@ export default function WorkshopsPage() {
         </p>
       </div>
 
-      <WorkshopsCategoriesSection
-        className="mb-4 sm:mb-8"
-        value={selectedCategory}
-        onChange={setSelectedCategory}
-      />
+      <div className="relative z-20 mb-4 sm:mb-8">
+        <WorkshopsCategoriesSection
+          value={selectedCategory}
+          onChange={setSelectedCategory}
+        />
+      </div>
 
       <div className="mb-4 hidden sm:mb-6 sm:flex sm:justify-end">
         <Link

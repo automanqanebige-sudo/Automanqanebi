@@ -5,7 +5,7 @@ type SkeletonProps = {
 export function Skeleton({ className = '' }: SkeletonProps) {
   return (
     <div
-      className={`animate-pulse rounded-md bg-muted ${className}`}
+      className={`skeleton-shimmer rounded-md ${className}`}
       aria-hidden
     />
   )
@@ -13,9 +13,10 @@ export function Skeleton({ className = '' }: SkeletonProps) {
 
 export function CarCardSkeleton() {
   return (
-    <div className="overflow-hidden rounded-xl border border-border bg-card">
+    <div className="overflow-hidden rounded-xl border border-border bg-card shadow-card">
       <Skeleton className="aspect-[4/3] w-full rounded-none" />
       <div className="space-y-3 p-4">
+        <Skeleton className="h-6 w-2/5" />
         <Skeleton className="h-5 w-3/4" />
         <Skeleton className="h-4 w-1/2" />
         <div className="flex gap-4 border-t border-border pt-3">
@@ -29,7 +30,7 @@ export function CarCardSkeleton() {
 
 export function CarCardSkeletonGrid({ count = 8 }: { count?: number }) {
   return (
-    <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+    <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 sm:gap-6 lg:grid-cols-3 xl:grid-cols-4">
       {Array.from({ length: count }, (_, i) => (
         <CarCardSkeleton key={i} />
       ))}
@@ -39,7 +40,7 @@ export function CarCardSkeletonGrid({ count = 8 }: { count?: number }) {
 
 export function ServiceCardSkeleton() {
   return (
-    <div className="overflow-hidden rounded-xl border border-border bg-card">
+    <div className="overflow-hidden rounded-xl border border-border bg-card shadow-card">
       <Skeleton className="aspect-video w-full rounded-none" />
       <div className="space-y-3 p-4">
         <Skeleton className="h-5 w-2/3" />
@@ -52,7 +53,7 @@ export function ServiceCardSkeleton() {
 
 export function ServiceCardSkeletonGrid({ count = 6 }: { count?: number }) {
   return (
-    <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+    <div className="grid gap-5 sm:grid-cols-2 sm:gap-6 lg:grid-cols-3">
       {Array.from({ length: count }, (_, i) => (
         <ServiceCardSkeleton key={i} />
       ))}
@@ -62,7 +63,7 @@ export function ServiceCardSkeletonGrid({ count = 6 }: { count?: number }) {
 
 export function ProfileRowSkeleton() {
   return (
-    <div className="flex flex-col gap-3 rounded-xl border border-border bg-card p-4 sm:flex-row sm:items-center sm:justify-between">
+    <div className="flex flex-col gap-3 rounded-xl border border-border bg-card p-4 shadow-card sm:flex-row sm:items-center sm:justify-between">
       <div className="space-y-2">
         <Skeleton className="h-5 w-48" />
         <Skeleton className="h-4 w-24" />

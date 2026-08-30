@@ -42,8 +42,8 @@ export function CategoryTagGrid({
             key={option.value}
             type="button"
             onClick={() => onChange(selected && allowDeselect ? '' : option.value)}
-            className={`inline-flex items-center gap-1.5 rounded-lg border px-2.5 py-2.5 text-left text-xs font-medium transition-colors sm:px-3 sm:text-sm ${
-              mobileGrid ? 'w-full sm:w-auto sm:text-left' : ''
+            className={`inline-flex items-center gap-1.5 rounded-lg border px-2.5 py-2.5 text-left text-xs font-medium shadow-sm transition-colors sm:px-3 sm:text-sm ${
+              mobileGrid ? 'min-h-[44px] w-full sm:min-h-0 sm:w-auto sm:text-left' : ''
             } ${
               selected
                 ? 'border-primary bg-primary text-primary-foreground'

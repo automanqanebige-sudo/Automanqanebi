@@ -191,8 +191,8 @@ function ServicesPageContent() {
       .map((s) => s.name)
     const catalog = filterServiceSubItems(searchQuery, labelFn)
       .slice(0, 5)
-      .map((item) => labelFn(`services.sub.${item.id}`))
-    return [...new Set([...names, ...catalog])].slice(0, 8)
+      .map((item) => labelFn(`services.sub.${item.itemId}`))
+    return Array.from(new Set([...names, ...catalog])).slice(0, 8)
   }, [searchQuery, scopedServices, catalogReady, t, baseT])
 
   const visibleCategoryAds = useMemo(
@@ -212,8 +212,8 @@ function ServicesPageContent() {
   const showListings = Boolean(selectedCategory || hasSearch)
 
   return (
-    <div className="min-h-screen bg-white">
-      <div className="sticky top-[6.5rem] z-30 border-b border-border bg-white backdrop-blur-md md:top-[7rem]">
+    <div className="min-h-screen bg-background">
+      <div className="sticky top-[6.5rem] z-30 border-b border-border/60 bg-surface/90 backdrop-blur-xl md:top-[7rem]">
         <ServicesTopSearch
           value={searchQuery}
           onChange={setSearchQuery}

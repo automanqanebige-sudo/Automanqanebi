@@ -12,6 +12,7 @@ import {
   CategoryTagPickerField,
   CategoryTagPickerSheet,
 } from '@/components/CategoryTagPicker'
+import HeroBanner from '@/components/HeroBanner'
 import { useLanguage } from '@/context/LanguageContext'
 import { countActiveFilters } from '@/lib/apply-car-filters'
 import {
@@ -39,8 +40,7 @@ const FUEL_OPTIONS = [
   { value: 'lpg', labelKey: 'fuel.LPG' },
 ] as const
 
-const selectClass =
-  'w-full rounded-lg border border-border bg-white px-3 py-2.5 text-sm text-foreground outline-none transition-colors focus:border-primary focus:ring-2 focus:ring-primary/20'
+const selectClass = 'select-premium'
 
 export default function HomeSearchPanel({
   filters,
@@ -92,7 +92,7 @@ export default function HomeSearchPanel({
       }
       if (modelHits.length >= 6) break
     }
-    return [...new Set([...brandHits, ...modelHits])].slice(0, 8)
+    return Array.from(new Set([...brandHits, ...modelHits])).slice(0, 8)
   }, [filters.search, sortedBrands])
 
   const selectVehicleGroup = (group: VehicleGroup) => {
@@ -129,9 +129,9 @@ export default function HomeSearchPanel({
   }
 
   return (
-    <section id="search" className="bg-white px-4 pb-6 pt-4 sm:px-6 lg:px-8">
-      <div className="mx-auto max-w-5xl">
-        <div className="overflow-hidden rounded-2xl border border-border bg-white shadow-lg">
+    <HeroBanner>
+      <section id="search" className="mx-auto max-w-5xl">
+        <div className="overflow-hidden rounded-2xl border border-border/80 bg-card shadow-card backdrop-blur-sm">
           <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border px-4 py-3 sm:px-6">
             <div
               className="inline-flex rounded-full border border-border bg-secondary/40 p-0.5"
@@ -275,7 +275,7 @@ export default function HomeSearchPanel({
               <button
                 type="button"
                 onClick={onSearch}
-                className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-primary px-6 py-3 text-base font-semibold text-primary-foreground transition-colors hover:bg-primary/90 sm:w-auto"
+                className="btn-primary w-full rounded-xl px-6 py-3 text-base sm:w-auto"
               >
                 <Search className="h-5 w-5" />
                 {t('search.button')} ({resultCount})
@@ -295,7 +295,7 @@ export default function HomeSearchPanel({
             </div>
           )}
         </div>
-      </div>
-    </section>
+      </section>
+    </HeroBanner>
   )
 }
