@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
-import { Heart, MapPin, Gauge, Fuel, Crown, Eye, Calendar, Columns2, BadgeCheck, FlaskConical } from 'lucide-react'
+import { Heart, Columns2 } from 'lucide-react'
 import { useLanguage } from '@/context/LanguageContext'
 import { useCurrency } from '@/context/CurrencyContext'
 import { useFavorites } from '@/context/FavoritesContext'
@@ -26,6 +26,7 @@ export type Car = {
   isVip?: boolean
   isFavorite?: boolean
   category?: string
+  vehicleGroup?: string
   bodyType?: string
   driveType?: string
   steering?: string
@@ -106,7 +107,7 @@ export default function CarCard({ car, onFavoriteToggle }: CarCardProps) {
 
   return (
     <Link href={`/car/${car.id}`} className="block group">
-      <article className="relative bg-card rounded-xl overflow-hidden shadow-md hover:shadow-xl transition-all duration-300 group-hover:-translate-y-1 border border-border">
+      <article className="relative overflow-hidden rounded-lg border border-border bg-card transition-colors duration-200 group-hover:border-primary/40">
         {/* Image Container */}
         <div className="relative aspect-[4/3] overflow-hidden bg-muted">
           {!imageError ? (
@@ -126,30 +127,27 @@ export default function CarCard({ car, onFavoriteToggle }: CarCardProps) {
 
           {/* VIP Badge */}
           {car.isVip && (
-            <div className="absolute top-3 left-3 flex items-center gap-1.5 rounded-full bg-primary px-2.5 py-1 text-xs font-semibold text-primary-foreground shadow-lg">
-              <Crown className="h-3.5 w-3.5" />
-              <span>VIP</span>
+            <div className="absolute top-3 left-3 rounded-md bg-primary px-2 py-0.5 text-[11px] font-semibold uppercase tracking-wide text-primary-foreground">
+              VIP
             </div>
           )}
 
           {/* Test vs verified seller listing */}
           {isTestListing(car) ? (
             <div
-              className={`absolute left-3 flex items-center gap-1 rounded-md bg-amber-700/95 px-2 py-1 text-[11px] font-semibold text-white shadow-md ${
+              className={`absolute left-3 rounded-md bg-amber-700/95 px-2 py-1 text-[11px] font-semibold text-white shadow-md ${
                 car.isVip ? 'top-12' : 'top-3'
               }`}
             >
-              <FlaskConical className="h-3 w-3" />
-              <span>{t('car.badge.test')}</span>
+              {t('car.badge.test')}
             </div>
           ) : isVerifiedListing(car) ? (
             <div
-              className={`absolute left-3 flex items-center gap-1 rounded-md bg-emerald-700/95 px-2 py-1 text-[11px] font-semibold text-white shadow-md ${
+              className={`absolute left-3 rounded-md bg-emerald-700/95 px-2 py-1 text-[11px] font-semibold text-white shadow-md ${
                 car.isVip ? 'top-12' : 'top-3'
               }`}
             >
-              <BadgeCheck className="h-3 w-3" />
-              <span>{t('car.badge.verified')}</span>
+              {t('car.badge.verified')}
             </div>
           ) : null}
 
@@ -157,7 +155,7 @@ export default function CarCard({ car, onFavoriteToggle }: CarCardProps) {
           <div className="absolute top-3 right-3 flex flex-col gap-2">
             <button
               onClick={handleFavoriteClick}
-              className="rounded-full bg-card/90 p-2 shadow-md transition-all duration-200 hover:scale-110 hover:bg-card"
+              className="rounded-md bg-background/90 p-1.5 transition-colors hover:bg-background"
               aria-label={favorited ? t('favorites.remove') : t('favorites.add')}
             >
               <Heart
@@ -170,7 +168,7 @@ export default function CarCard({ car, onFavoriteToggle }: CarCardProps) {
             </button>
             <button
               onClick={handleCompareClick}
-              className={`rounded-full bg-card/90 p-2 shadow-md transition-all duration-200 hover:scale-110 hover:bg-card ${
+              className={`rounded-md bg-background/90 p-1.5 transition-colors hover:bg-background ${
                 comparing ? 'ring-2 ring-primary' : ''
               }`}
               aria-label={comparing ? t('compare.remove') : t('compare.add')}
@@ -183,54 +181,39 @@ export default function CarCard({ car, onFavoriteToggle }: CarCardProps) {
               />
             </button>
           </div>
-
-          {/* Price Tag */}
-          <div className="absolute bottom-3 left-3 bg-primary text-primary-foreground px-3 py-1.5 rounded-lg shadow-lg">
-            <span className="text-lg font-bold">
-              {formatPrice(car.price)}
-              {car.offerType === 'rent' && (
-                <span className="ml-1 text-xs font-medium opacity-90">/ {t('filter.offer.perMonth')}</span>
-              )}
-            </span>
-          </div>
         </div>
 
         {/* Content */}
         <div className="p-4">
+          <p className="text-xl font-bold text-primary">
+            {formatPrice(car.price)}
+            {car.offerType === 'rent' && (
+              <span className="ml-1 text-xs font-medium text-muted-foreground">
+                / {t('filter.offer.perMonth')}
+              </span>
+            )}
+          </p>
+
           {/* Title */}
-          <h3 className="text-lg font-semibold text-card-foreground line-clamp-1 group-hover:text-primary transition-colors">
+          <h3 className="mt-1 line-clamp-1 text-base font-semibold text-card-foreground transition-colors group-hover:text-primary">
             {car.year} {car.brand} {car.model}
           </h3>
 
           {/* Location */}
-          <div className="flex items-center gap-1.5 mt-2 text-muted-foreground">
-            <MapPin className="h-4 w-4 flex-shrink-0" />
-            <span className="text-sm truncate">{car.location}</span>
-          </div>
+          <div className="mt-2 text-sm text-muted-foreground truncate">{car.location}</div>
 
-          {/* Specs Row */}
-          <div className="flex items-center gap-4 mt-3 pt-3 border-t border-border">
-            <div className="flex items-center gap-1.5 text-muted-foreground">
-              <Gauge className="h-4 w-4 flex-shrink-0" />
-              <span className="text-sm">{formatMileage(car.mileage)}</span>
-            </div>
-            <div className="flex items-center gap-1.5 text-muted-foreground">
-              <Fuel className="h-4 w-4 flex-shrink-0" />
-              <span className="text-sm">{fuelLabel}</span>
-            </div>
+          <div className="mt-3 flex flex-wrap items-center gap-3 border-t border-border pt-3 text-sm text-muted-foreground">
+            <span>{formatMileage(car.mileage)}</span>
+            <span>{fuelLabel}</span>
           </div>
 
           <div className="mt-2 flex flex-wrap items-center gap-3 text-xs text-muted-foreground">
             {car.createdAt && (
-              <span className="inline-flex items-center gap-1" title={t('car.postedDate')}>
-                <Calendar className="h-3.5 w-3.5" />
-                <span>
-                  {t('car.postedDate')}: {formatListingDate(car.createdAt)}
-                </span>
+              <span title={t('car.postedDate')}>
+                {t('car.postedDate')}: {formatListingDate(car.createdAt)}
               </span>
             )}
-            <span className="inline-flex items-center gap-1">
-              <Eye className="h-3.5 w-3.5" />
+            <span>
               {car.views ?? 0} {t('car.views')}
             </span>
           </div>

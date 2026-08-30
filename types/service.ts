@@ -1,6 +1,9 @@
-export type { ServiceCategory } from '@/types/service-category'
+export type { ServiceCategory, MobileServiceCategoryEntry } from '@/types/service-category'
 export {
   SERVICE_CATEGORIES,
+  FILTERABLE_SERVICE_CATEGORIES,
+  WORKSHOP_PAGE_CATEGORIES,
+  MOBILE_SERVICE_CATEGORIES,
   SERVICE_CATEGORY_ICONS,
   normalizeServiceCategory,
 } from '@/types/service-category'
@@ -47,6 +50,11 @@ export interface Service {
   rentalPricePerMonth?: number
   rentalMinDays?: number
   withDriver?: boolean
+  /** Discs (wheels) listing filters */
+  discDiameters?: import('@/types/disc-filters').DiscDiameter[]
+  discBoltPatterns?: import('@/types/disc-filters').DiscBoltPattern[]
+  discMaterials?: import('@/types/disc-filters').DiscMaterial[]
+  discCondition?: import('@/types/disc-filters').DiscCondition
 }
 
 export type ServiceSubCategory = {
@@ -60,6 +68,7 @@ export {
   catalogToSubSections,
   catalogSectionsForCategory,
   MOBILE_SERVICE_ITEM_IDS,
+  DISC_SERVICE_ITEM_IDS,
   SECTION_TO_CATEGORY,
 } from '@/data/auto-service-catalog'
 

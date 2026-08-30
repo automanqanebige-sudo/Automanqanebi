@@ -1,16 +1,12 @@
 'use client'
 
-import { Suspense, useState, useMemo, useEffect, useCallback, useRef } from 'react'
-import Link from 'next/link'
-import { useRouter, useSearchParams } from 'next/navigation'
-import { Plus } from 'lucide-react'
+import { Suspense, useState, useMemo, useEffect, useCallback } from 'react'
+import { useSearchParams } from 'next/navigation'
 import CarCard, { Car } from '@/components/CarCard'
-import SearchFilters, { initialFilters } from '@/components/SearchFilters'
-import ListingQuickSearch from '@/components/ListingQuickSearch'
+import HomeSearchPanel from '@/components/HomeSearchPanel'
+import { initialFilters } from '@/components/SearchFilters'
 import VipListingsSection from '@/components/VipListingsSection'
-import MobileServicesQuickLinks from '@/components/MobileServicesQuickLinks'
 import SiteBannerSlot from '@/components/SiteBannerSlot'
-import HeroBanner from '@/components/HeroBanner'
 import VinChecker from '@/components/VinChecker'
 import { CarCardSkeletonGrid } from '@/components/ui/Skeleton'
 import { loadAllCars } from '@/lib/cars-firestore'
@@ -25,6 +21,7 @@ import Pagination from '@/components/Pagination'
 import { useLanguage } from '@/context/LanguageContext'
 import { useAuth } from '@/context/AuthContext'
 import { useAnalyticsSearchLog } from '@/hooks/useAnalyticsSearchLog'
+import { getWindowQueryString, softReplaceUrl } from '@/lib/soft-url'
 import type { FilterState } from '@/types/filters'
 
 export default function Home() {
@@ -48,42 +45,39 @@ function HomePageFallback() {
 function HomePageContent() {
   const { t } = useLanguage()
   const { user } = useAuth()
-  const router = useRouter()
   const searchParams = useSearchParams()
-  const skipUrlHydrate = useRef(false)
+  const searchParamsString = searchParams.toString()
 
   const [cars, setCars] = useState<Car[]>([])
   const [loadingCars, setLoadingCars] = useState(true)
+  const [loadError, setLoadError] = useState(false)
   const [filters, setFilters] = useState<FilterState>(initialFilters)
   const [sortBy, setSortBy] = useState<SortOption>('newest')
   const [page, setPage] = useState(1)
   const [urlReady, setUrlReady] = useState(false)
 
+  // URL → state only when Next searchParams change (links / back). Soft writes do not.
   useEffect(() => {
-    if (skipUrlHydrate.current) {
-      skipUrlHydrate.current = false
-      setUrlReady(true)
-      return
-    }
-    const { filters: fromUrl, sort, page: fromPage } = parseCarFiltersFromParams(searchParams)
+    const liveQs = getWindowQueryString()
+    const source = new URLSearchParams(liveQs || searchParamsString)
+    const { filters: fromUrl, sort, page: fromPage } = parseCarFiltersFromParams(source)
     setFilters(fromUrl)
     setSortBy(sort)
     setPage(fromPage)
     setUrlReady(true)
-  }, [searchParams])
+  }, [searchParamsString])
 
   const debouncedSearch = useDebouncedValue(filters.search, 350)
   useAnalyticsSearchLog(debouncedSearch, 'search_cars', user?.uid)
 
+  // Soft URL update — no Suspense remount, input keeps focus while typing.
   useEffect(() => {
     if (!urlReady) return
     const params = carFiltersToParams({ ...filters, search: debouncedSearch }, sortBy, page)
     const qs = params.toString()
-    const current = searchParams.toString()
-    if (qs === current) return
-    skipUrlHydrate.current = true
-    router.replace(qs ? `/?${qs}` : '/', { scroll: false })
-  }, [debouncedSearch, filters, sortBy, page, urlReady, router, searchParams])
+    if (qs === getWindowQueryString()) return
+    softReplaceUrl(qs ? `/?${qs}` : '/')
+  }, [debouncedSearch, filters, sortBy, page, urlReady])
 
   const updateFilters = useCallback((next: FilterState) => {
     setFilters(next)
@@ -95,12 +89,24 @@ function HomePageContent() {
     setPage(1)
   }, [])
 
-  useEffect(() => {
+  const fetchCars = useCallback(() => {
+    setLoadingCars(true)
+    setLoadError(false)
     loadAllCars()
-      .then(setCars)
-      .catch(() => setCars([]))
+      .then((data) => {
+        setCars(data)
+        setLoadError(false)
+      })
+      .catch(() => {
+        setCars([])
+        setLoadError(true)
+      })
       .finally(() => setLoadingCars(false))
   }, [])
+
+  useEffect(() => {
+    fetchCars()
+  }, [fetchCars])
 
   const handleReset = useCallback(() => {
     setFilters(initialFilters)
@@ -145,6 +151,10 @@ function HomePageContent() {
 
   const totalPages = Math.max(1, Math.ceil(filteredAndSortedCars.length / LISTINGS_PAGE_SIZE))
   const safePage = Math.min(page, totalPages)
+
+  useEffect(() => {
+    if (page > totalPages) setPage(totalPages)
+  }, [page, totalPages])
   const paginatedCars = filteredAndSortedCars.slice(
     (safePage - 1) * LISTINGS_PAGE_SIZE,
     safePage * LISTINGS_PAGE_SIZE
@@ -159,36 +169,19 @@ function HomePageContent() {
 
   return (
     <>
-      <HeroBanner>
-        <div className="mb-3 flex justify-end">
-          <Link
-            href="/add-car"
-            className="inline-flex shrink-0 items-center gap-2 rounded-xl bg-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground shadow-md transition-colors hover:bg-primary/90"
-          >
-            <Plus className="h-4 w-4" />
-            {t('home.addListing')}
-          </Link>
-        </div>
-        <ListingQuickSearch
-          search={filters.search}
-          offerType={filters.offerType}
-          onSearchChange={(search) => updateFilters({ ...filters, search })}
-          onOfferTypeChange={(offerType) => updateFilters({ ...filters, offerType })}
-          resultCount={filteredAndSortedCars.length}
-        />
-        <SearchFilters
-          filters={filters}
-          onFiltersChange={updateFilters}
-          onSearch={handleSearch}
-          onReset={handleReset}
-          resultCount={filteredAndSortedCars.length}
-        />
-        <VinChecker compact className="mt-4" />
-      </HeroBanner>
+      <HomeSearchPanel
+        filters={filters}
+        onFiltersChange={updateFilters}
+        onSearch={handleSearch}
+        onReset={handleReset}
+        resultCount={filteredAndSortedCars.length}
+      />
+
+      <div id="vin-check" className="mx-auto max-w-5xl px-4 pb-4 sm:px-6 lg:px-8">
+        <VinChecker compact />
+      </div>
 
       <SiteBannerSlot placement="home_below_hero" className="px-4 pb-4 pt-2 sm:px-6 lg:px-8" />
-
-      <MobileServicesQuickLinks className="py-6 sm:py-8" />
 
       <VipListingsSection cars={vipCars} />
 
@@ -225,7 +218,18 @@ function HomePageContent() {
             </div>
           </div>
 
-          {loadingCars ? (
+          {loadError && !loadingCars ? (
+            <div className="rounded-xl border border-destructive/30 bg-destructive/5 px-6 py-10 text-center">
+              <p className="mb-4 text-muted-foreground">{t('home.loadError')}</p>
+              <button
+                type="button"
+                onClick={fetchCars}
+                className="rounded-lg bg-primary px-6 py-2.5 font-medium text-primary-foreground transition-colors hover:bg-primary/90"
+              >
+                {t('home.loadErrorRetry')}
+              </button>
+            </div>
+          ) : loadingCars ? (
             <CarCardSkeletonGrid count={8} />
           ) : (
             <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">

@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { MapPin, Navigation, Search } from 'lucide-react'
 import { useLanguage } from '@/context/LanguageContext'
+import { geocodeAddress } from '@/lib/geocode'
 
 const DEFAULT_LAT = 41.7151
 const DEFAULT_LNG = 44.8271
@@ -58,17 +59,13 @@ export default function ServiceLocationMap({
     setSearching(true)
     setMapError('')
     try {
-      const res = await fetch(
-        `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(`${query}, Georgia`)}&format=json&limit=1`,
-        { headers: { Accept: 'application/json' } }
-      )
-      const data = (await res.json()) as { lat: string; lon: string }[]
-      if (!data.length) {
+      const result = await geocodeAddress(query)
+      if (!result) {
         setMapError(t('services.formMapNotFound'))
         return
       }
-      onLatitudeChange(Number(data[0].lat).toFixed(6))
-      onLongitudeChange(Number(data[0].lon).toFixed(6))
+      onLatitudeChange(result.lat.toFixed(6))
+      onLongitudeChange(result.lng.toFixed(6))
     } catch {
       setMapError(t('services.formMapSearchError'))
     } finally {

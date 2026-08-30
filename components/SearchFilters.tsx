@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { ChevronDown, SlidersHorizontal } from 'lucide-react'
+import { ChevronDown } from 'lucide-react'
 import BrandFilter from '@/components/BrandFilter'
 import AdvancedFilterPanel from '@/components/AdvancedFilterPanel'
 import RangeFromTo from '@/components/RangeFromTo'
@@ -39,10 +39,8 @@ export default function SearchFilters({
 
   return (
     <div className="overflow-hidden rounded-2xl border border-border/80 bg-card shadow-lg shadow-primary/5">
-      <div className="border-b border-border/60 bg-gradient-to-r from-primary/8 via-card to-primary/5 px-4 py-3 sm:px-6">
-        <div className="flex items-center gap-2 text-sm font-semibold text-foreground">
-          <span aria-hidden>🔍</span>
-          <SlidersHorizontal className="h-4 w-4 text-primary" />
+      <div className="border-b border-border/60 bg-white px-4 py-3 sm:px-6">
+        <div className="text-sm font-semibold text-foreground">
           {t('search.detailedFilters')}
         </div>
       </div>
@@ -58,7 +56,7 @@ export default function SearchFilters({
         <div className="mt-4 space-y-3">
           <div className="flex flex-wrap items-center justify-between gap-2">
             <p className="text-sm font-medium text-foreground">
-              💰 {t('filter.section.price')} ({currency === 'GEL' ? '₾' : '$'})
+              {t('filter.section.price')} ({currency === 'GEL' ? '₾' : '$'})
             </p>
             <div className="flex flex-wrap items-center gap-2">
               <CurrencyToggle compact />
@@ -69,7 +67,6 @@ export default function SearchFilters({
           </div>
           <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
             <RangeFromTo
-              icon="💰"
               title={`${t('search.from')} – ${t('search.to')}`}
               fromLabel={t('search.from')}
               toLabel={t('search.to')}
@@ -85,7 +82,6 @@ export default function SearchFilters({
               step={100}
             />
             <RangeFromTo
-              icon="📅"
               title={t('search.year')}
               fromLabel={t('search.from')}
               toLabel={t('search.to')}
@@ -99,7 +95,6 @@ export default function SearchFilters({
               max={currentYear + 1}
             />
             <RangeFromTo
-              icon="🛣️"
               title={t('search.mileage')}
               fromLabel={t('search.from')}
               toLabel={t('search.to')}

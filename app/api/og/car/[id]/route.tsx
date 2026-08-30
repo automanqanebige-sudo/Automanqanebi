@@ -11,11 +11,13 @@ type RouteParams = { params: { id: string } }
 
 const FUEL_KA: Record<string, string> = {
   Petrol: 'ბენზინი',
+  Petrol_LPG: 'ბენზინი / გაზი',
   Diesel: 'დიზელი',
   Hybrid: 'ჰიბრიდი',
   Electric: 'ელექტრო',
   LPG: 'გაზი (LPG)',
   petrol: 'ბენზინი',
+  petrol_lpg: 'ბენზინი / გაზი',
   diesel: 'დიზელი',
   hybrid: 'ჰიბრიდი',
   electric: 'ელექტრო',

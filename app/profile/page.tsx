@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
@@ -61,10 +61,17 @@ export default function ProfilePage() {
   const [vipCarId, setVipCarId] = useState<string | undefined>()
   const [profile, setProfile] = useState<UserProfile>({})
   const [dealerStats, setDealerStats] = useState<DealerListingStats | null>(null)
+  const loginRedirected = useRef(false)
 
   useEffect(() => {
-    if (!loading && configured && !user) {
+    if (loading) return
+    if (!configured) return
+    if (!user) {
+      if (loginRedirected.current) return
+      loginRedirected.current = true
       router.replace('/login?redirect=/profile')
+    } else {
+      loginRedirected.current = false
     }
   }, [user, loading, configured, router])
 

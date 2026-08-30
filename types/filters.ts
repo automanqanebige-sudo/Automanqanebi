@@ -1,5 +1,7 @@
 export type OfferType = '' | 'sale' | 'rent'
 
+export type VehicleGroup = '' | 'automobile' | 'special_tech' | 'moto_tech'
+
 export type ListingType =
   | ''
   | 'vip'
@@ -45,6 +47,7 @@ export interface FilterState {
   brand: string
   model: string
   category: string
+  vehicleGroup: VehicleGroup
   fuelType: string
   priceMin: number
   priceMax: number
@@ -76,6 +79,7 @@ export const initialFilters: FilterState = {
   brand: '',
   model: '',
   category: '',
+  vehicleGroup: 'automobile',
   fuelType: '',
   priceMin: 0,
   priceMax: PRICE_SLIDER_MAX,
@@ -160,15 +164,15 @@ export const CAR_COLORS = [
 ] as const
 
 export const COLOR_EMOJI: Record<string, string> = {
-  white: '⚪',
-  black: '⚫',
-  red: '🔴',
-  blue: '🔵',
-  green: '🟢',
-  yellow: '🟡',
-  brown: '🟤',
-  purple: '🟣',
-  orange: '🟠',
-  silver: '⚪',
-  gray: '⚪',
+  white: '',
+  black: '',
+  red: '',
+  blue: '',
+  green: '',
+  yellow: '',
+  brown: '',
+  purple: '',
+  orange: '',
+  silver: '',
+  gray: '',
 }

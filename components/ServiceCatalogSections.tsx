@@ -48,13 +48,6 @@ export default function ServiceCatalogSections({
               className="flex w-full items-center justify-between gap-3 p-5 text-left transition-colors hover:bg-secondary/40"
             >
               <div className="flex items-center gap-3">
-                <div
-                  className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl ${section.colorClass}`}
-                >
-                  <span className="text-lg" aria-hidden>
-                    {section.icon}
-                  </span>
-                </div>
                 <div>
                   <h3 className="text-lg font-bold text-foreground">
                     {t(`services.section.${section.key}`)}

@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
-import { Heart, MapPin, Gauge, Fuel, Crown, Sparkles, Columns2 } from 'lucide-react'
+import { Heart, MapPin, Gauge, Fuel, Columns2 } from 'lucide-react'
 import { Car } from './CarCard'
 import { useLanguage } from '@/context/LanguageContext'
 import { useCurrency } from '@/context/CurrencyContext'
@@ -67,10 +67,8 @@ export default function VipCarCard({ car, onFavoriteToggle }: VipCarCardProps) {
 
           <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/10 to-transparent" />
 
-          <div className="absolute left-4 top-4 flex items-center gap-2 rounded-full bg-primary px-4 py-2 text-sm font-bold text-primary-foreground shadow-xl shadow-primary/30">
-            <Crown className="h-4 w-4" />
-            <span>VIP</span>
-            <Sparkles className="h-3.5 w-3.5" />
+          <div className="absolute left-4 top-4 rounded-full bg-primary px-4 py-2 text-sm font-bold text-primary-foreground">
+            VIP
           </div>
 
           <div className="absolute right-4 top-4 flex flex-col gap-2">

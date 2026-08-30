@@ -11,6 +11,7 @@ export type ServiceSectionKey =
   | 'electric'
   | 'climate'
   | 'tires'
+  | 'discs'
   | 'bodywork'
   | 'painting'
   | 'detailing'
@@ -30,7 +31,6 @@ export type ServiceSectionKey =
   | 'legal'
   | 'sales'
   | 'rental'
-  | 'fleet'
   | 'specialty'
 
 export type CatalogItem = { id: string; category: ServiceCategory }
@@ -46,7 +46,7 @@ export type CatalogSection = {
 export const AUTO_SERVICE_CATALOG: CatalogSection[] = [
   {
     key: 'mechanic',
-    icon: '🔧',
+    icon: '',
     colorClass: 'bg-blue-500/10 text-blue-500',
     defaultCategory: 'mechanic',
     items: [
@@ -64,7 +64,7 @@ export const AUTO_SERVICE_CATALOG: CatalogSection[] = [
   },
   {
     key: 'mobile',
-    icon: '🚐',
+    icon: '',
     colorClass: 'bg-sky-500/10 text-sky-500',
     defaultCategory: 'mobile',
     items: [
@@ -87,7 +87,7 @@ export const AUTO_SERVICE_CATALOG: CatalogSection[] = [
   },
   {
     key: 'towing',
-    icon: '🚛',
+    icon: '',
     colorClass: 'bg-orange-600/10 text-orange-600',
     defaultCategory: 'towing',
     items: [
@@ -105,7 +105,7 @@ export const AUTO_SERVICE_CATALOG: CatalogSection[] = [
   },
   {
     key: 'transmission',
-    icon: '⚙️',
+    icon: '',
     colorClass: 'bg-indigo-500/10 text-indigo-500',
     defaultCategory: 'mechanic',
     items: [
@@ -120,7 +120,7 @@ export const AUTO_SERVICE_CATALOG: CatalogSection[] = [
   },
   {
     key: 'suspension',
-    icon: '🛞',
+    icon: '',
     colorClass: 'bg-cyan-500/10 text-cyan-600',
     defaultCategory: 'mechanic',
     items: [
@@ -135,7 +135,7 @@ export const AUTO_SERVICE_CATALOG: CatalogSection[] = [
   },
   {
     key: 'brakes',
-    icon: '🛑',
+    icon: '',
     colorClass: 'bg-red-500/10 text-red-500',
     defaultCategory: 'brakes',
     items: [
@@ -149,7 +149,7 @@ export const AUTO_SERVICE_CATALOG: CatalogSection[] = [
   },
   {
     key: 'cooling',
-    icon: '❄️',
+    icon: '',
     colorClass: 'bg-sky-500/10 text-sky-600',
     defaultCategory: 'cooling',
     items: [
@@ -162,7 +162,7 @@ export const AUTO_SERVICE_CATALOG: CatalogSection[] = [
   },
   {
     key: 'fuel',
-    icon: '⛽',
+    icon: '',
     colorClass: 'bg-yellow-500/10 text-yellow-600',
     defaultCategory: 'fuel',
     items: [
@@ -175,7 +175,7 @@ export const AUTO_SERVICE_CATALOG: CatalogSection[] = [
   },
   {
     key: 'steering',
-    icon: '🎯',
+    icon: '',
     colorClass: 'bg-teal-500/10 text-teal-600',
     defaultCategory: 'steering',
     items: [
@@ -187,7 +187,7 @@ export const AUTO_SERVICE_CATALOG: CatalogSection[] = [
   },
   {
     key: 'electric',
-    icon: '⚡',
+    icon: '',
     colorClass: 'bg-amber-500/10 text-amber-500',
     defaultCategory: 'electric',
     items: [
@@ -198,14 +198,13 @@ export const AUTO_SERVICE_CATALOG: CatalogSection[] = [
       { id: 'ecuProgram', category: 'electric' },
       { id: 'obdDiag', category: 'diagnostics' },
       { id: 'sensors', category: 'electric' },
-      { id: 'adasCalib', category: 'electric' },
       { id: 'keyProgram', category: 'locksmith' },
       { id: 'immobilizer', category: 'security' },
     ],
   },
   {
     key: 'climate',
-    icon: '🌡️',
+    icon: '',
     colorClass: 'bg-blue-400/10 text-blue-400',
     defaultCategory: 'electric',
     items: [
@@ -218,7 +217,7 @@ export const AUTO_SERVICE_CATALOG: CatalogSection[] = [
   },
   {
     key: 'tires',
-    icon: '🔘',
+    icon: '',
     colorClass: 'bg-gray-500/10 text-gray-600 dark:text-gray-300',
     defaultCategory: 'tires',
     items: [
@@ -227,16 +226,31 @@ export const AUTO_SERVICE_CATALOG: CatalogSection[] = [
       { id: 'tireRepair', category: 'tires' },
       { id: 'tireRotation', category: 'tires' },
       { id: 'wheelBalance', category: 'tires' },
-      { id: 'wheelAlign', category: 'alignment' },
-      { id: 'alloyRepair', category: 'tires' },
+      { id: 'wheelAlign', category: 'mechanic' },
       { id: 'tpms', category: 'tires' },
-      { id: 'tireHotel', category: 'storage' },
+      { id: 'tireHotel', category: 'tires' },
       { id: 'offroadTires', category: 'tires' },
     ],
   },
   {
+    key: 'discs',
+    icon: '',
+    colorClass: 'bg-slate-600/10 text-slate-700 dark:text-slate-300',
+    defaultCategory: 'discs',
+    items: [
+      { id: 'discSale', category: 'discs' },
+      { id: 'discMount', category: 'discs' },
+      { id: 'discRepair', category: 'discs' },
+      { id: 'discPolish', category: 'discs' },
+      { id: 'alloyRepair', category: 'discs' },
+      { id: 'forgedDiscs', category: 'discs' },
+      { id: 'steelDiscs', category: 'discs' },
+      { id: 'customDiscs', category: 'discs' },
+    ],
+  },
+  {
     key: 'bodywork',
-    icon: '🔨',
+    icon: '',
     colorClass: 'bg-stone-500/10 text-stone-600',
     defaultCategory: 'bodywork',
     items: [
@@ -245,14 +259,13 @@ export const AUTO_SERVICE_CATALOG: CatalogSection[] = [
       { id: 'frameStraight', category: 'bodywork' },
       { id: 'rustRepair', category: 'bodywork' },
       { id: 'welding', category: 'bodywork' },
-      { id: 'hailDamage', category: 'bodywork' },
       { id: 'panelReplace', category: 'bodywork' },
       { id: 'bumperRepair', category: 'bodywork' },
     ],
   },
   {
     key: 'painting',
-    icon: '🎨',
+    icon: '',
     colorClass: 'bg-orange-500/10 text-orange-500',
     defaultCategory: 'painting',
     items: [
@@ -268,7 +281,7 @@ export const AUTO_SERVICE_CATALOG: CatalogSection[] = [
   },
   {
     key: 'detailing',
-    icon: '✨',
+    icon: '',
     colorClass: 'bg-purple-500/10 text-purple-500',
     defaultCategory: 'detailing',
     items: [
@@ -286,7 +299,7 @@ export const AUTO_SERVICE_CATALOG: CatalogSection[] = [
   },
   {
     key: 'glass',
-    icon: '🪟',
+    icon: '',
     colorClass: 'bg-slate-500/10 text-slate-600 dark:text-slate-300',
     defaultCategory: 'glass',
     items: [
@@ -302,7 +315,7 @@ export const AUTO_SERVICE_CATALOG: CatalogSection[] = [
   },
   {
     key: 'parts',
-    icon: '🔩',
+    icon: '',
     colorClass: 'bg-zinc-500/10 text-zinc-600 dark:text-zinc-300',
     defaultCategory: 'parts',
     items: [
@@ -318,7 +331,7 @@ export const AUTO_SERVICE_CATALOG: CatalogSection[] = [
   },
   {
     key: 'diagnostics',
-    icon: '🔍',
+    icon: '',
     colorClass: 'bg-violet-500/10 text-violet-500',
     defaultCategory: 'diagnostics',
     items: [
@@ -332,7 +345,7 @@ export const AUTO_SERVICE_CATALOG: CatalogSection[] = [
   },
   {
     key: 'tuning',
-    icon: '🏎️',
+    icon: '',
     colorClass: 'bg-rose-500/10 text-rose-500',
     defaultCategory: 'tuning',
     items: [
@@ -348,7 +361,7 @@ export const AUTO_SERVICE_CATALOG: CatalogSection[] = [
   },
   {
     key: 'evHybrid',
-    icon: '🔋',
+    icon: '',
     colorClass: 'bg-green-500/10 text-green-600',
     defaultCategory: 'ev',
     items: [
@@ -363,7 +376,7 @@ export const AUTO_SERVICE_CATALOG: CatalogSection[] = [
   },
   {
     key: 'accessories',
-    icon: '🎛️',
+    icon: '',
     colorClass: 'bg-pink-500/10 text-pink-500',
     defaultCategory: 'accessories',
     items: [
@@ -377,7 +390,7 @@ export const AUTO_SERVICE_CATALOG: CatalogSection[] = [
   },
   {
     key: 'security',
-    icon: '🔒',
+    icon: '',
     colorClass: 'bg-red-600/10 text-red-600',
     defaultCategory: 'security',
     items: [
@@ -392,7 +405,7 @@ export const AUTO_SERVICE_CATALOG: CatalogSection[] = [
   },
   {
     key: 'upholstery',
-    icon: '💺',
+    icon: '',
     colorClass: 'bg-amber-700/10 text-amber-700',
     defaultCategory: 'upholstery',
     items: [
@@ -406,7 +419,7 @@ export const AUTO_SERVICE_CATALOG: CatalogSection[] = [
   },
   {
     key: 'wrap',
-    icon: '🎞️',
+    icon: '',
     colorClass: 'bg-fuchsia-500/10 text-fuchsia-500',
     defaultCategory: 'wrap',
     items: [
@@ -419,7 +432,7 @@ export const AUTO_SERVICE_CATALOG: CatalogSection[] = [
   },
   {
     key: 'locksmith',
-    icon: '🔑',
+    icon: '',
     colorClass: 'bg-yellow-600/10 text-yellow-700',
     defaultCategory: 'locksmith',
     items: [
@@ -433,7 +446,7 @@ export const AUTO_SERVICE_CATALOG: CatalogSection[] = [
   },
   {
     key: 'insurance',
-    icon: '📋',
+    icon: '',
     colorClass: 'bg-emerald-600/10 text-emerald-600',
     defaultCategory: 'insurance',
     items: [
@@ -445,13 +458,12 @@ export const AUTO_SERVICE_CATALOG: CatalogSection[] = [
   },
   {
     key: 'legal',
-    icon: '📄',
+    icon: '',
     colorClass: 'bg-neutral-500/10 text-neutral-600',
     defaultCategory: 'inspection',
     items: [
       { id: 'inspection', category: 'inspection' },
       { id: 'motInspection', category: 'inspection' },
-      { id: 'smogTest', category: 'inspection' },
       { id: 'registration', category: 'registration' },
       { id: 'titleTransfer', category: 'registration' },
       { id: 'importCustoms', category: 'importer' },
@@ -460,22 +472,19 @@ export const AUTO_SERVICE_CATALOG: CatalogSection[] = [
   },
   {
     key: 'sales',
-    icon: '🏪',
+    icon: '',
     colorClass: 'bg-lime-600/10 text-lime-700',
     defaultCategory: 'dealership',
     items: [
       { id: 'newDealer', category: 'dealership' },
       { id: 'usedDealer', category: 'dealership' },
       { id: 'importerSales', category: 'importer' },
-      { id: 'exporter', category: 'importer' },
-      { id: 'auction', category: 'auction' },
       { id: 'tradeIn', category: 'dealership' },
-      { id: 'appraisal', category: 'appraisal' },
     ],
   },
   {
     key: 'rental',
-    icon: '🚗',
+    icon: '',
     colorClass: 'bg-blue-600/10 text-blue-600',
     defaultCategory: 'rental',
     items: [
@@ -486,42 +495,23 @@ export const AUTO_SERVICE_CATALOG: CatalogSection[] = [
       { id: 'truckRental', category: 'rental' },
       { id: 'motorcycleRental', category: 'rental' },
       { id: 'scooterRental', category: 'rental' },
-      { id: 'rvRental', category: 'rental' },
       { id: 'busRental', category: 'rental' },
       { id: 'trailerRental', category: 'rental' },
       { id: 'luxuryRental', category: 'rental' },
       { id: 'electricRental', category: 'rental' },
       { id: 'longTermLease', category: 'rental' },
-      { id: 'carShare', category: 'rental' },
       { id: 'withDriverRental', category: 'rental' },
     ],
   },
   {
-    key: 'fleet',
-    icon: '🚚',
-    colorClass: 'bg-orange-700/10 text-orange-700',
-    defaultCategory: 'fleet',
-    items: [
-      { id: 'fleetMaint', category: 'fleet' },
-      { id: 'truckService', category: 'trucking' },
-      { id: 'busService', category: 'fleet' },
-      { id: 'trailerRepair', category: 'trucking' },
-      { id: 'dotInspection', category: 'inspection' },
-      { id: 'commercialVeh', category: 'fleet' },
-    ],
-  },
-  {
     key: 'specialty',
-    icon: '🛠️',
+    icon: '',
     colorClass: 'bg-emerald-500/10 text-emerald-500',
     defaultCategory: 'other',
     items: [
       { id: 'disassembly', category: 'other' },
       { id: 'classicRestore', category: 'other' },
-      { id: 'motorcycleSvc', category: 'motorcycle' },
-      { id: 'rvService', category: 'rv' },
-      { id: 'armoredVeh', category: 'armored' },
-      { id: 'vehicleStorage', category: 'storage' },
+      { id: 'motorcycleSvc', category: 'other' },
       { id: 'drivingSchool', category: 'other' },
       { id: 'notaryCar', category: 'registration' },
     ],
@@ -564,6 +554,17 @@ export const MOBILE_SERVICE_ITEM_IDS = [
   'mobileWash',
   'mobileTires',
   'mobileFuel',
+] as const
+
+export const DISC_SERVICE_ITEM_IDS = [
+  'discSale',
+  'discMount',
+  'discRepair',
+  'discPolish',
+  'alloyRepair',
+  'forgedDiscs',
+  'steelDiscs',
+  'customDiscs',
 ] as const
 
 export const SECTION_TO_CATEGORY: Record<ServiceSectionKey, ServiceCategory> = Object.fromEntries(

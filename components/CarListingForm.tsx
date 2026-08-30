@@ -1,7 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
-import { Sparkles } from 'lucide-react'
+import { useEffect, useMemo, useState } from 'react'
 import { useLanguage } from '@/context/LanguageContext'
 import { useCurrency } from '@/context/CurrencyContext'
 import { useAuth } from '@/context/AuthContext'
@@ -15,12 +14,9 @@ import {
 import { CAR_FEATURES, CAR_COLORS, COLOR_EMOJI, CUSTOMS_STATUSES, IMPORT_REGIONS } from '@/types/filters'
 import FilterChipGroup from '@/components/FilterChipGroup'
 import {
-  BODY_EMOJI,
-  CATEGORY_EMOJI,
   CUSTOMS_EMOJI,
   DRIVE_EMOJI,
   FUEL_EMOJI,
-  FEATURE_EMOJI,
   IMPORT_EMOJI,
   STEERING_EMOJI,
   TRANSMISSION_EMOJI,
@@ -34,15 +30,25 @@ import PhoneOtpVerify from '@/components/auth/PhoneOtpVerify'
 import { fetchUserProfile } from '@/lib/user-profile-firestore'
 import { isFirebaseConfigured } from '@/lib/firebase'
 import { formatPhoneDisplay } from '@/lib/phone'
+import VehicleGroupTabs from '@/components/VehicleGroupTabs'
+import {
+  CategoryTagGrid,
+  CategoryTagPickerField,
+  CategoryTagPickerSheet,
+} from '@/components/CategoryTagPicker'
+import {
+  subcategoriesForGroup,
+  subcategoryLabelKey,
+  type VehicleGroup,
+} from '@/lib/vehicle-categories'
 
 function inputClass() {
   return 'w-full rounded-lg border border-input bg-background px-3 py-2.5 text-foreground outline-none transition-all focus:ring-2 focus:ring-primary'
 }
 
-function SectionTitle({ icon, children }: { icon: string; children: React.ReactNode }) {
+function SectionTitle({ children }: { children: React.ReactNode }) {
   return (
-    <h2 className="flex items-center gap-2 border-b border-border pb-2 text-sm font-semibold text-foreground">
-      <span aria-hidden>{icon}</span>
+    <h2 className="border-b border-border pb-2 text-sm font-semibold text-foreground">
       {children}
     </h2>
   )
@@ -97,17 +103,6 @@ function ChipField({
   )
 }
 
-const BODY_TYPES = [
-  'sedan',
-  'suv',
-  'hatchback',
-  'coupe',
-  'wagon',
-  'pickup',
-  'van',
-  'special_tech',
-] as const
-
 const CYLINDER_OPTIONS = ['3', '4', '5', '6', '8', '10', '12']
 const DOOR_OPTIONS = ['2', '3', '4', '5']
 
@@ -126,7 +121,8 @@ const emptyValues: CarListingFormValues = {
   imageUrl: '',
   imageUrls: [],
   description: '',
-  category: 'car',
+  category: '',
+  vehicleGroup: 'automobile',
   bodyType: '',
   driveType: '',
   steering: '',
@@ -163,7 +159,9 @@ export default function CarListingForm({
   const { user } = useAuth()
 
   const [values, setValues] = useState<CarListingFormValues>(initialValues ?? emptyValues)
-  const [priceCurrency, setPriceCurrency] = useState<PriceCurrency>(siteCurrency)
+  const [priceCurrency, setPriceCurrency] = useState<PriceCurrency>(
+    initialValues ? 'GEL' : siteCurrency
+  )
   const [imageSlots, setImageSlots] = useState<ImageSlot[]>(() =>
     initialValues?.imageUrls?.length ? urlsToSlots(initialValues.imageUrls) : []
   )
@@ -174,6 +172,7 @@ export default function CarListingForm({
   const [vin, setVin] = useState('')
   const [vinLoading, setVinLoading] = useState(false)
   const [vinMsg, setVinMsg] = useState('')
+  const [categorySheetOpen, setCategorySheetOpen] = useState(false)
   const [phoneVerified, setPhoneVerified] = useState(Boolean(initialValues))
   const [checkingPhone, setCheckingPhone] = useState(!initialValues)
 
@@ -263,6 +262,12 @@ export default function CarListingForm({
         if (f.includes('diesel')) next.fuelType = 'diesel'
         else if (f.includes('electric')) next.fuelType = 'electric'
         else if (f.includes('hybrid')) next.fuelType = 'hybrid'
+        else if (
+          (f.includes('lpg') || f.includes('cng') || f.includes('gas')) &&
+          (f.includes('petrol') || f.includes('gasoline') || f.includes('benz'))
+        )
+          next.fuelType = 'petrol_lpg'
+        else if (f.includes('lpg') || f.includes('cng')) next.fuelType = 'lpg'
         else if (f.includes('gas') || f.includes('petrol') || f.includes('gasoline'))
           next.fuelType = 'petrol'
       }
@@ -375,25 +380,24 @@ export default function CarListingForm({
 
   const busy = submitting || uploading
 
-  const categoryOptions = [
-    { value: 'car', label: t('filter.category.car'), emoji: CATEGORY_EMOJI.car },
-    { value: 'suv', label: t('filter.category.suv'), emoji: CATEGORY_EMOJI.suv },
-    { value: 'van', label: t('filter.category.van'), emoji: CATEGORY_EMOJI.van },
-    { value: 'truck', label: t('filter.category.truck'), emoji: CATEGORY_EMOJI.truck },
-    { value: 'motorcycle', label: t('filter.category.motorcycle'), emoji: CATEGORY_EMOJI.motorcycle },
-  ]
+  const vehicleGroup = (values.vehicleGroup || 'automobile') as VehicleGroup
 
-  const bodyOptions = [
-    { value: '', label: t('search.any'), emoji: '🌐' },
-    ...BODY_TYPES.map((body) => ({
-      value: body,
-      label: t(`filter.body.${body}`),
-      emoji: BODY_EMOJI[body],
-    })),
-  ]
+  const subcategoryOptions = useMemo(
+    () =>
+      subcategoriesForGroup(vehicleGroup).map((sub) => ({
+        value: sub,
+        label: t(subcategoryLabelKey(vehicleGroup, sub)),
+      })),
+    [vehicleGroup, t]
+  )
+
+  const selectedSubLabel = values.bodyType
+    ? t(subcategoryLabelKey(vehicleGroup, values.bodyType))
+    : ''
 
   const fuelOptions = [
     { value: 'petrol', label: t('fuel.Petrol'), emoji: FUEL_EMOJI.petrol },
+    { value: 'petrol_lpg', label: t('fuel.Petrol_LPG'), emoji: FUEL_EMOJI.petrol_lpg },
     { value: 'diesel', label: t('fuel.Diesel'), emoji: FUEL_EMOJI.diesel },
     { value: 'hybrid', label: t('fuel.Hybrid'), emoji: FUEL_EMOJI.hybrid },
     { value: 'electric', label: t('fuel.Electric'), emoji: FUEL_EMOJI.electric },
@@ -411,7 +415,7 @@ export default function CarListingForm({
   ]
 
   const driveOptions = [
-    { value: '', label: t('search.any'), emoji: '🛞' },
+    { value: '', label: t('search.any') },
     { value: 'fwd', label: t('filter.drive.fwd'), emoji: DRIVE_EMOJI.fwd },
     { value: 'rwd', label: t('filter.drive.rwd'), emoji: DRIVE_EMOJI.rwd },
     { value: 'awd', label: t('filter.drive.awd'), emoji: DRIVE_EMOJI.awd },
@@ -419,7 +423,7 @@ export default function CarListingForm({
   ]
 
   const steeringOptions = [
-    { value: '', label: t('search.any'), emoji: '🎯' },
+    { value: '', label: t('search.any') },
     { value: 'left', label: t('filter.steering.left'), emoji: STEERING_EMOJI.left },
     { value: 'right', label: t('filter.steering.right'), emoji: STEERING_EMOJI.right },
   ]
@@ -443,7 +447,7 @@ export default function CarListingForm({
   ]
 
   const colorOptions = [
-    { value: '', label: t('filter.color.all'), emoji: '🌈' },
+    { value: '', label: t('filter.color.all') },
     ...CAR_COLORS.filter(Boolean).map((color) => ({
       value: color,
       label: t(`filter.color.${color}`),
@@ -531,25 +535,41 @@ export default function CarListingForm({
           </div>
 
           <section className="space-y-5 rounded-xl border-2 border-primary/25 bg-primary/5 p-4 sm:p-5">
-            <SectionTitle icon="🚗">{t('filter.section.basic')}</SectionTitle>
-            <ChipField
-              label={t('filter.category')}
-              value={values.category}
-              onChange={(category) => patch({ category })}
-              disabled={busy}
-              options={categoryOptions}
+            <SectionTitle>{t('filter.section.basic')}</SectionTitle>
+            <VehicleGroupTabs
+              value={vehicleGroup}
+              onChange={(group) =>
+                patch({ vehicleGroup: group, bodyType: '', category: '' })
+              }
             />
-            <ChipField
-              label={t('filter.body')}
+            <div className="md:hidden">
+              <CategoryTagPickerField
+                label={t('filter.category')}
+                placeholder={t('picker.chooseCategory')}
+                selectedLabel={selectedSubLabel}
+                onOpen={() => !busy && setCategorySheetOpen(true)}
+              />
+            </div>
+            <div className="hidden md:block">
+              <p className="mb-2 text-xs font-semibold text-foreground">{t('filter.category')}</p>
+              <CategoryTagGrid
+                options={subcategoryOptions}
+                value={values.bodyType}
+                onChange={(bodyType) => patch({ bodyType })}
+              />
+            </div>
+            <CategoryTagPickerSheet
+              open={categorySheetOpen}
+              onClose={() => setCategorySheetOpen(false)}
+              title={t('filter.category')}
+              options={subcategoryOptions}
               value={values.bodyType}
-              onChange={(bodyType) => patch({ bodyType })}
-              disabled={busy}
-              options={bodyOptions}
+              onConfirm={(bodyType) => patch({ bodyType })}
             />
           </section>
 
           <section className="space-y-5 rounded-xl border border-border bg-secondary/10 p-4 sm:p-5">
-            <SectionTitle icon="⚙️">{t('filter.section.technical')}</SectionTitle>
+            <SectionTitle>{t('filter.section.technical')}</SectionTitle>
             <ChipField
               label={t('search.fuelType')}
               value={values.fuelType}
@@ -632,7 +652,7 @@ export default function CarListingForm({
           </section>
 
           <section className="space-y-5 rounded-xl border border-border bg-secondary/10 p-4 sm:p-5">
-            <SectionTitle icon="🌍">{t('addCar.sectionImport')}</SectionTitle>
+            <SectionTitle>{t('addCar.sectionImport')}</SectionTitle>
             <ChipField
               label={t('filter.section.import')}
               value={values.importRegion}
@@ -650,7 +670,7 @@ export default function CarListingForm({
           </section>
 
           <section className="space-y-4 rounded-xl border border-border bg-secondary/10 p-4 sm:p-5">
-            <SectionTitle icon="⭐">{t('filter.section.features')}</SectionTitle>
+            <SectionTitle>{t('filter.section.features')}</SectionTitle>
             <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
               {CAR_FEATURES.map((feature) => {
                 const checked = values.features.includes(feature)
@@ -676,12 +696,7 @@ export default function CarListingForm({
                       disabled={busy}
                       className="h-4 w-4 rounded border-input text-primary focus:ring-primary"
                     />
-                    <span className="leading-tight">
-                      <span className="mr-1" aria-hidden>
-                        {FEATURE_EMOJI[feature]}
-                      </span>
-                      {t(`filter.feature.${feature}`)}
-                    </span>
+                    <span className="leading-tight">{t(`filter.feature.${feature}`)}</span>
                   </label>
                 )
               })}
@@ -866,7 +881,6 @@ export default function CarListingForm({
               disabled={loadingAI || busy}
               className="inline-flex items-center gap-2 rounded-lg border border-primary/40 bg-primary/10 px-4 py-2 text-sm font-semibold text-primary transition-colors hover:bg-primary/15 disabled:opacity-60"
             >
-              <Sparkles className="h-4 w-4" />
               {loadingAI ? t('addCar.aiLoading') : t('addCar.aiGenerate')}
             </button>
             <textarea

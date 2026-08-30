@@ -2,7 +2,7 @@
 
 import { useRef } from 'react'
 import Link from 'next/link'
-import { ChevronLeft, ChevronRight, Crown, Sparkles } from 'lucide-react'
+import { ChevronLeft, ChevronRight } from 'lucide-react'
 import VipCarCard from './VipCarCard'
 import { Car } from './CarCard'
 import { useLanguage } from '@/context/LanguageContext'
@@ -32,27 +32,12 @@ export default function VipListingsSection({ cars, onFavoriteToggle }: VipListin
   if (cars.length === 0) return null
 
   return (
-    <section className="relative overflow-hidden py-10">
-      <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-background to-primary/5" />
-      <div className="absolute left-0 top-0 h-1 w-full bg-gradient-to-r from-transparent via-primary to-transparent" />
-      <div className="absolute bottom-0 left-0 h-1 w-full bg-gradient-to-r from-transparent via-primary/50 to-transparent" />
-
-      <div className="absolute left-10 top-10 h-32 w-32 rounded-full bg-primary/10 blur-3xl" />
-      <div className="absolute bottom-10 right-10 h-40 w-40 rounded-full bg-primary/10 blur-3xl" />
-
-      <div className="relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+    <section className="py-10">
+      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="mb-8 flex items-center justify-between">
-          <div className="flex items-center gap-4">
-            <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-primary shadow-lg shadow-primary/30">
-              <Crown className="h-6 w-6 text-primary-foreground" />
-            </div>
-            <div>
-              <h2 className="flex items-center gap-2 text-2xl font-bold text-foreground sm:text-3xl">
-                {t('vip.title')}
-                <Sparkles className="h-5 w-5 text-primary" />
-              </h2>
-              <p className="mt-0.5 text-muted-foreground">{t('vip.subtitle')}</p>
-            </div>
+          <div>
+            <h2 className="text-2xl font-bold text-foreground sm:text-3xl">{t('vip.title')}</h2>
+            <p className="mt-0.5 text-muted-foreground">{t('vip.subtitle')}</p>
           </div>
 
           <div className="hidden items-center gap-3 sm:flex">
@@ -97,7 +82,6 @@ export default function VipListingsSection({ cars, onFavoriteToggle }: VipListin
             href="/#listings"
             className="inline-flex items-center gap-2 rounded-xl bg-primary px-6 py-3 font-semibold text-primary-foreground shadow-lg shadow-primary/25 transition-all duration-300 hover:-translate-y-0.5 hover:bg-primary/90 hover:shadow-xl hover:shadow-primary/30"
           >
-            <Crown className="h-4 w-4" />
             {t('vip.viewAll')}
             <ChevronRight className="h-4 w-4" />
           </Link>

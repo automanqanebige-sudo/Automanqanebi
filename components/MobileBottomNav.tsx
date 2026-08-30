@@ -25,7 +25,7 @@ export default function MobileBottomNav() {
 
   return (
     <nav
-      className="fixed inset-x-0 bottom-0 z-50 border-t border-border bg-card/95 pb-[env(safe-area-inset-bottom)] backdrop-blur md:hidden"
+      className="fixed inset-x-0 bottom-0 z-50 border-t border-border bg-white pb-[env(safe-area-inset-bottom)] backdrop-blur md:hidden"
       aria-label="Mobile"
     >
       <ul className="mx-auto flex max-w-lg items-stretch justify-around px-1 pt-1">

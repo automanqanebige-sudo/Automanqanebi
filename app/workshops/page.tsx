@@ -2,18 +2,20 @@
 
 import { useEffect, useMemo, useState } from 'react'
 import Link from 'next/link'
-import { ArrowLeft, Wrench } from 'lucide-react'
+import { ArrowLeft } from 'lucide-react'
+import { CategoryTagGrid } from '@/components/CategoryTagPicker'
 import { useLanguage } from '@/context/LanguageContext'
 import WorkshopsMapSection from '@/components/WorkshopsMapSection'
 import ServiceCard from '@/components/ServiceCard'
 import { sampleServices } from '@/data/services'
 import { loadAllServices } from '@/lib/services-firestore'
-import type { Service } from '@/types/service'
+import { WORKSHOP_PAGE_CATEGORIES, type Service, type ServiceCategory } from '@/types/service'
 
 export default function WorkshopsPage() {
   const { t } = useLanguage()
   const [services, setServices] = useState<Service[]>(sampleServices)
   const [loading, setLoading] = useState(true)
+  const [selectedCategory, setSelectedCategory] = useState<ServiceCategory | null>(null)
 
   useEffect(() => {
     loadAllServices()
@@ -22,17 +24,26 @@ export default function WorkshopsPage() {
       .finally(() => setLoading(false))
   }, [])
 
-  const workshops = useMemo(
-    () =>
-      services.filter((s) =>
-        ['workshop', 'mechanic', 'diagnostics', 'bodywork', 'tires', 'electric', 'brakes'].includes(
-          s.category
-        )
-      ),
+  const workshopServices = useMemo(
+    () => services.filter((s) => WORKSHOP_PAGE_CATEGORIES.includes(s.category)),
     [services]
   )
 
+  const workshops = useMemo(() => {
+    if (!selectedCategory) return workshopServices
+    return workshopServices.filter((s) => s.category === selectedCategory)
+  }, [workshopServices, selectedCategory])
+
   const categoryLabel = (cat: string) => t(`services.cat.${cat}`)
+
+  const categoryOptions = useMemo(
+    () =>
+      WORKSHOP_PAGE_CATEGORIES.map((cat) => ({
+        value: cat,
+        label: categoryLabel(cat),
+      })),
+    [t]
+  )
 
   return (
     <div className="mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:px-8">
@@ -46,10 +57,7 @@ export default function WorkshopsPage() {
 
       <div className="mb-8 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
         <div>
-          <h1 className="flex items-center gap-2 text-3xl font-bold text-foreground">
-            <Wrench className="h-8 w-8 text-primary" />
-            {t('workshops.title')}
-          </h1>
+          <h1 className="text-3xl font-bold text-foreground">{t('workshops.title')}</h1>
           <p className="mt-2 max-w-2xl text-muted-foreground">{t('workshops.subtitle')}</p>
         </div>
         <Link
@@ -58,6 +66,17 @@ export default function WorkshopsPage() {
         >
           {t('services.addService')}
         </Link>
+      </div>
+
+      <div className="mb-8 rounded-2xl border border-border bg-card p-4 sm:p-5">
+        <p className="mb-3 text-center text-base font-semibold text-foreground">
+          {t('filter.category')}
+        </p>
+        <CategoryTagGrid
+          options={categoryOptions}
+          value={selectedCategory ?? ''}
+          onChange={(value) => setSelectedCategory((value as ServiceCategory) || null)}
+        />
       </div>
 
       <section className="mb-10">

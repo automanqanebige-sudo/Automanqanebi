@@ -30,6 +30,16 @@ import {
   type RentalSubService,
   type RentalTransportType,
 } from '@/types/rental-transport'
+import {
+  DISC_BOLT_PATTERNS,
+  DISC_CONDITIONS,
+  DISC_DIAMETERS,
+  DISC_MATERIALS,
+  type DiscBoltPattern,
+  type DiscCondition,
+  type DiscDiameter,
+  type DiscMaterial,
+} from '@/types/disc-filters'
 import { RENTAL_SUB_EMOJI, RENTAL_TRANSPORT_EMOJI } from '@/lib/filter-emojis'
 
 type ServiceListingFormProps = {
@@ -85,6 +95,7 @@ export default function ServiceListingForm({
   )
 
   const isRental = values.category === 'rental'
+  const isDiscs = values.category === 'discs'
 
   const canSubmit = useMemo(
     () =>
@@ -113,6 +124,42 @@ export default function ServiceListingForm({
         rentalSubServices: has
           ? prev.rentalSubServices.filter((s) => s !== sub)
           : [...prev.rentalSubServices, sub],
+      }
+    })
+  }
+
+  const toggleDiscDiameter = (d: DiscDiameter) => {
+    setValues((prev) => {
+      const has = prev.discDiameters.includes(d)
+      return {
+        ...prev,
+        discDiameters: has
+          ? prev.discDiameters.filter((x) => x !== d)
+          : [...prev.discDiameters, d],
+      }
+    })
+  }
+
+  const toggleDiscBolt = (p: DiscBoltPattern) => {
+    setValues((prev) => {
+      const has = prev.discBoltPatterns.includes(p)
+      return {
+        ...prev,
+        discBoltPatterns: has
+          ? prev.discBoltPatterns.filter((x) => x !== p)
+          : [...prev.discBoltPatterns, p],
+      }
+    })
+  }
+
+  const toggleDiscMaterial = (m: DiscMaterial) => {
+    setValues((prev) => {
+      const has = prev.discMaterials.includes(m)
+      return {
+        ...prev,
+        discMaterials: has
+          ? prev.discMaterials.filter((x) => x !== m)
+          : [...prev.discMaterials, m],
       }
     })
   }
@@ -168,7 +215,7 @@ export default function ServiceListingForm({
           >
             {SERVICE_CATEGORIES.map((cat) => (
               <option key={cat} value={cat}>
-                {SERVICE_CATEGORY_ICONS[cat]} {t(`services.cat.${cat}`)}
+                {t(`services.cat.${cat}`)}
               </option>
             ))}
           </select>
@@ -373,6 +420,116 @@ export default function ServiceListingForm({
             />
             <span className="text-sm text-foreground">{t('services.rentalWithDriverYes')}</span>
           </label>
+        </FormSection>
+      )}
+
+      {isDiscs && (
+        <FormSection icon={Tag} title={t('services.formSectionDiscs')}>
+          <div>
+            <label className="mb-2 block text-xs font-medium text-muted-foreground">
+              {t('services.discDiameter')}
+            </label>
+            <div className="flex flex-wrap gap-2">
+              {DISC_DIAMETERS.map((d) => {
+                const checked = values.discDiameters.includes(d)
+                return (
+                  <button
+                    key={d}
+                    type="button"
+                    onClick={() => toggleDiscDiameter(d)}
+                    disabled={submitting}
+                    className={`inline-flex items-center gap-1.5 rounded-lg border px-3 py-2 text-sm font-medium transition-colors ${
+                      checked
+                        ? 'border-primary bg-primary/10 text-primary'
+                        : 'border-border bg-background text-muted-foreground hover:border-primary/40'
+                    }`}
+                  >
+                    R{d}
+                  </button>
+                )
+              })}
+            </div>
+          </div>
+
+          <div>
+            <label className="mb-2 block text-xs font-medium text-muted-foreground">
+              {t('services.discBoltPattern')}
+            </label>
+            <div className="flex flex-wrap gap-2">
+              {DISC_BOLT_PATTERNS.map((p) => {
+                const checked = values.discBoltPatterns.includes(p)
+                return (
+                  <button
+                    key={p}
+                    type="button"
+                    onClick={() => toggleDiscBolt(p)}
+                    disabled={submitting}
+                    className={`inline-flex items-center gap-1.5 rounded-lg border px-3 py-2 text-sm font-medium transition-colors ${
+                      checked
+                        ? 'border-primary bg-primary/10 text-primary'
+                        : 'border-border bg-background text-muted-foreground hover:border-primary/40'
+                    }`}
+                  >
+                    {p}
+                  </button>
+                )
+              })}
+            </div>
+          </div>
+
+          <div>
+            <label className="mb-2 block text-xs font-medium text-muted-foreground">
+              {t('services.discMaterial')}
+            </label>
+            <div className="flex flex-wrap gap-2">
+              {DISC_MATERIALS.map((m) => {
+                const checked = values.discMaterials.includes(m)
+                return (
+                  <button
+                    key={m}
+                    type="button"
+                    onClick={() => toggleDiscMaterial(m)}
+                    disabled={submitting}
+                    className={`inline-flex items-center gap-1.5 rounded-lg border px-3 py-2 text-sm font-medium transition-colors ${
+                      checked
+                        ? 'border-primary bg-primary/10 text-primary'
+                        : 'border-border bg-background text-muted-foreground hover:border-primary/40'
+                    }`}
+                  >
+                    {t(`services.discMaterial.${m}`)}
+                  </button>
+                )
+              })}
+            </div>
+          </div>
+
+          <div>
+            <label className="mb-2 block text-xs font-medium text-muted-foreground">
+              {t('services.discCondition')}
+            </label>
+            <div className="flex flex-wrap gap-2">
+              {DISC_CONDITIONS.map((c) => {
+                const checked = values.discCondition === c
+                return (
+                  <button
+                    key={c}
+                    type="button"
+                    onClick={() =>
+                      setField('discCondition', checked ? '' : (c as DiscCondition))
+                    }
+                    disabled={submitting}
+                    className={`inline-flex items-center gap-1.5 rounded-lg border px-3 py-2 text-sm font-medium transition-colors ${
+                      checked
+                        ? 'border-primary bg-primary/10 text-primary'
+                        : 'border-border bg-background text-muted-foreground hover:border-primary/40'
+                    }`}
+                  >
+                    {t(`services.discCondition.${c}`)}
+                  </button>
+                )
+              })}
+            </div>
+          </div>
         </FormSection>
       )}
 

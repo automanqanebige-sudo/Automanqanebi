@@ -13,7 +13,7 @@ interface Props {
 
 export default function AuthLayout({ title, subtitle, children }: Props) {
   return (
-    <div className="min-h-screen bg-gradient-to-br from-green-50 via-white to-green-100 flex items-center justify-center p-6">
+    <div className="min-h-screen bg-white flex items-center justify-center p-6">
       <div className="w-full max-w-lg bg-white rounded-3xl shadow-xl p-10">
         <Link href="/" className="text-green-600 hover:text-green-700 text-sm">
           ← მთავარი

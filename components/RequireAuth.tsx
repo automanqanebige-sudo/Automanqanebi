@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect } from 'react'
+import { useEffect, useRef } from 'react'
 import { usePathname, useRouter } from 'next/navigation'
 import { useAuth } from '@/context/AuthContext'
 import { useLanguage } from '@/context/LanguageContext'
@@ -10,13 +10,18 @@ export default function RequireAuth({ children }: { children: React.ReactNode })
   const { t } = useLanguage()
   const router = useRouter()
   const pathname = usePathname()
+  const redirected = useRef(false)
 
   useEffect(() => {
     if (loading) return
     if (!configured) return
     if (!user) {
+      if (redirected.current) return
+      redirected.current = true
       const redirect = encodeURIComponent(pathname)
       router.replace(`/login?redirect=${redirect}`)
+    } else {
+      redirected.current = false
     }
   }, [user, loading, configured, pathname, router])
 

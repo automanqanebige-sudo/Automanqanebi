@@ -2,7 +2,6 @@
 
 import { useLanguage } from '@/context/LanguageContext'
 import FilterChipGroup from '@/components/FilterChipGroup'
-import { RENTAL_SUB_EMOJI, RENTAL_TRANSPORT_EMOJI } from '@/lib/filter-emojis'
 import {
   RENTAL_SUB_SERVICES,
   RENTAL_SUB_TRANSPORT,
@@ -35,25 +34,21 @@ export default function ServiceRentalFilters({ filters, onChange }: ServiceRenta
     : RENTAL_SUB_SERVICES
 
   return (
-    <div className="mb-6 space-y-4 rounded-2xl border border-primary/20 bg-primary/5 p-4 sm:p-5">
+    <div className="mb-6 space-y-4 rounded-2xl border border-border bg-card p-4 sm:p-5">
       <div>
-        <h3 className="flex items-center gap-2 text-sm font-semibold text-foreground">
-          <span aria-hidden>🔑</span>
-          {t('services.rentalFiltersTitle')}
-        </h3>
+        <h3 className="text-sm font-semibold text-foreground">{t('services.rentalFiltersTitle')}</h3>
         <p className="mt-0.5 text-xs text-muted-foreground">{t('services.rentalFiltersHint')}</p>
       </div>
 
       <div>
-        <p className="mb-2 text-xs font-medium text-muted-foreground">🚗 {t('services.rentalTransport')}</p>
+        <p className="mb-2 text-xs font-medium text-muted-foreground">{t('services.rentalTransport')}</p>
         <FilterChipGroup
           rounded="lg"
           options={[
-            { value: '', label: t('filter.all'), emoji: '🌐' },
+            { value: '', label: t('filter.all') },
             ...RENTAL_TRANSPORT_TYPES.map((type) => ({
               value: type,
               label: t(`services.rentalTransport.${type}`),
-              emoji: RENTAL_TRANSPORT_EMOJI[type],
             })),
           ]}
           value={filters.transport}
@@ -72,15 +67,14 @@ export default function ServiceRentalFilters({ filters, onChange }: ServiceRenta
       </div>
 
       <div>
-        <p className="mb-2 text-xs font-medium text-muted-foreground">📋 {t('services.rentalSubService')}</p>
+        <p className="mb-2 text-xs font-medium text-muted-foreground">{t('services.rentalSubService')}</p>
         <FilterChipGroup
           rounded="lg"
           options={[
-            { value: '', label: t('filter.all'), emoji: '🌐' },
+            { value: '', label: t('filter.all') },
             ...visibleSubServices.map((sub) => ({
               value: sub,
               label: t(`services.sub.${sub}`),
-              emoji: RENTAL_SUB_EMOJI[sub],
             })),
           ]}
           value={filters.subService}
@@ -89,13 +83,13 @@ export default function ServiceRentalFilters({ filters, onChange }: ServiceRenta
       </div>
 
       <div>
-        <p className="mb-2 text-xs font-medium text-muted-foreground">🧑‍✈️ {t('services.rentalWithDriver')}</p>
+        <p className="mb-2 text-xs font-medium text-muted-foreground">{t('services.rentalWithDriver')}</p>
         <FilterChipGroup
           rounded="lg"
           options={[
-            { value: '', label: t('filter.all'), emoji: '🌐' },
-            { value: 'yes', label: t('services.rentalWithDriverYes'), emoji: '✅' },
-            { value: 'no', label: t('services.rentalWithDriverNo'), emoji: '🚫' },
+            { value: '', label: t('filter.all') },
+            { value: 'yes', label: t('services.rentalWithDriverYes') },
+            { value: 'no', label: t('services.rentalWithDriverNo') },
           ]}
           value={filters.withDriver}
           onChange={(withDriver) => patch({ withDriver: (withDriver || '') as '' | 'yes' | 'no' })}

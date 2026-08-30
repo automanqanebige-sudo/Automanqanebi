@@ -6,7 +6,6 @@ export type RentalTransportType =
   | 'truck'
   | 'motorcycle'
   | 'scooter'
-  | 'rv'
   | 'bus'
   | 'trailer'
   | 'luxury'
@@ -20,13 +19,11 @@ export type RentalSubService =
   | 'truckRental'
   | 'motorcycleRental'
   | 'scooterRental'
-  | 'rvRental'
   | 'busRental'
   | 'trailerRental'
   | 'luxuryRental'
   | 'electricRental'
   | 'longTermLease'
-  | 'carShare'
   | 'withDriverRental'
 
 export const RENTAL_TRANSPORT_TYPES: RentalTransportType[] = [
@@ -37,7 +34,6 @@ export const RENTAL_TRANSPORT_TYPES: RentalTransportType[] = [
   'truck',
   'motorcycle',
   'scooter',
-  'rv',
   'bus',
   'trailer',
   'luxury',
@@ -52,13 +48,11 @@ export const RENTAL_SUB_SERVICES: RentalSubService[] = [
   'truckRental',
   'motorcycleRental',
   'scooterRental',
-  'rvRental',
   'busRental',
   'trailerRental',
   'luxuryRental',
   'electricRental',
   'longTermLease',
-  'carShare',
   'withDriverRental',
 ]
 
@@ -71,12 +65,10 @@ export const RENTAL_SUB_TRANSPORT: Partial<Record<RentalSubService, RentalTransp
   truckRental: 'truck',
   motorcycleRental: 'motorcycle',
   scooterRental: 'scooter',
-  rvRental: 'rv',
   busRental: 'bus',
   trailerRental: 'trailer',
   luxuryRental: 'luxury',
   electricRental: 'electric',
-  carShare: 'car',
 }
 
 export type ServiceRentalFilterState = {

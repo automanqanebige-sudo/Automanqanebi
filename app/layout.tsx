@@ -68,8 +68,8 @@ export const viewport: Viewport = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="ka" className={`${inter.variable} ${notoGeorgian.variable} bg-background`}>
-      <body className="flex min-h-screen flex-col font-sans antialiased">
+    <html lang="ka" className={`${inter.variable} ${notoGeorgian.variable} bg-white`}>
+      <body className="flex min-h-screen flex-col bg-white font-sans antialiased">
         <LanguageProvider>
           <AuthProvider>
             <GoogleAuthRedirectHandler />

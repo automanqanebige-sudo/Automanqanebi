@@ -2,6 +2,7 @@ import type { Car } from '@/components/CarCard'
 import type { FilterState } from '@/types/filters'
 import { PRICE_SLIDER_MAX } from '@/types/filters'
 import { carMatchesBrand, carMatchesModel } from '@/data/car-brands'
+import { getVehicleGroupForCar } from '@/lib/vehicle-categories'
 
 function norm(v?: string) {
   return (v ?? '').trim().toLowerCase()
@@ -23,6 +24,9 @@ export function applyCarFilters(cars: Car[], filters: FilterState): Car[] {
 
     if (filters.brand && !carMatchesBrand(car.brand, filters.brand)) return false
     if (filters.model && !carMatchesModel(car.model, filters.model)) return false
+
+    const group = filters.vehicleGroup || 'automobile'
+    if (getVehicleGroupForCar(car) !== group) return false
 
     if (filters.category && norm(car.category) !== norm(filters.category)) return false
     if (filters.fuelType && norm(car.fuelType) !== norm(filters.fuelType)) return false
@@ -93,6 +97,7 @@ export function countActiveFilters(filters: FilterState): number {
   if (filters.priceMin > 0 || filters.priceMax < PRICE_SLIDER_MAX) n++
   if (filters.yearMin || filters.yearMax) n++
   if (filters.bodyType) n++
+  if (filters.vehicleGroup && filters.vehicleGroup !== 'automobile') n++
   if (filters.transmission) n++
   if (filters.driveType) n++
   if (filters.steering) n++

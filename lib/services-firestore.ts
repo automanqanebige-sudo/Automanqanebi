@@ -40,6 +40,10 @@ export type FirestoreServiceDoc = {
   rentalPricePerMonth?: number
   rentalMinDays?: number
   withDriver?: boolean
+  discDiameters?: string[]
+  discBoltPatterns?: string[]
+  discMaterials?: string[]
+  discCondition?: string
   userEmail?: string | null
   createdAt?: unknown
   updatedAt?: unknown
@@ -76,6 +80,10 @@ export function docToService(id: string, data: FirestoreServiceDoc): Service {
     rentalPricePerMonth: data.rentalPricePerMonth,
     rentalMinDays: data.rentalMinDays,
     withDriver: data.withDriver,
+    discDiameters: data.discDiameters as Service['discDiameters'],
+    discBoltPatterns: data.discBoltPatterns as Service['discBoltPatterns'],
+    discMaterials: data.discMaterials as Service['discMaterials'],
+    discCondition: data.discCondition as Service['discCondition'],
   }
 }
 

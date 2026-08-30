@@ -57,21 +57,30 @@ export function FavoritesProvider({ children }: { children: ReactNode }) {
 
     async function load() {
       const key = storageKeyForUser(user?.uid)
+      const guest = user?.uid ? readStored('am_favorites_guest') : new Set<string>()
       const local = readStored(key)
+      const mergedLocal = new Set([...Array.from(guest), ...Array.from(local)])
 
       if (user?.uid && isFirebaseConfigured()) {
         try {
           const remote = await fetchUserFavoriteIds(user.uid)
-          const merged = new Set([...Array.from(local), ...Array.from(remote)])
+          const merged = new Set([...Array.from(mergedLocal), ...Array.from(remote)])
           if (!cancelled) {
             setFavoriteIds(merged)
             writeStored(key, merged)
+            if (guest.size > 0) {
+              try {
+                localStorage.removeItem('am_favorites_guest')
+              } catch {
+                /* ignore */
+              }
+            }
           }
         } catch {
-          if (!cancelled) setFavoriteIds(local)
+          if (!cancelled) setFavoriteIds(mergedLocal)
         }
       } else if (!cancelled) {
-        setFavoriteIds(local)
+        setFavoriteIds(mergedLocal)
       }
 
       if (!cancelled) setReady(true)

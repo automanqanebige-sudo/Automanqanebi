@@ -5,9 +5,13 @@ import { useRouter, useSearchParams } from 'next/navigation'
 import { Loader2 } from 'lucide-react'
 import { takeGoogleAuthErrorCode, useAuth } from '@/context/AuthContext'
 import { useLanguage } from '@/context/LanguageContext'
+import { safeAppPath } from '@/lib/safe-redirect'
 import {
   authErrorKey,
+  clearGoogleRedirectPath,
+  clearGoogleRedirectPending,
   getAuthErrorMessage,
+  markGoogleRedirectPending,
   stashGoogleRedirectPath,
 } from '@/lib/auth'
 import { logAnalyticsEvent } from '@/lib/analytics-firestore'
@@ -35,7 +39,7 @@ export default function SocialLogin({
   const router = useRouter()
   const searchParams = useSearchParams()
   const redirectTo = searchParams.get('redirect') || '/profile'
-  const safeRedirect = redirectTo.startsWith('/') ? redirectTo : '/profile'
+  const safeRedirect = safeAppPath(redirectTo)
 
   useEffect(() => {
     const code = takeGoogleAuthErrorCode()
@@ -52,14 +56,21 @@ export default function SocialLogin({
     // Sync work only before signInWithPopup (browser gesture / popup blocker).
     onLoadingChange(true)
     stashGoogleRedirectPath(safeRedirect)
+    // Mark pending before redirect so a successful return can navigate once.
+    // Cleared immediately on popup success/error so reloads never jump pages.
+    markGoogleRedirectPending()
 
     try {
       const result = await signInWithGoogle()
 
       // Full-page redirect to Google — do not navigate locally.
       if (result.method === 'redirect') {
+        window.setTimeout(() => onLoadingChange(false), 12000)
         return
       }
+
+      clearGoogleRedirectPending()
+      clearGoogleRedirectPath()
 
       const user = result.user
       if (user) {
@@ -78,6 +89,8 @@ export default function SocialLogin({
       }
       router.replace(safeRedirect)
     } catch (err) {
+      clearGoogleRedirectPending()
+      clearGoogleRedirectPath()
       onError(getAuthErrorMessage(err, t))
       onLoadingChange(false)
     }

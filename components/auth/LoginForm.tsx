@@ -9,6 +9,7 @@ import AuthRecaptcha from '@/components/auth/AuthRecaptcha'
 import { AUTH_INPUT_CLASS } from '@/components/auth/AuthLayout'
 import { useAuth } from '@/context/AuthContext'
 import { useLanguage } from '@/context/LanguageContext'
+import { safeAppPath } from '@/lib/safe-redirect'
 import { getAuthErrorMessage } from '@/lib/auth'
 import { logAnalyticsEvent } from '@/lib/analytics-firestore'
 
@@ -22,7 +23,9 @@ export default function LoginForm() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [showPassword, setShowPassword] = useState(false)
-  const [loading, setLoading] = useState(false)
+  const [formLoading, setFormLoading] = useState(false)
+  const [googleLoading, setGoogleLoading] = useState(false)
+  const [showCaptcha, setShowCaptcha] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [info, setInfo] = useState<string | null>(null)
   const [resetMode, setResetMode] = useState(false)
@@ -50,12 +53,13 @@ export default function LoginForm() {
     }
 
     if (!captchaOk) {
+      setShowCaptcha(true)
       setError(t('auth.recaptchaRequired'))
       return
     }
 
     if (resetMode) {
-      setLoading(true)
+      setFormLoading(true)
       try {
         await resetPassword(email)
         setInfo(t('auth.resetSent'))
@@ -65,7 +69,7 @@ export default function LoginForm() {
         setError(getAuthErrorMessage(err, t))
         resetCaptcha()
       } finally {
-        setLoading(false)
+        setFormLoading(false)
       }
       return
     }
@@ -75,11 +79,11 @@ export default function LoginForm() {
       return
     }
 
-    setLoading(true)
+    setFormLoading(true)
     try {
       await signInWithEmail(email, password)
       logAnalyticsEvent('user_login', { method: 'email', email: email.trim().toLowerCase() })
-      router.push(redirectTo.startsWith('/') ? redirectTo : '/profile')
+      router.push(safeAppPath(redirectTo))
     } catch (err) {
       if (err instanceof Error && err.message === 'FIREBASE_NOT_CONFIGURED') {
         setError(t('auth.error.notConfigured'))
@@ -88,9 +92,11 @@ export default function LoginForm() {
       }
       resetCaptcha()
     } finally {
-      setLoading(false)
+      setFormLoading(false)
     }
   }
+
+  const busy = formLoading || googleLoading
 
   const registerHref =
     redirectTo !== '/profile'
@@ -119,8 +125,8 @@ export default function LoginForm() {
         <SocialLogin
           mode="login"
           position="top"
-          loading={loading}
-          onLoadingChange={setLoading}
+          loading={googleLoading}
+          onLoadingChange={setGoogleLoading}
           onError={setError}
         />
       )}
@@ -136,9 +142,10 @@ export default function LoginForm() {
             autoComplete="email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
+            onFocus={() => setShowCaptcha(true)}
             className={AUTH_INPUT_CLASS}
             placeholder="name@example.com"
-            disabled={loading}
+            disabled={busy}
           />
         </div>
 
@@ -154,8 +161,9 @@ export default function LoginForm() {
                 autoComplete="current-password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
+                onFocus={() => setShowCaptcha(true)}
                 className={`${AUTH_INPUT_CLASS} pr-10`}
-                disabled={loading}
+                disabled={busy}
               />
               <button
                 type="button"
@@ -169,13 +177,16 @@ export default function LoginForm() {
           </div>
         )}
 
-        <AuthRecaptcha key={captchaKey} onChange={setCaptchaOk} disabled={loading} />
+        {showCaptcha && (
+          <AuthRecaptcha key={captchaKey} onChange={setCaptchaOk} disabled={formLoading} />
+        )}
 
         {!resetMode ? (
           <button
             type="button"
             onClick={() => {
               setResetMode(true)
+              setShowCaptcha(true)
               setError(null)
               resetCaptcha()
             }}
@@ -199,10 +210,10 @@ export default function LoginForm() {
 
         <button
           type="submit"
-          disabled={loading || !configured || !captchaOk}
+          disabled={formLoading || !configured || (showCaptcha && !captchaOk)}
           className="flex w-full items-center justify-center gap-2 rounded-lg bg-primary py-3 font-semibold text-primary-foreground transition-colors hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-60"
         >
-          {loading && <Loader2 className="h-4 w-4 animate-spin" />}
+          {formLoading && <Loader2 className="h-4 w-4 animate-spin" />}
           {resetMode ? t('auth.submit.reset') : t('auth.submit.login')}
         </button>
       </form>

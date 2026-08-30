@@ -1,6 +1,12 @@
 import type { Service, WorkSchedule } from '@/types/service'
 import { WORK_DAY_KEYS } from '@/types/service'
 import type { RentalSubService, RentalTransportType } from '@/types/rental-transport'
+import type {
+  DiscBoltPattern,
+  DiscCondition,
+  DiscDiameter,
+  DiscMaterial,
+} from '@/types/disc-filters'
 
 export type ServiceListingFormValues = {
   name: string
@@ -24,6 +30,10 @@ export type ServiceListingFormValues = {
   rentalPricePerMonth: string
   rentalMinDays: string
   withDriver: boolean
+  discDiameters: DiscDiameter[]
+  discBoltPatterns: DiscBoltPattern[]
+  discMaterials: DiscMaterial[]
+  discCondition: DiscCondition | ''
 }
 
 export const DEFAULT_WORK_SCHEDULE: WorkSchedule = {
@@ -71,6 +81,10 @@ export function emptyServiceFormValues(): ServiceListingFormValues {
     rentalPricePerMonth: '',
     rentalMinDays: '',
     withDriver: false,
+    discDiameters: [],
+    discBoltPatterns: [],
+    discMaterials: [],
+    discCondition: '',
   }
 }
 
@@ -90,6 +104,7 @@ function parseOptionalCoord(value: string): number | undefined {
 
 export function serviceFormValuesToPayload(values: ServiceListingFormValues, imageUrls?: string[]) {
   const isRental = values.category === 'rental'
+  const isDiscs = values.category === 'discs'
   const rentalPriceDay = parseOptionalNumber(values.rentalPricePerDay)
   const images = (imageUrls ?? values.imageUrls).map((url) => url.trim()).filter(Boolean)
   const primary = images[0]
@@ -121,6 +136,14 @@ export function serviceFormValuesToPayload(values: ServiceListingFormValues, ima
           rentalPricePerMonth: parseOptionalNumber(values.rentalPricePerMonth),
           rentalMinDays: parseOptionalNumber(values.rentalMinDays),
           withDriver: values.withDriver || undefined,
+        }
+      : {}),
+    ...(isDiscs
+      ? {
+          discDiameters: values.discDiameters.length > 0 ? values.discDiameters : undefined,
+          discBoltPatterns: values.discBoltPatterns.length > 0 ? values.discBoltPatterns : undefined,
+          discMaterials: values.discMaterials.length > 0 ? values.discMaterials : undefined,
+          discCondition: values.discCondition || undefined,
         }
       : {}),
   }
@@ -161,5 +184,9 @@ export function serviceToFormValues(service: Service): ServiceListingFormValues 
       service.rentalPricePerMonth != null ? String(service.rentalPricePerMonth) : '',
     rentalMinDays: service.rentalMinDays != null ? String(service.rentalMinDays) : '',
     withDriver: service.withDriver ?? false,
+    discDiameters: service.discDiameters ?? [],
+    discBoltPatterns: service.discBoltPatterns ?? [],
+    discMaterials: service.discMaterials ?? [],
+    discCondition: service.discCondition ?? '',
   }
 }

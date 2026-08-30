@@ -19,8 +19,11 @@ import {
   type User,
 } from 'firebase/auth'
 import { getFirebaseAuth, isFirebaseConfigured } from '@/lib/firebase'
+import { safeAppPath, isSafeAppPath } from '@/lib/safe-redirect'
 
 const GOOGLE_REDIRECT_PATH_KEY = 'am_google_auth_redirect'
+/** Set only when starting a full-page Google redirect; consumed once after return. */
+const GOOGLE_REDIRECT_PENDING_KEY = 'am_google_auth_pending'
 
 export function requireFirebaseAuth() {
   if (!isFirebaseConfigured()) {
@@ -57,15 +60,20 @@ const POPUP_FALLBACK_CODES = new Set([
   'auth/cancelled-popup-request',
   'auth/operation-not-supported-in-this-environment',
   'auth/web-storage-unsupported',
+  'auth/network-request-failed',
+  'auth/internal-error',
 ])
 
+const PRODUCTION_AUTH_HOSTS = new Set(['automanqanebi.ge', 'www.automanqanebi.ge'])
+
 /**
- * Prefer popup almost everywhere — redirect silently fails in modern browsers
- * when third-party storage is blocked (Chrome/Safari/Firefox).
- * Only force redirect inside in-app browsers where popups are unreliable.
+ * Redirect is most reliable on our custom domain (same-origin /__/auth proxy).
+ * Popup remains the default on localhost and Firebase preview hosts.
  */
-function shouldForceGoogleRedirect(): boolean {
+function shouldPreferGoogleRedirect(): boolean {
   if (typeof window === 'undefined') return false
+  const host = window.location.hostname
+  if (PRODUCTION_AUTH_HOSTS.has(host)) return true
   const ua = navigator.userAgent || ''
   return /FBAN|FBAV|Instagram|Line\/|TikTok|Snapchat|WhatsApp|Telegram|MicroMessenger|GSA\//i.test(
     ua
@@ -73,14 +81,15 @@ function shouldForceGoogleRedirect(): boolean {
 }
 
 function writeGoogleRedirectPath(path: string): void {
-  const safe = path.startsWith('/') ? path : '/profile'
+  const safe = safeAppPath(path, '/profile')
+  // Session-only — localStorage caused random jumps after later page reloads.
   try {
-    localStorage.setItem(GOOGLE_REDIRECT_PATH_KEY, safe)
+    sessionStorage.setItem(GOOGLE_REDIRECT_PATH_KEY, safe)
   } catch {
     /* ignore */
   }
   try {
-    sessionStorage.setItem(GOOGLE_REDIRECT_PATH_KEY, safe)
+    localStorage.removeItem(GOOGLE_REDIRECT_PATH_KEY)
   } catch {
     /* ignore */
   }
@@ -93,17 +102,20 @@ function readGoogleRedirectPath(): string | null {
   } catch {
     /* ignore */
   }
-  if (!path) {
-    try {
-      path = localStorage.getItem(GOOGLE_REDIRECT_PATH_KEY)
-    } catch {
-      /* ignore */
+  // Migrate / wipe legacy localStorage stash so it can never redirect again.
+  try {
+    const legacy = localStorage.getItem(GOOGLE_REDIRECT_PATH_KEY)
+    if (legacy) localStorage.removeItem(GOOGLE_REDIRECT_PATH_KEY)
+    if (!path && legacy && isSafeAppPath(legacy)) {
+      // Do not resurrect legacy into session — it was the bug source.
     }
+  } catch {
+    /* ignore */
   }
-  return path && path.startsWith('/') ? path : null
+  return isSafeAppPath(path) ? path.trim() : null
 }
 
-function clearGoogleRedirectPath(): void {
+export function clearGoogleRedirectPath(): void {
   try {
     sessionStorage.removeItem(GOOGLE_REDIRECT_PATH_KEY)
   } catch {
@@ -114,6 +126,39 @@ function clearGoogleRedirectPath(): void {
   } catch {
     /* ignore */
   }
+}
+
+export function markGoogleRedirectPending(): void {
+  if (typeof window === 'undefined') return
+  try {
+    sessionStorage.setItem(GOOGLE_REDIRECT_PENDING_KEY, '1')
+  } catch {
+    /* ignore */
+  }
+}
+
+export function clearGoogleRedirectPending(): void {
+  if (typeof window === 'undefined') return
+  try {
+    sessionStorage.removeItem(GOOGLE_REDIRECT_PENDING_KEY)
+  } catch {
+    /* ignore */
+  }
+}
+
+/** Returns true once if a Google redirect was in progress; clears the flag. */
+export function consumeGoogleRedirectPending(): boolean {
+  if (typeof window === 'undefined') return false
+  try {
+    const pending = sessionStorage.getItem(GOOGLE_REDIRECT_PENDING_KEY)
+    if (pending) {
+      sessionStorage.removeItem(GOOGLE_REDIRECT_PENDING_KEY)
+      return true
+    }
+  } catch {
+    /* ignore */
+  }
+  return false
 }
 
 export function stashGoogleRedirectPath(path: string): void {
@@ -151,14 +196,12 @@ export async function signInWithGoogle(): Promise<GoogleSignInResult> {
   const provider = googleProvider()
   const resolver = browserPopupRedirectResolver
 
-  if (shouldForceGoogleRedirect()) {
+  if (shouldPreferGoogleRedirect()) {
     await signInWithRedirect(auth, provider, resolver)
     return { method: 'redirect' }
   }
 
   try {
-    // Popup is called synchronously from the click chain — do not await anything
-    // before this line (gesture / popup-blocker).
     const cred = await signInWithPopup(auth, provider, resolver)
     return { method: 'popup', user: cred.user }
   } catch (err) {
@@ -166,7 +209,7 @@ export async function signInWithGoogle(): Promise<GoogleSignInResult> {
     if (code === 'auth/popup-closed-by-user') {
       throw err
     }
-    if (code && POPUP_FALLBACK_CODES.has(code)) {
+    if (!code || POPUP_FALLBACK_CODES.has(code)) {
       await signInWithRedirect(auth, provider, resolver)
       return { method: 'redirect' }
     }

@@ -2,7 +2,7 @@
 
 import { Suspense, useCallback, useEffect, useMemo, useState } from 'react'
 import Link from 'next/link'
-import { useRouter, useSearchParams } from 'next/navigation'
+import { useSearchParams } from 'next/navigation'
 import {
   ArrowLeft,
   ChevronRight,
@@ -35,6 +35,7 @@ import {
   filterServiceSubItems,
   filterServices,
 } from '@/lib/service-search'
+import { getWindowQueryString, softReplaceUrl } from '@/lib/soft-url'
 
 export default function ServiceDetailPage({ params }: { params: { id: string } }) {
   return (
@@ -54,17 +55,23 @@ function ServiceDetailContent({ id }: { id: string }) {
   const { t: baseT } = useLanguage()
   const { t, ready: catalogReady } = useServiceCatalogT()
   const { formatPrice } = useCurrency()
-  const router = useRouter()
   const searchParams = useSearchParams()
+  const searchParamsString = searchParams.toString()
 
   const [service, setService] = useState<Service | null>(null)
   const [allServices, setAllServices] = useState<Service[]>(sampleServices)
   const [loading, setLoading] = useState(true)
-  const [searchQuery, setSearchQuery] = useState(searchParams.get('q') ?? '')
+  const [searchQuery, setSearchQuery] = useState(() => {
+    if (typeof window !== 'undefined') {
+      return new URLSearchParams(getWindowQueryString()).get('q') ?? ''
+    }
+    return searchParams.get('q') ?? ''
+  })
 
   useEffect(() => {
-    setSearchQuery(searchParams.get('q') ?? '')
-  }, [searchParams])
+    const q = new URLSearchParams(getWindowQueryString() || searchParamsString).get('q') ?? ''
+    setSearchQuery(q)
+  }, [searchParamsString])
 
   useEffect(() => {
     Promise.all([fetchServiceById(id), loadAllServices()])
@@ -98,11 +105,11 @@ function ServiceDetailContent({ id }: { id: string }) {
 
   const updateSearch = (value: string) => {
     setSearchQuery(value)
-    const paramsObj = new URLSearchParams(searchParams.toString())
+    const paramsObj = new URLSearchParams(getWindowQueryString())
     if (value.trim()) paramsObj.set('q', value.trim())
     else paramsObj.delete('q')
     const qs = paramsObj.toString()
-    router.replace(qs ? `/services/${id}?${qs}` : `/services/${id}`, { scroll: false })
+    softReplaceUrl(qs ? `/services/${id}?${qs}` : `/services/${id}`)
   }
 
   if (loading) {
@@ -133,7 +140,7 @@ function ServiceDetailContent({ id }: { id: string }) {
   const hasSearch = Boolean(searchQuery.trim())
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-white">
       <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
         <Link
           href="/services"

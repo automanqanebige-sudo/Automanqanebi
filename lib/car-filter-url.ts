@@ -46,6 +46,7 @@ export function parseCarFiltersFromParams(params: URLSearchParams): {
       brand: strParam(params, 'brand'),
       model: strParam(params, 'model'),
       category: strParam(params, 'category'),
+      vehicleGroup: (strParam(params, 'group') as FilterState['vehicleGroup']) || 'automobile',
       fuelType: strParam(params, 'fuel'),
       priceMin: numParam(params, 'priceMin', 0),
       priceMax: numParam(params, 'priceMax', PRICE_SLIDER_MAX),
@@ -85,6 +86,9 @@ export function carFiltersToParams(
   if (filters.brand) params.set('brand', filters.brand)
   if (filters.model) params.set('model', filters.model)
   if (filters.category) params.set('category', filters.category)
+  if (filters.vehicleGroup && filters.vehicleGroup !== 'automobile') {
+    params.set('group', filters.vehicleGroup)
+  }
   if (filters.fuelType) params.set('fuel', filters.fuelType)
   if (filters.priceMin > 0) params.set('priceMin', String(filters.priceMin))
   if (filters.priceMax < PRICE_SLIDER_MAX) params.set('priceMax', String(filters.priceMax))

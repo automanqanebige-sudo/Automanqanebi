@@ -2,7 +2,6 @@
 
 import { useMemo, useState } from 'react'
 import Image from 'next/image'
-import { Star } from 'lucide-react'
 import { carBrands, TOP_BRAND_NAMES } from '@/data/car-brands'
 import { useLanguage } from '@/context/LanguageContext'
 
@@ -71,8 +70,7 @@ export default function BrandFilter({
 
   return (
     <div className="rounded-2xl bg-slate-900 p-4 shadow-inner sm:p-5 lg:p-6">
-      <h3 className="mb-4 flex items-center gap-2 text-base font-semibold text-white">
-        <Star className="h-4 w-4 fill-amber-400 text-amber-400" />
+      <h3 className="mb-4 text-base font-semibold text-white">
         {t('search.topBrands')}
       </h3>
 

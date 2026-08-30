@@ -23,3 +23,8 @@ export function viberHref(phone: string): string | null {
   const digits = normalizePhoneDigits(phone)
   return digits ? `viber://chat?number=%2B${digits}` : null
 }
+
+export function telHref(phone: string): string | null {
+  const digits = normalizePhoneDigits(phone)
+  return digits ? `tel:+${digits}` : null
+}

@@ -2,6 +2,8 @@ import type { Service, ServiceCategory } from '@/types/service'
 import { SERVICE_SUB_SECTIONS } from '@/types/service'
 import type { ServiceRentalFilterState } from '@/types/rental-transport'
 import { RENTAL_SUB_TRANSPORT } from '@/types/rental-transport'
+import type { ServiceDiscFilterState } from '@/types/disc-filters'
+import { countActiveDiscFilters } from '@/types/disc-filters'
 
 function normalize(text: string) {
   return text.trim().toLowerCase()
@@ -21,6 +23,10 @@ export function serviceMatchesQuery(service: Service, query: string, categoryLab
     categoryLabel,
     ...(service.rentalTransportTypes ?? []),
     ...(service.rentalSubServices ?? []),
+    ...(service.discDiameters ?? []).map((d) => `R${d}`),
+    ...(service.discBoltPatterns ?? []),
+    ...(service.discMaterials ?? []),
+    service.discCondition,
   ]
     .filter(Boolean)
     .join(' ')
@@ -59,16 +65,47 @@ export function serviceMatchesRentalFilters(
   return true
 }
 
+export function serviceMatchesDiscFilters(
+  service: Service,
+  discFilters: ServiceDiscFilterState
+): boolean {
+  if (service.category !== 'discs') return false
+  if (countActiveDiscFilters(discFilters) === 0) return true
+
+  if (discFilters.diameter) {
+    const diameters = service.discDiameters ?? []
+    if (diameters.length > 0 && !diameters.includes(discFilters.diameter)) return false
+  }
+
+  if (discFilters.boltPattern) {
+    const patterns = service.discBoltPatterns ?? []
+    if (patterns.length > 0 && !patterns.includes(discFilters.boltPattern)) return false
+  }
+
+  if (discFilters.material) {
+    const materials = service.discMaterials ?? []
+    if (materials.length > 0 && !materials.includes(discFilters.material)) return false
+  }
+
+  if (discFilters.condition) {
+    if (service.discCondition && service.discCondition !== discFilters.condition) return false
+  }
+
+  return true
+}
+
 export function filterServices(
   services: Service[],
   query: string,
   category: ServiceCategory | 'all',
   getCategoryLabel: (cat: ServiceCategory) => string,
-  rentalFilters?: ServiceRentalFilterState
+  rentalFilters?: ServiceRentalFilterState,
+  discFilters?: ServiceDiscFilterState
 ) {
   const rentalActive =
     rentalFilters &&
     (rentalFilters.transport || rentalFilters.subService || rentalFilters.withDriver)
+  const discActive = discFilters && countActiveDiscFilters(discFilters) > 0
 
   return services.filter((service) => {
     if (category !== 'all' && service.category !== category) return false
@@ -78,6 +115,13 @@ export function filterServices(
         if (service.category !== 'rental') return false
       }
       if (!serviceMatchesRentalFilters(service, rentalFilters!)) return false
+    }
+
+    if (discActive) {
+      if (category === 'all') {
+        if (service.category !== 'discs') return false
+      }
+      if (!serviceMatchesDiscFilters(service, discFilters!)) return false
     }
 
     return serviceMatchesQuery(service, query, getCategoryLabel(service.category))
@@ -142,6 +186,8 @@ export function filterServiceSubItems(
 /** Maps provider category to browse section for detail-page search */
 export const CATEGORY_TO_SECTION: Partial<Record<ServiceCategory, string>> = {
   mechanic: 'mechanic',
+  workshop: 'workshop',
+  fullService: 'workshop',
   diagnostics: 'diagnostics',
   bodywork: 'bodywork',
   painting: 'painting',
@@ -151,6 +197,7 @@ export const CATEGORY_TO_SECTION: Partial<Record<ServiceCategory, string>> = {
   electric: 'electric',
   ev: 'evHybrid',
   tires: 'tires',
+  discs: 'discs',
   alignment: 'steering',
   brakes: 'brakes',
   exhaust: 'tuning',
@@ -168,6 +215,7 @@ export const CATEGORY_TO_SECTION: Partial<Record<ServiceCategory, string>> = {
   locksmith: 'locksmith',
   mobile: 'mobile',
   towing: 'towing',
+  fuelDrain: 'mobile',
   importer: 'sales',
   dealership: 'sales',
   auction: 'sales',
@@ -176,8 +224,8 @@ export const CATEGORY_TO_SECTION: Partial<Record<ServiceCategory, string>> = {
   insurance: 'insurance',
   inspection: 'legal',
   registration: 'legal',
-  fleet: 'fleet',
-  trucking: 'fleet',
+  fleet: 'specialty',
+  trucking: 'specialty',
   motorcycle: 'specialty',
   rv: 'specialty',
   lpg: 'fuel',

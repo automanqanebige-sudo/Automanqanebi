@@ -1,4 +1,5 @@
 import type { Car } from '@/components/CarCard'
+import { USE_SAMPLE_DATA } from '@/lib/site'
 
 export const sampleCars: Car[] = [
   {
@@ -230,6 +231,8 @@ export const sampleCars: Car[] = [
 ]
 
 export function getCarById(id: string): Car | undefined {
+  // Never resolve demo IDs in production when sample listings are disabled.
+  if (!USE_SAMPLE_DATA) return undefined
   const car = sampleCars.find((c) => c.id === id)
   return car ? { ...car, isTest: true } : undefined
 }

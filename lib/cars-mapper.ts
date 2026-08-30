@@ -38,6 +38,7 @@ export type FirestoreCarDoc = {
   priceCurrency?: 'GEL' | 'USD'
   offerType?: 'sale' | 'rent'
   category?: string
+  vehicleGroup?: string
   bodyType?: string
   driveType?: string
   steering?: string
@@ -52,8 +53,9 @@ export type FirestoreCarDoc = {
 
 function capitalizeFuel(fuel?: string): string {
   if (!fuel) return 'Petrol'
-  const lower = fuel.toLowerCase()
+  const lower = fuel.toLowerCase().replace(/[\s/+-]+/g, '_')
   if (lower === 'petrol') return 'Petrol'
+  if (lower === 'petrol_lpg' || lower === 'petrol_gas' || lower === 'benz_gaz') return 'Petrol_LPG'
   if (lower === 'diesel') return 'Diesel'
   if (lower === 'hybrid') return 'Hybrid'
   if (lower === 'electric') return 'Electric'
@@ -92,6 +94,7 @@ export function docToCar(id: string, data: FirestoreCarDoc): Car {
     listingType: listingType || (isVip ? 'vip' : 'standard'),
     offerType: data.offerType === 'rent' ? 'rent' : 'sale',
     category: data.category,
+    vehicleGroup: data.vehicleGroup,
     bodyType: data.bodyType,
     driveType: data.driveType,
     steering: data.steering,

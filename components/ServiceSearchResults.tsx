@@ -3,11 +3,9 @@
 import Link from 'next/link'
 import { ChevronRight } from 'lucide-react'
 import ServiceCard from '@/components/ServiceCard'
-import { catalogItemEmoji } from '@/lib/filter-emojis'
 import { catalogItemHref } from '@/lib/service-catalog-links'
 import type { ServiceSubItemMatch } from '@/lib/service-search'
 import type { Service, ServiceCategory } from '@/types/service'
-import { SERVICE_CATEGORY_ICONS } from '@/types/service'
 
 type ServiceSearchResultsProps = {
   query: string
@@ -36,7 +34,7 @@ export default function ServiceSearchResults({
   const total = catalogMatches.length + userServices.length
 
   return (
-    <div className="border-b border-border bg-background px-4 py-5 sm:px-6 lg:px-8">
+    <div className="border-b border-border bg-white px-4 py-5 sm:px-6 lg:px-8">
       <div className="mx-auto max-w-7xl">
         <p className="mb-4 text-sm text-muted-foreground">
           {baseT('services.searchResults').replace('{{count}}', String(total))}
@@ -54,14 +52,12 @@ export default function ServiceSearchResults({
 
         {catalogReady && catalogMatches.length > 0 && (
           <section className="mb-6">
-            <h3 className="mb-3 flex items-center gap-2 text-sm font-semibold text-foreground">
-              <span aria-hidden>📋</span>
+            <h3 className="mb-3 text-sm font-semibold text-foreground">
               {baseT('services.specificServices')}
-              <span className="font-normal text-muted-foreground">({catalogMatches.length})</span>
+              <span className="font-normal text-muted-foreground"> ({catalogMatches.length})</span>
             </h3>
             <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
               {catalogMatches.map((item) => {
-                const emoji = catalogItemEmoji(item.itemId, item.icon)
                 const name = t(item.nameKey)
                 const href = catalogItemHref(
                   item.sectionKey,
@@ -76,11 +72,6 @@ export default function ServiceSearchResults({
                     href={href}
                     className="group flex items-center gap-3 rounded-xl border border-border bg-background p-3 transition-all hover:border-primary/40 hover:bg-secondary/30"
                   >
-                    <div
-                      className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-xl text-lg ${item.colorClass}`}
-                    >
-                      <span aria-hidden>{emoji}</span>
-                    </div>
                     <div className="min-w-0 flex-1">
                       <p className="truncate font-medium text-foreground group-hover:text-primary">
                         {name}
@@ -97,20 +88,16 @@ export default function ServiceSearchResults({
 
         {userServices.length > 0 && (
           <section>
-            <h3 className="mb-3 flex items-center gap-2 text-sm font-semibold text-foreground">
-              <span aria-hidden>👤</span>
+            <h3 className="mb-3 text-sm font-semibold text-foreground">
               {baseT('services.userListings')}
-              <span className="font-normal text-muted-foreground">({userServices.length})</span>
+              <span className="font-normal text-muted-foreground"> ({userServices.length})</span>
             </h3>
             <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
               {userServices.map((service) => (
                 <ServiceCard
                   key={service.id}
                   service={service}
-                  categoryLabel={(cat) => {
-                    const icon = SERVICE_CATEGORY_ICONS[cat]
-                    return `${icon} ${categoryLabel(cat)}`
-                  }}
+                  categoryLabel={categoryLabel}
                 />
               ))}
             </div>

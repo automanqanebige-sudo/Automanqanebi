@@ -1,10 +1,10 @@
 'use client'
 
-import { Suspense, useEffect, useState, type ReactNode } from 'react'
+import { Suspense, useEffect, useRef, useState, type ReactNode } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { useAuth } from '@/context/AuthContext'
 import { useLanguage } from '@/context/LanguageContext'
-import { takeGoogleRedirectPath } from '@/lib/auth'
+import { safeAppPath } from '@/lib/safe-redirect'
 
 export function AuthLoadingScreen() {
   const { t } = useLanguage()
@@ -25,17 +25,20 @@ function AuthPageGateContent({ children }: { children: ReactNode }) {
   const { user, loading } = useAuth()
   const router = useRouter()
   const searchParams = useSearchParams()
+  const redirectParam = searchParams.get('redirect')
+  const redirected = useRef(false)
 
   useEffect(() => {
     setMounted(true)
   }, [])
 
   useEffect(() => {
-    if (!mounted || loading || !user) return
-    const stashed = takeGoogleRedirectPath()
-    const redirect = stashed || searchParams.get('redirect') || '/profile'
-    router.replace(redirect.startsWith('/') ? redirect : '/profile')
-  }, [mounted, user, loading, router, searchParams])
+    if (!mounted || loading || !user || redirected.current) return
+    redirected.current = true
+    // Do not consume Google stash here — GoogleAuthRedirectHandler owns that.
+    const redirect = safeAppPath(redirectParam || '/profile')
+    router.replace(redirect)
+  }, [mounted, user, loading, router, redirectParam])
 
   if (!mounted || loading || user) {
     return <AuthLoadingScreen />

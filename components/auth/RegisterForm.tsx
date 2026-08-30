@@ -9,6 +9,7 @@ import AuthRecaptcha from '@/components/auth/AuthRecaptcha'
 import { AUTH_INPUT_CLASS } from '@/components/auth/AuthLayout'
 import { useAuth } from '@/context/AuthContext'
 import { useLanguage } from '@/context/LanguageContext'
+import { safeAppPath, appendQueryParam } from '@/lib/safe-redirect'
 import { getAuthErrorMessage } from '@/lib/auth'
 import { logAnalyticsEvent } from '@/lib/analytics-firestore'
 
@@ -24,7 +25,9 @@ export default function RegisterForm() {
   const [confirmPassword, setConfirmPassword] = useState('')
   const [displayName, setDisplayName] = useState('')
   const [showPassword, setShowPassword] = useState(false)
-  const [loading, setLoading] = useState(false)
+  const [formLoading, setFormLoading] = useState(false)
+  const [googleLoading, setGoogleLoading] = useState(false)
+  const [showCaptcha, setShowCaptcha] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [captchaOk, setCaptchaOk] = useState(false)
   const [captchaKey, setCaptchaKey] = useState(0)
@@ -59,17 +62,16 @@ export default function RegisterForm() {
     }
 
     if (!captchaOk) {
+      setShowCaptcha(true)
       setError(t('auth.recaptchaRequired'))
       return
     }
 
-    setLoading(true)
+    setFormLoading(true)
     try {
       await registerWithEmail(email, password, displayName)
       logAnalyticsEvent('user_register', { email: email.trim().toLowerCase() })
-      router.push(
-        `${redirectTo.startsWith('/') ? redirectTo : '/profile'}?verifyEmail=1`
-      )
+      router.push(appendQueryParam(safeAppPath(redirectTo), 'verifyEmail', '1'))
     } catch (err) {
       if (err instanceof Error && err.message === 'FIREBASE_NOT_CONFIGURED') {
         setError(t('auth.error.notConfigured'))
@@ -78,9 +80,11 @@ export default function RegisterForm() {
       }
       resetCaptcha()
     } finally {
-      setLoading(false)
+      setFormLoading(false)
     }
   }
+
+  const busy = formLoading || googleLoading
 
   const loginHref =
     redirectTo !== '/profile'
@@ -98,8 +102,8 @@ export default function RegisterForm() {
       <SocialLogin
         mode="register"
         position="top"
-        loading={loading}
-        onLoadingChange={setLoading}
+        loading={googleLoading}
+        onLoadingChange={setGoogleLoading}
         onError={setError}
       />
 
@@ -116,7 +120,7 @@ export default function RegisterForm() {
             onChange={(e) => setDisplayName(e.target.value)}
             className={AUTH_INPUT_CLASS}
             placeholder={t('auth.displayNamePlaceholder')}
-            disabled={loading}
+            disabled={busy}
           />
         </div>
 
@@ -130,9 +134,10 @@ export default function RegisterForm() {
             autoComplete="email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
+            onFocus={() => setShowCaptcha(true)}
             className={AUTH_INPUT_CLASS}
             placeholder="name@example.com"
-            disabled={loading}
+            disabled={busy}
           />
         </div>
 
@@ -147,8 +152,9 @@ export default function RegisterForm() {
               autoComplete="new-password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
+              onFocus={() => setShowCaptcha(true)}
               className={`${AUTH_INPUT_CLASS} pr-10`}
-              disabled={loading}
+              disabled={busy}
             />
             <button
               type="button"
@@ -175,18 +181,20 @@ export default function RegisterForm() {
             value={confirmPassword}
             onChange={(e) => setConfirmPassword(e.target.value)}
             className={AUTH_INPUT_CLASS}
-            disabled={loading}
+            disabled={busy}
           />
         </div>
 
-        <AuthRecaptcha key={captchaKey} onChange={setCaptchaOk} disabled={loading} />
+        {showCaptcha && (
+          <AuthRecaptcha key={captchaKey} onChange={setCaptchaOk} disabled={formLoading} />
+        )}
 
         <button
           type="submit"
-          disabled={loading || !configured || !captchaOk}
+          disabled={formLoading || !configured || (showCaptcha && !captchaOk)}
           className="flex w-full items-center justify-center gap-2 rounded-lg bg-primary py-3 font-semibold text-primary-foreground transition-colors hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-60"
         >
-          {loading && <Loader2 className="h-4 w-4 animate-spin" />}
+          {formLoading && <Loader2 className="h-4 w-4 animate-spin" />}
           {t('auth.submit.register')}
         </button>
       </form>

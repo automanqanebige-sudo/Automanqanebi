@@ -111,6 +111,18 @@ let cachedApp: FirebaseApp | undefined
 let authInstance: Auth | undefined
 let firebaseStorage: FirebaseStorage | undefined
 
+function createBrowserAuth(app: FirebaseApp): Auth {
+  try {
+    return initializeAuth(app, {
+      persistence: [indexedDBLocalPersistence, browserLocalPersistence],
+      popupRedirectResolver: browserPopupRedirectResolver,
+    })
+  } catch {
+    // HMR / duplicate init — reuse existing instance.
+    return getAuth(app)
+  }
+}
+
 export function getFirebaseApp(): FirebaseApp {
   if (cachedApp) return cachedApp
 
@@ -131,27 +143,18 @@ export function getFirebaseApp(): FirebaseApp {
 }
 
 export function getFirebaseAuth(): Auth {
-  if (authInstance) return authInstance
-
   const app = getFirebaseApp()
 
-  // Persistence + popupRedirectResolver required for Google on custom domains
-  // (Safari/mobile block third-party storage across firebaseapp.com otherwise).
+  // Never reuse a server-created Auth instance in the browser — it lacks
+  // popupRedirectResolver and breaks Google sign-in after SSR hydration.
   if (typeof window !== 'undefined') {
-    try {
-      authInstance = initializeAuth(app, {
-        persistence: [indexedDBLocalPersistence, browserLocalPersistence],
-        popupRedirectResolver: browserPopupRedirectResolver,
-      })
-    } catch {
-      // Already initialized (HMR / second call) — reuse.
-      authInstance = getAuth(app)
+    if (!authInstance) {
+      authInstance = createBrowserAuth(app)
     }
-  } else {
-    authInstance = getAuth(app)
+    return authInstance
   }
 
-  return authInstance
+  return getAuth(app)
 }
 
 export function getFirebaseStorage(): FirebaseStorage {

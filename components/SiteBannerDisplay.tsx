@@ -6,6 +6,7 @@ import Link from 'next/link'
 import { ChevronLeft, ChevronRight } from 'lucide-react'
 import type { SiteBanner } from '@/types/site-banner'
 import { bannerHasMedia, bannerSizeClass } from '@/lib/site-banner-utils'
+import { useLanguage } from '@/context/LanguageContext'
 
 type SiteBannerDisplayProps = {
   banner: SiteBanner
@@ -13,8 +14,20 @@ type SiteBannerDisplayProps = {
 }
 
 export default function SiteBannerDisplay({ banner, className = '' }: SiteBannerDisplayProps) {
+  const { t } = useLanguage()
   const sizeClass = bannerSizeClass(banner.size)
-  const label = banner.altText || banner.title || banner.name
+  const placeholderText = t('banner.placeholder')
+  const label = banner.altText || banner.title || banner.name || placeholderText
+
+  if (!bannerHasMedia(banner) && !banner.title) {
+    return (
+      <div
+        className={`relative flex items-center justify-center overflow-hidden rounded-xl bg-white px-4 text-center ${sizeClass} ${className}`}
+      >
+        <p className="text-sm font-medium text-muted-foreground sm:text-base">{placeholderText}</p>
+      </div>
+    )
+  }
 
   const inner = (
     <div
@@ -42,12 +55,12 @@ export default function SiteBannerDisplay({ banner, className = '' }: SiteBanner
           sizes="(max-width: 768px) 100vw, 1200px"
         />
       ) : (
-        <div className="flex h-full min-h-[80px] items-center justify-center bg-secondary/40 px-4 text-sm text-muted-foreground">
-          {banner.title || banner.name}
+        <div className="flex h-full min-h-[80px] items-center justify-center bg-secondary/40 px-4 text-center text-sm font-medium text-muted-foreground sm:text-base">
+          {banner.title || placeholderText}
         </div>
       )}
 
-      {(banner.title || banner.subtitle || banner.linkLabel) && (
+      {(banner.title || banner.subtitle || banner.linkLabel) && bannerHasMedia(banner) && (
         <div className="pointer-events-none absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/70 via-black/30 to-transparent p-3 sm:p-4">
           {banner.title && (
             <p className="text-sm font-bold text-white sm:text-base">{banner.title}</p>
@@ -64,12 +77,10 @@ export default function SiteBannerDisplay({ banner, className = '' }: SiteBanner
       )}
 
       <span className="absolute right-2 top-2 rounded bg-black/50 px-1.5 py-0.5 text-[10px] font-medium uppercase tracking-wide text-white/90">
-        Ad
+        {t('banner.adBadge')}
       </span>
     </div>
   )
-
-  if (!bannerHasMedia(banner) && !banner.title) return null
 
   if (banner.linkUrl) {
     return (

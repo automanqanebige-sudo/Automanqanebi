@@ -2,11 +2,10 @@
 
 import type { ReactNode } from 'react'
 import { useEffect, useState } from 'react'
-import { Sparkles } from 'lucide-react'
 import HeroBackgroundLayer from '@/components/HeroBackgroundLayer'
 import { useLanguage } from '@/context/LanguageContext'
 import { useSiteSettings } from '@/context/SiteSettingsContext'
-import { SITE_DOMAIN } from '@/lib/site'
+import { SITE_LOGO_MAIN, SITE_LOGO_TLD } from '@/lib/site'
 import {
   DEFAULT_HERO_VARIANT_ID,
   getHeroVariant,
@@ -29,35 +28,29 @@ export default function HeroBanner({ children }: HeroBannerProps) {
   const displayVariant = variant.image ? variant : getHeroVariant(DEFAULT_HERO_VARIANT_ID)
 
   return (
-    <section className="relative min-h-[480px] overflow-hidden sm:min-h-[520px]">
+    <section className="relative min-h-[460px] overflow-hidden bg-white sm:min-h-[500px]">
       <HeroBackgroundLayer variant={displayVariant} priority />
 
-      <div className="relative px-4 py-12 sm:px-6 sm:py-14 lg:px-8 lg:py-16">
+      <div className="relative px-4 py-10 sm:px-6 sm:py-12 lg:px-8 lg:py-14">
         <div className="mx-auto max-w-7xl">
-          <div className="relative max-w-xl lg:max-w-2xl">
-            <div
-              className="pointer-events-none absolute -inset-x-4 -inset-y-6 -z-10 rounded-3xl bg-background/55 shadow-[0_0_60px_rgba(255,255,255,0.35)] backdrop-blur-[2px] sm:-inset-x-6 sm:-inset-y-8 dark:bg-background/50"
-              aria-hidden
-            />
-            <span className="inline-flex items-center gap-2 rounded-full border border-primary/30 bg-background/75 px-3 py-1 text-xs font-semibold uppercase tracking-wider text-primary backdrop-blur-sm">
-              <Sparkles className="h-3.5 w-3.5" />
-              {SITE_DOMAIN}
-            </span>
-
-            <h1 className="relative mt-4 text-balance text-3xl font-bold tracking-tight text-foreground drop-shadow-sm sm:text-4xl lg:text-5xl">
-              {t('home.hero.title')}
+          <div className="relative max-w-2xl">
+            <h1 className="text-balance text-4xl font-extrabold tracking-tight text-foreground drop-shadow-sm sm:text-5xl lg:text-6xl">
+              {SITE_LOGO_MAIN}
+              <span className="text-primary">{SITE_LOGO_TLD}</span>
             </h1>
 
-            <p className="relative mt-4 max-w-lg text-base leading-relaxed text-muted-foreground sm:text-lg">
+            <p className="relative mt-3 text-xl font-semibold text-foreground/90 sm:text-2xl">
+              {t('home.hero.tagline')}
+            </p>
+
+            <p className="relative mt-3 max-w-lg text-base leading-relaxed text-muted-foreground sm:text-lg">
               {t('home.hero.subtitle')}
             </p>
           </div>
 
-          <div className="mt-8 w-full sm:mt-10">{children}</div>
+          <div className="mt-7 w-full sm:mt-9">{children}</div>
         </div>
       </div>
-
-      <div className="absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-background via-background/80 to-transparent" aria-hidden />
     </section>
   )
 }

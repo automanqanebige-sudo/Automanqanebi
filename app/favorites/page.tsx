@@ -28,7 +28,7 @@ export default function FavoritesPage() {
   )
 
   return (
-    <div className="min-h-screen bg-background px-4 py-8 sm:px-6 lg:px-8">
+    <div className="min-h-screen bg-white px-4 py-8 sm:px-6 lg:px-8">
       <div className="mx-auto max-w-7xl">
         <h1 className="mb-2 flex items-center gap-3 text-2xl font-bold text-foreground">
           <Heart className="h-7 w-7 text-primary" />

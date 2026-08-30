@@ -21,9 +21,10 @@ const sections = {
   steering: { ka: 'საჭე და ბრუნვა', en: 'Steering & alignment', ru: 'Рулевое управление' },
   electric: { ka: 'ელექტრო სისტემა', en: 'Electrical systems', ru: 'Электрика' },
   climate: { ka: 'კონდიციონერი / გათბობა', en: 'Climate control', ru: 'Климат-контроль' },
-  tires: { ka: 'საბურავები და დისკები', en: 'Tires & wheels', ru: 'Шины и диски' },
+  tires: { ka: 'საბურავები', en: 'Tires', ru: 'Шины' },
+  discs: { ka: 'დისკები', en: 'Wheels / discs', ru: 'Диски' },
   bodywork: { ka: 'რკინის სამუშაოები', en: 'Body repair', ru: 'Кузовной ремонт' },
-  painting: { ka: 'რეცხვა', en: 'Painting', ru: 'Покраска' },
+  painting: { ka: 'შეღებვა', en: 'Painting', ru: 'Покраска' },
   detailing: { ka: 'დეტეილინგი და წმენდა', en: 'Detailing & wash', ru: 'Детейлинг и мойка' },
   glass: { ka: 'მინები და ტონირება', en: 'Glass & tinting', ru: 'Стекла и тонировка' },
   parts: { ka: 'ავტონაწილები', en: 'Auto parts', ru: 'Автозапчасти' },
@@ -41,7 +42,6 @@ const sections = {
   legal: { ka: 'იურიდიული / რეგისტრაცია', en: 'Legal & registration', ru: 'Юридические услуги' },
   sales: { ka: 'გაყიდვა / იმპორტი', en: 'Sales & import', ru: 'Продажа и импорт' },
   rental: { ka: 'ქირაობა', en: 'Rental & lease', ru: 'Аренда и лизинг' },
-  fleet: { ka: 'კომერციული ტრანსპორტი', en: 'Fleet & commercial', ru: 'Коммерческий транспорт' },
   specialty: { ka: 'სპეციალური სერვისები', en: 'Specialty services', ru: 'Специальные услуги' },
 }
 

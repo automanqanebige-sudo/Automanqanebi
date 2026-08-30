@@ -6,7 +6,6 @@ import { useCurrency } from '@/context/CurrencyContext'
 import {
   CAR_COLORS,
   CAR_FEATURES,
-  COLOR_EMOJI,
   CUSTOMS_STATUSES,
   IMPORT_REGIONS,
   LISTING_TYPES,
@@ -17,12 +16,8 @@ import {
 import FilterChipGroup from '@/components/FilterChipGroup'
 import RangeFromTo from '@/components/RangeFromTo'
 import {
-  BODY_EMOJI,
-  CATEGORY_EMOJI,
   CUSTOMS_EMOJI,
   DRIVE_EMOJI,
-  FEATURE_EMOJI,
-  FUEL_EMOJI,
   IMPORT_EMOJI,
   LISTING_EMOJI,
   STEERING_EMOJI,
@@ -38,10 +33,9 @@ interface AdvancedFilterPanelProps {
   resultCount: number
 }
 
-function SectionTitle({ icon, children }: { icon: string; children: React.ReactNode }) {
+function SectionTitle({ children }: { children: React.ReactNode }) {
   return (
-    <h3 className="mb-3 flex items-center gap-2 text-sm font-semibold text-foreground">
-      <span aria-hidden>{icon}</span>
+    <h3 className="mb-3 text-sm font-semibold text-foreground">
       {children}
     </h3>
   )
@@ -84,7 +78,8 @@ export default function AdvancedFilterPanel({
   resultCount,
 }: AdvancedFilterPanelProps) {
   const { t } = useLanguage()
-  const { currency, formatPrice } = useCurrency()
+  const { currency, fromBasePrice, toBasePrice } = useCurrency()
+  const currentYear = new Date().getFullYear()
 
   const patch = (partial: Partial<FilterState>) => onChange({ ...filters, ...partial })
 
@@ -94,39 +89,6 @@ export default function AdvancedFilterPanel({
       : [...filters.features, feature]
     patch({ features: next })
   }
-
-  const categoryOptions = [
-    { value: '', label: t('search.any'), emoji: '🌐' },
-    { value: 'car', label: t('filter.category.car'), emoji: CATEGORY_EMOJI.car },
-    { value: 'suv', label: t('filter.category.suv'), emoji: CATEGORY_EMOJI.suv },
-    { value: 'van', label: t('filter.category.van'), emoji: CATEGORY_EMOJI.van },
-    { value: 'truck', label: t('filter.category.truck'), emoji: CATEGORY_EMOJI.truck },
-    { value: 'motorcycle', label: t('filter.category.motorcycle'), emoji: CATEGORY_EMOJI.motorcycle },
-  ]
-
-  const fuelOptions = [
-    { value: '', label: t('search.allFuel'), emoji: '⛽' },
-    { value: 'petrol', label: t('fuel.Petrol'), emoji: FUEL_EMOJI.petrol },
-    { value: 'diesel', label: t('fuel.Diesel'), emoji: FUEL_EMOJI.diesel },
-    { value: 'hybrid', label: t('fuel.Hybrid'), emoji: FUEL_EMOJI.hybrid },
-    { value: 'electric', label: t('fuel.Electric'), emoji: FUEL_EMOJI.electric },
-    { value: 'lpg', label: t('fuel.LPG'), emoji: FUEL_EMOJI.lpg },
-  ]
-
-  const bodyOptions = [
-    { value: '', label: t('search.any') },
-    { value: 'sedan', label: withEmoji(BODY_EMOJI.sedan, t('filter.body.sedan')) },
-    { value: 'suv', label: withEmoji(BODY_EMOJI.suv, t('filter.body.suv')) },
-    { value: 'hatchback', label: withEmoji(BODY_EMOJI.hatchback, t('filter.body.hatchback')) },
-    { value: 'coupe', label: withEmoji(BODY_EMOJI.coupe, t('filter.body.coupe')) },
-    { value: 'wagon', label: withEmoji(BODY_EMOJI.wagon, t('filter.body.wagon')) },
-    { value: 'pickup', label: withEmoji(BODY_EMOJI.pickup, t('filter.body.pickup')) },
-    { value: 'van', label: withEmoji(BODY_EMOJI.van, t('filter.body.van')) },
-    {
-      value: 'special_tech',
-      label: withEmoji(BODY_EMOJI.special_tech || '🚜', t('filter.body.special_tech')),
-    },
-  ]
 
   const transmissionOptions = [
     { value: '', label: t('search.allTransmission') },
@@ -164,86 +126,97 @@ export default function AdvancedFilterPanel({
 
   return (
     <div className="space-y-6">
-      {/* Basic */}
+      {/* Ranges */}
       <section>
-        <SectionTitle icon="🚗">{t('filter.section.basic')}</SectionTitle>
-        <div className="space-y-4">
-          <div>
-            <label className="mb-2 block text-xs font-medium text-muted-foreground">
-              {t('filter.category')}
-            </label>
-            <FilterChipGroup
-              options={categoryOptions}
-              value={filters.category}
-              onChange={(category) => patch({ category })}
-            />
-          </div>
-          <div>
-            <label className="mb-2 block text-xs font-medium text-muted-foreground">
-              {t('search.fuelType')}
-            </label>
-            <FilterChipGroup
-              options={fuelOptions}
-              value={filters.fuelType}
-              onChange={(fuelType) => patch({ fuelType })}
-            />
-          </div>
+        <SectionTitle>{t('filter.section.ranges')}</SectionTitle>
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          <RangeFromTo
+            title={t('search.year')}
+            fromLabel={t('search.from')}
+            toLabel={t('search.to')}
+            fromValue={filters.yearMin}
+            toValue={filters.yearMax}
+            onFromChange={(yearMin) => patch({ yearMin })}
+            onToChange={(yearMax) => patch({ yearMax })}
+            fromPlaceholder={String(currentYear - 20)}
+            toPlaceholder={String(currentYear)}
+            min={1980}
+            max={currentYear + 1}
+            step={1}
+          />
+          <RangeFromTo
+            title={`${t('filter.section.price')} (${currency === 'GEL' ? '₾' : '$'})`}
+            fromLabel={t('search.from')}
+            toLabel={t('search.to')}
+            fromValue={filters.priceMin ? String(fromBasePrice(filters.priceMin)) : ''}
+            toValue={
+              filters.priceMax === PRICE_SLIDER_MAX ? '' : String(fromBasePrice(filters.priceMax))
+            }
+            onFromChange={(v) => patch({ priceMin: toBasePrice(Number(v) || 0) })}
+            onToChange={(v) =>
+              patch({ priceMax: v ? toBasePrice(Number(v)) : PRICE_SLIDER_MAX })
+            }
+            fromPlaceholder="0"
+            toPlaceholder={String(fromBasePrice(PRICE_SLIDER_MAX))}
+            min={0}
+            max={fromBasePrice(PRICE_SLIDER_MAX)}
+            step={100}
+          />
+          <RangeFromTo
+            title={t('search.mileage')}
+            fromLabel={t('search.from')}
+            toLabel={t('search.to')}
+            fromValue={filters.mileageMin}
+            toValue={filters.mileageMax}
+            onFromChange={(mileageMin) => patch({ mileageMin })}
+            onToChange={(mileageMax) => patch({ mileageMax })}
+            fromPlaceholder="0"
+            toPlaceholder="300000"
+            min={0}
+            max={500000}
+            step={1000}
+            suffix="km"
+          />
         </div>
       </section>
 
-      {/* Extra ranges (price/year/mileage are always visible above) */}
+      {/* Technical */}
       <section>
-        <SectionTitle icon="📏">{t('filter.section.ranges')}</SectionTitle>
-        <p className="mb-3 text-xs text-muted-foreground">{t('filter.rangesHint')}</p>
-        <div className="grid gap-3 lg:grid-cols-2">
-          <div className="space-y-2 rounded-xl border border-border/70 bg-secondary/20 p-3 sm:p-4">
-            <p className="mb-1 flex items-center gap-2 text-sm font-semibold text-foreground">
-              <span aria-hidden>💰</span>
-              {t('filter.section.price')} ({currency === 'GEL' ? '₾' : '$'}) — {t('search.from')} /{' '}
-              {t('search.to')}
-            </p>
-            <div className="flex justify-between text-xs text-muted-foreground">
-              <span>{formatPrice(filters.priceMin)}</span>
-              <span>{formatPrice(filters.priceMax)}</span>
-            </div>
-            <div className="relative h-2">
-              <div className="absolute inset-0 rounded-full bg-secondary" />
-              <div
-                className="absolute h-2 rounded-full bg-primary"
-                style={{
-                  left: `${(filters.priceMin / PRICE_SLIDER_MAX) * 100}%`,
-                  right: `${100 - (filters.priceMax / PRICE_SLIDER_MAX) * 100}%`,
-                }}
-              />
-              <input
-                type="range"
-                min={0}
-                max={PRICE_SLIDER_MAX}
-                step={1000}
-                value={filters.priceMin}
-                onChange={(e) => {
-                  const v = Number(e.target.value)
-                  patch({ priceMin: Math.min(v, filters.priceMax - 1000) })
-                }}
-                className="pointer-events-auto absolute inset-0 h-2 w-full cursor-pointer appearance-none bg-transparent [&::-webkit-slider-thumb]:h-4 [&::-webkit-slider-thumb]:w-4 [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-primary"
-              />
-              <input
-                type="range"
-                min={0}
-                max={PRICE_SLIDER_MAX}
-                step={1000}
-                value={filters.priceMax}
-                onChange={(e) => {
-                  const v = Number(e.target.value)
-                  patch({ priceMax: Math.max(v, filters.priceMin + 1000) })
-                }}
-                className="pointer-events-auto absolute inset-0 h-2 w-full cursor-pointer appearance-none bg-transparent [&::-webkit-slider-thumb]:h-4 [&::-webkit-slider-thumb]:w-4 [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-primary"
-              />
-            </div>
-          </div>
-
+        <SectionTitle>{t('filter.section.technical')}</SectionTitle>
+        <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
+          <FilterSelect
+            label={t('search.transmission')}
+            value={filters.transmission}
+            options={transmissionOptions}
+            onChange={(transmission) => patch({ transmission })}
+          />
+          <FilterSelect
+            label={t('filter.drive')}
+            value={filters.driveType}
+            options={driveOptions}
+            onChange={(driveType) => patch({ driveType })}
+          />
+          <FilterSelect
+            label={t('filter.steering')}
+            value={filters.steering}
+            options={steeringOptions}
+            onChange={(steering) => patch({ steering })}
+          />
+          <FilterSelect
+            label={t('filter.cylinders')}
+            value={filters.cylinders}
+            options={cylinderOptions}
+            onChange={(cylinders) => patch({ cylinders })}
+          />
+          <FilterSelect
+            label={t('filter.doors')}
+            value={filters.doors}
+            options={doorOptions}
+            onChange={(doors) => patch({ doors })}
+          />
+        </div>
+        <div className="mt-3 max-w-md">
           <RangeFromTo
-            icon="🔧"
             title={t('filter.engineVolume')}
             fromLabel={t('search.from')}
             toLabel={t('search.to')}
@@ -261,52 +234,9 @@ export default function AdvancedFilterPanel({
         </div>
       </section>
 
-      {/* Technical */}
-      <section>
-        <SectionTitle icon="⚙️">{t('filter.section.technical')}</SectionTitle>
-        <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
-          <FilterSelect
-            label={`🚘 ${t('filter.body')}`}
-            value={filters.bodyType}
-            options={bodyOptions}
-            onChange={(bodyType) => patch({ bodyType })}
-          />
-          <FilterSelect
-            label={`⚙️ ${t('search.transmission')}`}
-            value={filters.transmission}
-            options={transmissionOptions}
-            onChange={(transmission) => patch({ transmission })}
-          />
-          <FilterSelect
-            label={`🛞 ${t('filter.drive')}`}
-            value={filters.driveType}
-            options={driveOptions}
-            onChange={(driveType) => patch({ driveType })}
-          />
-          <FilterSelect
-            label={`🎯 ${t('filter.steering')}`}
-            value={filters.steering}
-            options={steeringOptions}
-            onChange={(steering) => patch({ steering })}
-          />
-          <FilterSelect
-            label={t('filter.cylinders')}
-            value={filters.cylinders}
-            options={cylinderOptions}
-            onChange={(cylinders) => patch({ cylinders })}
-          />
-          <FilterSelect
-            label={`🚪 ${t('filter.doors')}`}
-            value={filters.doors}
-            options={doorOptions}
-            onChange={(doors) => patch({ doors })}
-          />
-        </div>
-      </section>
-
       {/* Features */}
       <section>
-        <SectionTitle icon="⭐">{t('filter.section.features')}</SectionTitle>
+        <SectionTitle>{t('filter.section.features')}</SectionTitle>
         <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-4">
           {CAR_FEATURES.map((feature) => {
             const checked = filters.features.includes(feature)
@@ -325,12 +255,7 @@ export default function AdvancedFilterPanel({
                   onChange={() => toggleFeature(feature)}
                   className="h-4 w-4 rounded border-input text-primary focus:ring-primary"
                 />
-                <span className="leading-tight">
-                  <span className="mr-1" aria-hidden>
-                    {FEATURE_EMOJI[feature]}
-                  </span>
-                  {t(`filter.feature.${feature}`)}
-                </span>
+                <span className="leading-tight">{t(`filter.feature.${feature}`)}</span>
               </label>
             )
           })}
@@ -339,7 +264,7 @@ export default function AdvancedFilterPanel({
 
       {/* Listing type */}
       <section>
-        <SectionTitle icon="📢">{t('filter.section.listingType')}</SectionTitle>
+        <SectionTitle>{t('filter.section.listingType')}</SectionTitle>
         <FilterChipGroup
           options={LISTING_TYPES.map((type) => ({
             value: type,
@@ -353,7 +278,7 @@ export default function AdvancedFilterPanel({
 
       {/* Import */}
       <section>
-        <SectionTitle icon="🌍">{t('filter.section.import')}</SectionTitle>
+        <SectionTitle>{t('filter.section.import')}</SectionTitle>
         <FilterChipGroup
           options={IMPORT_REGIONS.map((region) => ({
             value: region,
@@ -367,7 +292,7 @@ export default function AdvancedFilterPanel({
 
       {/* Customs */}
       <section>
-        <SectionTitle icon="📄">{t('filter.section.status')}</SectionTitle>
+        <SectionTitle>{t('filter.section.status')}</SectionTitle>
         <FilterChipGroup
           options={CUSTOMS_STATUSES.map((status) => ({
             value: status,
@@ -383,24 +308,19 @@ export default function AdvancedFilterPanel({
 
       {/* Colors */}
       <section>
-        <SectionTitle icon="🎨">{t('filter.section.colors')}</SectionTitle>
+        <SectionTitle>{t('filter.section.colors')}</SectionTitle>
         <div className="flex flex-wrap gap-2">
           {CAR_COLORS.map((color) => (
             <button
               key={color || 'all'}
               type="button"
               onClick={() => patch({ color })}
-              className={`flex items-center gap-1.5 rounded-full px-3 py-2 text-sm font-medium transition-colors ${
+              className={`rounded-full px-3 py-2 text-sm font-medium transition-colors ${
                 filters.color === color
                   ? 'bg-primary text-primary-foreground'
                   : 'bg-secondary text-secondary-foreground hover:bg-secondary/80'
               }`}
             >
-              {color && COLOR_EMOJI[color] ? (
-                <span aria-hidden>{COLOR_EMOJI[color]}</span>
-              ) : color ? null : (
-                <span aria-hidden>🌈</span>
-              )}
               {color ? t(`filter.color.${color}`) : t('filter.color.all')}
             </button>
           ))}

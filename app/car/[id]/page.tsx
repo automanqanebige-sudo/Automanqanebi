@@ -4,18 +4,13 @@ import { useEffect, useState, useMemo } from 'react'
 import Link from 'next/link'
 import {
   ArrowLeft,
-  BadgeCheck,
   Calendar,
   Columns2,
-  Crown,
   Eye,
-  FlaskConical,
   Heart,
   MapPin,
   MessageCircle,
   Phone,
-  Settings2,
-  Tag,
 } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import { useAuth } from '@/context/AuthContext'
@@ -27,6 +22,8 @@ import ReportListingButton from '@/components/ReportListingButton'
 import ShareListingButton from '@/components/ShareListingButton'
 import VehicleToolsCalculators from '@/components/calculators/VehicleToolsCalculators'
 import { SITE_URL } from '@/lib/site'
+import { telHref } from '@/lib/contact-links'
+import { appendQueryParam } from '@/lib/safe-redirect'
 import { getCarById } from '@/data/cars'
 import { fetchFirestoreCarById, fetchSimilarCarsFor } from '@/lib/cars-firestore'
 import { incrementCarViews } from '@/lib/cars-lifecycle-actions'
@@ -34,8 +31,6 @@ import { formatListingDate } from '@/lib/listing-lifecycle'
 import { isTestListing, isVerifiedListing } from '@/lib/listing-trust'
 import { getCarImages } from '@/lib/car-images'
 import { carShareDescription, carShareTitle } from '@/lib/car-share-meta'
-import { FEATURE_EMOJI } from '@/lib/filter-emojis'
-import { COLOR_EMOJI } from '@/types/filters'
 import { useLanguage } from '@/context/LanguageContext'
 import { useCurrency } from '@/context/CurrencyContext'
 import { useFavorites } from '@/context/FavoritesContext'
@@ -139,8 +134,7 @@ export default function CarPage({ params }: { params: { id: string } }) {
 
   const phoneHref = useMemo(() => {
     if (!car?.phone) return null
-    const digits = car.phone.replace(/\D/g, '')
-    return digits ? `tel:+${digits.startsWith('995') ? digits : `995${digits}`}` : `tel:${car.phone}`
+    return telHref(car.phone)
   }, [car?.phone])
 
   if (loading) {
@@ -193,7 +187,6 @@ export default function CarPage({ params }: { params: { id: string } }) {
     specItems.push({
       label: t('filter.section.colors'),
       value: specValue('color', car.color),
-      emoji: COLOR_EMOJI[car.color],
     })
   }
   if (car.engineVolume) {
@@ -245,27 +238,24 @@ export default function CarPage({ params }: { params: { id: string } }) {
           badges={
             <>
               {car.isVip && (
-                <div className="absolute left-4 top-4 flex items-center gap-1.5 rounded-full bg-primary px-3 py-1.5 text-sm font-semibold text-primary-foreground shadow-lg">
-                  <Crown className="h-4 w-4" />
+                <div className="absolute left-4 top-4 rounded-full bg-primary px-3 py-1.5 text-sm font-semibold text-primary-foreground shadow-lg">
                   VIP
                 </div>
               )}
               {isTestListing(car) ? (
                 <div
-                  className={`absolute left-4 flex items-center gap-1.5 rounded-full bg-amber-700/95 px-3 py-1.5 text-sm font-semibold text-white shadow-lg ${
+                  className={`absolute left-4 rounded-full bg-amber-700/95 px-3 py-1.5 text-sm font-semibold text-white shadow-lg ${
                     car.isVip ? 'top-14' : 'top-4'
                   }`}
                 >
-                  <FlaskConical className="h-4 w-4" />
                   {t('car.badge.test')}
                 </div>
               ) : isVerifiedListing(car) ? (
                 <div
-                  className={`absolute left-4 flex items-center gap-1.5 rounded-full bg-emerald-700/95 px-3 py-1.5 text-sm font-semibold text-white shadow-lg ${
+                  className={`absolute left-4 rounded-full bg-emerald-700/95 px-3 py-1.5 text-sm font-semibold text-white shadow-lg ${
                     car.isVip ? 'top-14' : 'top-4'
                   }`}
                 >
-                  <BadgeCheck className="h-4 w-4" />
                   {t('car.badge.verified')}
                 </div>
               ) : null}
@@ -275,7 +265,6 @@ export default function CarPage({ params }: { params: { id: string } }) {
                     car.isVip || isTestListing(car) || isVerifiedListing(car) ? 'top-24' : 'top-4'
                   }`}
                 >
-                  <Tag className="h-4 w-4 text-primary" />
                   {offerBadge}
                 </div>
               )}
@@ -367,8 +356,7 @@ export default function CarPage({ params }: { params: { id: string } }) {
           )}
 
           <div className="mt-6 rounded-2xl border border-border bg-card p-6">
-            <h2 className="mb-4 flex items-center gap-2 text-lg font-semibold text-foreground">
-              <Settings2 className="h-5 w-5 text-primary" />
+            <h2 className="mb-4 text-lg font-semibold text-foreground">
               {t('car.specs')}
             </h2>
             <dl className="grid grid-cols-2 gap-3 sm:grid-cols-3">
@@ -376,7 +364,6 @@ export default function CarPage({ params }: { params: { id: string } }) {
                 <div key={item.label} className="rounded-xl bg-secondary/60 p-4">
                   <dt className="text-xs text-muted-foreground">{item.label}</dt>
                   <dd className="mt-1 flex items-center gap-1.5 text-base font-semibold text-foreground">
-                    {item.emoji && <span aria-hidden>{item.emoji}</span>}
                     {item.value}
                   </dd>
                 </div>
@@ -393,9 +380,8 @@ export default function CarPage({ params }: { params: { id: string } }) {
                 {car.features.map((feature) => (
                   <span
                     key={feature}
-                    className="inline-flex items-center gap-1.5 rounded-full border border-border bg-secondary/60 px-3 py-1.5 text-sm text-foreground"
+                    className="rounded-full border border-border bg-secondary/60 px-3 py-1.5 text-sm text-foreground"
                   >
-                    <span aria-hidden>{FEATURE_EMOJI[feature as CarFeature] ?? '✓'}</span>
                     {translate([`filter.feature.${feature}`], feature)}
                   </span>
                 ))}
@@ -429,11 +415,12 @@ export default function CarPage({ params }: { params: { id: string } }) {
               <button
                 type="button"
                 onClick={() => {
+                  const chatPath = `/chat?car=${encodeURIComponent(car.id)}&seller=${encodeURIComponent(car.userId!)}`
                   if (!user) {
-                    router.push(`/login?redirect=/car/${car.id}`)
+                    router.push(appendQueryParam('/login', 'redirect', chatPath))
                     return
                   }
-                  router.push(`/chat?car=${car.id}&seller=${car.userId}`)
+                  router.push(chatPath)
                 }}
                 className="inline-flex flex-1 items-center justify-center gap-2 rounded-xl border border-primary/40 bg-primary/10 px-6 py-3.5 font-semibold text-primary transition-colors hover:bg-primary/15"
               >

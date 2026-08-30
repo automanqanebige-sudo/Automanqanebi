@@ -6,7 +6,6 @@ import { MapPin, Phone } from 'lucide-react'
 import { useLanguage } from '@/context/LanguageContext'
 import { useCurrency } from '@/context/CurrencyContext'
 import type { Service, ServiceCategory } from '@/types/service'
-import { RENTAL_TRANSPORT_EMOJI } from '@/lib/filter-emojis'
 import { getServiceImages, primaryServiceImage } from '@/lib/service-images'
 
 type ServiceCardProps = {
@@ -87,16 +86,54 @@ export default function ServiceCard({ service, categoryLabel }: ServiceCardProps
                 key={type}
                 className="rounded-md bg-secondary px-2 py-0.5 text-xs font-medium text-secondary-foreground"
               >
-                {RENTAL_TRANSPORT_EMOJI[type]} {t(`services.rentalTransport.${type}`)}
+                {t(`services.rentalTransport.${type}`)}
               </span>
             ))}
             {service.withDriver && (
               <span className="rounded-md bg-amber-500/10 px-2 py-0.5 text-xs font-medium text-amber-700 dark:text-amber-400">
-                🧑‍✈️ {t('services.rentalWithDriverYes')}
+                {t('services.rentalWithDriverYes')}
               </span>
             )}
           </div>
         )}
+
+        {service.category === 'discs' &&
+          ((service.discDiameters?.length ?? 0) > 0 ||
+            (service.discBoltPatterns?.length ?? 0) > 0 ||
+            (service.discMaterials?.length ?? 0) > 0 ||
+            service.discCondition) && (
+            <div className="mb-3 flex flex-wrap gap-1.5">
+              {service.discDiameters?.map((d) => (
+                <span
+                  key={d}
+                  className="rounded-md bg-secondary px-2 py-0.5 text-xs font-medium text-secondary-foreground"
+                >
+                  R{d}
+                </span>
+              ))}
+              {service.discBoltPatterns?.map((p) => (
+                <span
+                  key={p}
+                  className="rounded-md bg-secondary px-2 py-0.5 text-xs font-medium text-secondary-foreground"
+                >
+                  {p}
+                </span>
+              ))}
+              {service.discMaterials?.map((m) => (
+                <span
+                  key={m}
+                  className="rounded-md bg-secondary px-2 py-0.5 text-xs font-medium text-secondary-foreground"
+                >
+                  {t(`services.discMaterial.${m}`)}
+                </span>
+              ))}
+              {service.discCondition && (
+                <span className="rounded-md bg-primary/10 px-2 py-0.5 text-xs font-medium text-primary">
+                  {t(`services.discCondition.${service.discCondition}`)}
+                </span>
+              )}
+            </div>
+          )}
 
         {bio && <p className="mb-4 line-clamp-3 text-sm text-muted-foreground">{bio}</p>}
 

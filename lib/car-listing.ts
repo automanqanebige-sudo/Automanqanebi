@@ -1,5 +1,6 @@
 import type { CarFeature } from '@/types/filters'
 import { CAR_FEATURES } from '@/types/filters'
+import { getVehicleGroupForCar, type VehicleGroup } from '@/lib/vehicle-categories'
 
 export const LISTING_LOCATIONS = [
   'თბილისი',
@@ -32,6 +33,7 @@ export type CarListingPayload = {
   images?: string[]
   description: string
   category?: string
+  vehicleGroup?: string
   bodyType?: string
   driveType?: string
   steering?: string
@@ -62,6 +64,7 @@ export type CarListingFormValues = {
   imageUrls: string[]
   description: string
   category: string
+  vehicleGroup: string
   bodyType: string
   driveType: string
   steering: string
@@ -78,7 +81,9 @@ export type CarListingFormValues = {
 
 export function fuelToFormValue(fuel?: string): string {
   if (!fuel) return 'petrol'
-  return fuel.toLowerCase()
+  const lower = fuel.toLowerCase().replace(/[\s/+-]+/g, '_')
+  if (lower === 'petrol_lpg' || lower === 'petrol_gas' || lower === 'benz_gaz') return 'petrol_lpg'
+  return lower
 }
 
 export function transmissionToFormValue(transmission?: string): string {
@@ -102,6 +107,7 @@ export function carToFormValues(car: {
   images?: string[]
   description?: string
   category?: string
+  vehicleGroup?: string
   bodyType?: string
   driveType?: string
   steering?: string
@@ -131,6 +137,7 @@ export function carToFormValues(car: {
     imageUrls: car.images?.length ? car.images : car.image ? [car.image] : [],
     description: car.description ?? '',
     category: car.category ?? '',
+    vehicleGroup: getVehicleGroupForCar(car),
     bodyType: car.bodyType ?? '',
     driveType: car.driveType ?? '',
     steering: car.steering ?? '',
@@ -192,6 +199,7 @@ export function formValuesToPayload(
     images: images.length > 0 ? images : undefined,
     description: values.description.trim(),
     category: optionalString(values.category),
+    vehicleGroup: (optionalString(values.vehicleGroup) as VehicleGroup | undefined) ?? 'automobile',
     bodyType: optionalString(values.bodyType),
     driveType: optionalString(values.driveType),
     steering: optionalString(values.steering),
