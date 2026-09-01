@@ -75,6 +75,7 @@ export type MobileServiceCategoryEntry = {
 export const MOBILE_SERVICE_CATEGORIES: MobileServiceCategoryEntry[] = [
   { category: 'accessories' },
   { category: 'tires' },
+  { category: 'vulcanization', labelKey: 'services.sub.mobileVulcanization' },
   { category: 'discs' },
   { category: 'locksmith', labelKey: 'services.sub.mobileDoorOpen' },
   { category: 'towing' },
