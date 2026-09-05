@@ -13,9 +13,10 @@ import {
   getAuthErrorMessage,
   markGoogleRedirectPending,
   stashGoogleRedirectPath,
+  stashRegisterAccountType,
 } from '@/lib/auth'
 import { logAnalyticsEvent } from '@/lib/analytics-firestore'
-import { saveUserProfile } from '@/lib/user-profile-firestore'
+import { saveUserProfile, type AccountType } from '@/lib/user-profile-firestore'
 
 type SocialLoginProps = {
   loading: boolean
@@ -25,6 +26,8 @@ type SocialLoginProps = {
   mode?: 'login' | 'register'
   /** Place Google above the email form */
   position?: 'top' | 'bottom'
+  /** Required on register — private person vs company */
+  accountType?: AccountType | null
 }
 
 export default function SocialLogin({
@@ -33,6 +36,7 @@ export default function SocialLogin({
   onError,
   mode = 'login',
   position = 'top',
+  accountType = null,
 }: SocialLoginProps) {
   const { t } = useLanguage()
   const { configured, signInWithGoogle } = useAuth()
@@ -51,6 +55,14 @@ export default function SocialLogin({
     if (!configured) {
       onError(t('auth.error.notConfigured'))
       return
+    }
+
+    if (mode === 'register') {
+      if (!accountType) {
+        onError(t('auth.accountTypeRequired'))
+        return
+      }
+      stashRegisterAccountType(accountType)
     }
 
     // Sync work only before signInWithPopup (browser gesture / popup blocker).
@@ -77,13 +89,18 @@ export default function SocialLogin({
         try {
           await saveUserProfile(user.uid, {
             displayName: user.displayName || undefined,
+            ...(mode === 'register' && accountType ? { accountType } : {}),
           })
         } catch {
           /* profile write is best-effort */
         }
         logAnalyticsEvent(
           mode === 'register' ? 'user_register' : 'user_login',
-          { method: 'google', email: user.email || undefined },
+          {
+            method: 'google',
+            email: user.email || undefined,
+            ...(mode === 'register' && accountType ? { accountType } : {}),
+          },
           user.uid
         )
       }

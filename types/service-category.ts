@@ -113,6 +113,7 @@ export const WORKSHOP_PAGE_CATEGORY_ENTRIES: WorkshopCategoryEntry[] = [
   { category: 'upholstery', labelKey: 'workshops.cat.upholsteryInterior' },
   { category: 'oilChange', labelKey: 'workshops.cat.oilChange' },
   { category: 'freon', labelKey: 'workshops.cat.freon' },
+  { category: 'motorcycle', labelKey: 'workshops.cat.motoService' },
 ]
 
 export const WORKSHOP_PAGE_CATEGORIES: ServiceCategory[] =
@@ -226,7 +227,6 @@ const CATEGORY_ALIASES: Record<string, ServiceCategory> = {
   registration: 'accessories',
   fleet: 'accessories',
   trucking: 'accessories',
-  motorcycle: 'accessories',
   rv: 'accessories',
   storage: 'tires',
   armored: 'accessories',

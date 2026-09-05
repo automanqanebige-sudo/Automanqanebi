@@ -1,6 +1,6 @@
 'use client'
 
-import { FormEvent, useState } from 'react'
+import { FormEvent, useEffect, useState } from 'react'
 import Link from 'next/link'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { Eye, EyeOff, Loader2 } from 'lucide-react'
@@ -10,8 +10,9 @@ import { AUTH_INPUT_CLASS } from '@/components/auth/AuthLayout'
 import { useAuth } from '@/context/AuthContext'
 import { useLanguage } from '@/context/LanguageContext'
 import { safeAppPath, appendQueryParam } from '@/lib/safe-redirect'
-import { getAuthErrorMessage } from '@/lib/auth'
+import { getAuthErrorMessage, stashRegisterAccountType } from '@/lib/auth'
 import { logAnalyticsEvent } from '@/lib/analytics-firestore'
+import type { AccountType } from '@/lib/user-profile-firestore'
 
 export default function RegisterForm() {
   const { t } = useLanguage()
@@ -20,6 +21,7 @@ export default function RegisterForm() {
   const searchParams = useSearchParams()
   const redirectTo = searchParams.get('redirect') || '/profile'
 
+  const [accountType, setAccountType] = useState<AccountType | null>(null)
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
@@ -32,6 +34,10 @@ export default function RegisterForm() {
   const [captchaOk, setCaptchaOk] = useState(false)
   const [captchaKey, setCaptchaKey] = useState(0)
 
+  useEffect(() => {
+    if (accountType) stashRegisterAccountType(accountType)
+  }, [accountType])
+
   const resetCaptcha = () => {
     setCaptchaOk(false)
     setCaptchaKey((k) => k + 1)
@@ -43,6 +49,11 @@ export default function RegisterForm() {
 
     if (!configured) {
       setError(t('auth.error.notConfigured'))
+      return
+    }
+
+    if (!accountType) {
+      setError(t('auth.accountTypeRequired'))
       return
     }
 
@@ -69,8 +80,11 @@ export default function RegisterForm() {
 
     setFormLoading(true)
     try {
-      await registerWithEmail(email, password, displayName)
-      logAnalyticsEvent('user_register', { email: email.trim().toLowerCase() })
+      await registerWithEmail(email, password, displayName, accountType)
+      logAnalyticsEvent('user_register', {
+        email: email.trim().toLowerCase(),
+        accountType,
+      })
       router.push(appendQueryParam(safeAppPath(redirectTo), 'verifyEmail', '1'))
     } catch (err) {
       if (err instanceof Error && err.message === 'FIREBASE_NOT_CONFIGURED') {
@@ -91,6 +105,13 @@ export default function RegisterForm() {
       ? `/login?redirect=${encodeURIComponent(redirectTo)}`
       : '/login'
 
+  const nameLabel =
+    accountType === 'company' ? t('auth.companyName') : t('auth.displayName')
+  const namePlaceholder =
+    accountType === 'company'
+      ? t('auth.companyNamePlaceholder')
+      : t('auth.displayNamePlaceholder')
+
   return (
     <>
       {error && (
@@ -99,9 +120,43 @@ export default function RegisterForm() {
         </p>
       )}
 
+      <fieldset className="mb-5">
+        <legend className="mb-2 text-sm font-medium text-foreground">
+          {t('auth.accountType')}
+        </legend>
+        <div className="grid grid-cols-2 gap-2" role="radiogroup" aria-label={t('auth.accountType')}>
+          {(
+            [
+              { value: 'individual' as const, label: t('auth.accountType.individual') },
+              { value: 'company' as const, label: t('auth.accountType.company') },
+            ] as const
+          ).map((option) => {
+            const selected = accountType === option.value
+            return (
+              <button
+                key={option.value}
+                type="button"
+                role="radio"
+                aria-checked={selected}
+                disabled={busy}
+                onClick={() => setAccountType(option.value)}
+                className={`rounded-xl border-2 px-3 py-3 text-sm font-semibold transition-colors disabled:opacity-60 ${
+                  selected
+                    ? 'border-primary bg-primary/10 text-foreground'
+                    : 'border-border bg-card text-muted-foreground hover:border-primary/40 hover:text-foreground'
+                }`}
+              >
+                {option.label}
+              </button>
+            )
+          })}
+        </div>
+      </fieldset>
+
       <SocialLogin
         mode="register"
         position="top"
+        accountType={accountType}
         loading={googleLoading}
         onLoadingChange={setGoogleLoading}
         onError={setError}
@@ -110,7 +165,7 @@ export default function RegisterForm() {
       <form onSubmit={handleSubmit} className="space-y-4">
         <div>
           <label htmlFor="displayName" className="mb-1.5 block text-sm font-medium text-foreground">
-            {t('auth.displayName')}
+            {nameLabel}
           </label>
           <input
             id="displayName"
@@ -119,7 +174,7 @@ export default function RegisterForm() {
             value={displayName}
             onChange={(e) => setDisplayName(e.target.value)}
             className={AUTH_INPUT_CLASS}
-            placeholder={t('auth.displayNamePlaceholder')}
+            placeholder={namePlaceholder}
             disabled={busy}
           />
         </div>

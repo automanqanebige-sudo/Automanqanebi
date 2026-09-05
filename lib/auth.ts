@@ -39,7 +39,8 @@ export async function signInWithEmail(email: string, password: string) {
 export async function registerWithEmail(
   email: string,
   password: string,
-  displayName?: string
+  displayName?: string,
+  accountType?: 'individual' | 'company'
 ) {
   const auth = requireFirebaseAuth()
   const credential = await createUserWithEmailAndPassword(auth, email.trim(), password)
@@ -48,10 +49,55 @@ export async function registerWithEmail(
     await updateProfile(credential.user, { displayName: name })
   }
   try {
+    const { saveUserProfile } = await import('@/lib/user-profile-firestore')
+    await saveUserProfile(credential.user.uid, {
+      displayName: name || undefined,
+      accountType:
+        accountType === 'individual' || accountType === 'company' ? accountType : undefined,
+      role: 'user',
+    })
+  } catch {
+    /* profile write is best-effort */
+  }
+  try {
     await sendEmailVerification(credential.user)
   } catch {
     /* email templates may be unavailable locally */
   }
+}
+
+const REGISTER_ACCOUNT_TYPE_KEY = 'am_register_account_type'
+
+export function stashRegisterAccountType(accountType: 'individual' | 'company'): void {
+  if (typeof window === 'undefined') return
+  try {
+    sessionStorage.setItem(REGISTER_ACCOUNT_TYPE_KEY, accountType)
+  } catch {
+    /* ignore */
+  }
+}
+
+export function takeRegisterAccountType(): 'individual' | 'company' | null {
+  if (typeof window === 'undefined') return null
+  try {
+    const value = sessionStorage.getItem(REGISTER_ACCOUNT_TYPE_KEY)
+    sessionStorage.removeItem(REGISTER_ACCOUNT_TYPE_KEY)
+    if (value === 'individual' || value === 'company') return value
+  } catch {
+    /* ignore */
+  }
+  return null
+}
+
+export function peekRegisterAccountType(): 'individual' | 'company' | null {
+  if (typeof window === 'undefined') return null
+  try {
+    const value = sessionStorage.getItem(REGISTER_ACCOUNT_TYPE_KEY)
+    if (value === 'individual' || value === 'company') return value
+  } catch {
+    /* ignore */
+  }
+  return null
 }
 
 /** Popup failures that are safe to retry with a full-page redirect flow. */

@@ -38,7 +38,8 @@ type AuthContextType = {
   registerWithEmail: (
     email: string,
     password: string,
-    displayName?: string
+    displayName?: string,
+    accountType?: 'individual' | 'company'
   ) => Promise<void>
   signInWithGoogle: () => Promise<import('@/lib/auth').GoogleSignInResult>
   resetPassword: (email: string) => Promise<void>
@@ -79,8 +80,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           try {
             const { saveUserProfile } = await import('@/lib/user-profile-firestore')
             const { logAnalyticsEvent } = await import('@/lib/analytics-firestore')
+            const { takeRegisterAccountType } = await import('@/lib/auth')
+            const accountType = takeRegisterAccountType()
             await saveUserProfile(redirectedUser.uid, {
               displayName: redirectedUser.displayName || undefined,
+              ...(accountType ? { accountType } : {}),
             }).catch(() => undefined)
             logAnalyticsEvent(
               'user_login',

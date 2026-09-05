@@ -511,7 +511,7 @@ export const AUTO_SERVICE_CATALOG: CatalogSection[] = [
     items: [
       { id: 'disassembly', category: 'other' },
       { id: 'classicRestore', category: 'other' },
-      { id: 'motorcycleSvc', category: 'other' },
+      { id: 'motorcycleSvc', category: 'motorcycle' },
       { id: 'drivingSchool', category: 'other' },
       { id: 'notaryCar', category: 'registration' },
     ],

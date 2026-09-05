@@ -79,7 +79,9 @@ service cloud.firestore {
       // (fcmToken, phone) should not be written for others — clients must not rely on secrecy.
       allow read: if true;
       allow create: if request.auth != null && request.auth.uid == userId
-        && request.resource.data.get('dealerApproved', false) == false;
+        && request.resource.data.get('dealerApproved', false) == false
+        && (!('accountType' in request.resource.data)
+          || request.resource.data.accountType in ['individual', 'company']);
       // Users may request dealer role; only admin may flip dealerApproved or grant other roles.
       allow update: if isAdmin()
         || (request.auth != null
@@ -87,7 +89,9 @@ service cloud.firestore {
           && request.resource.data.get('dealerApproved', false)
             == resource.data.get('dealerApproved', false)
           && request.resource.data.get('role', 'user') in ['user', 'dealer']
-          && resource.data.get('role', 'user') in ['user', 'dealer']);
+          && resource.data.get('role', 'user') in ['user', 'dealer']
+          && (!('accountType' in request.resource.data)
+            || request.resource.data.accountType in ['individual', 'company']));
       allow delete: if false;
     }
 
