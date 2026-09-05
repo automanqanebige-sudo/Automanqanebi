@@ -234,7 +234,7 @@ function ServicesPageContent() {
         />
       )}
 
-      <div className="mx-auto max-w-7xl section-padding">
+      <div className="mx-auto max-w-7xl section-padding pb-28 md:pb-10">
         <Link
           href="/"
           className="mb-6 inline-flex items-center gap-2 text-sm text-muted-foreground transition-colors hover:text-foreground"
