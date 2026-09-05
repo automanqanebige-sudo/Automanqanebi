@@ -60,6 +60,7 @@ export const SERVICE_CATEGORIES: ServiceCategory[] = [
   'lpg',
   'glass',
   'upholstery',
+  'carwash',
 ]
 
 /** Same order as SERVICE_CATEGORIES */
@@ -114,6 +115,7 @@ export const WORKSHOP_PAGE_CATEGORY_ENTRIES: WorkshopCategoryEntry[] = [
   { category: 'oilChange', labelKey: 'workshops.cat.oilChange' },
   { category: 'freon', labelKey: 'workshops.cat.freon' },
   { category: 'motorcycle', labelKey: 'workshops.cat.motoService' },
+  { category: 'detailing', labelKey: 'workshops.cat.polish' },
 ]
 
 export const WORKSHOP_PAGE_CATEGORIES: ServiceCategory[] =
@@ -192,9 +194,7 @@ const CATEGORY_ALIASES: Record<string, ServiceCategory> = {
   wrap: 'accessories',
   fuel: 'lpg',
   ev: 'electric',
-  carwash: 'upholstery',
   chemical: 'upholstery',
-  detailing: 'upholstery',
   bodywork: 'glass',
   painting: 'glass',
   mobile: 'locksmith',

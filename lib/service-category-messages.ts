@@ -37,7 +37,7 @@ export const serviceCategoryMessages = {
   "services.cat.bodywork": "კუზოვის სამუშაოები",
   "services.cat.painting": "შეღებვა",
   "services.cat.detailing": "დეტეილინგი",
-  "services.cat.carwash": "ავტოსამრეცხაო",
+  "services.cat.carwash": "სამრეცხაო",
   "services.cat.electric": "ელექტრიკი",
   "services.cat.ev": "ელექტრო ავტომობილი",
   "services.cat.tires": "საბურავები",

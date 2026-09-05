@@ -8,6 +8,8 @@ export type UserProfile = {
   displayName?: string
   phone?: string
   phoneVerified?: boolean
+  /** Set after registration email/SMS OTP succeeds */
+  emailOtpVerified?: boolean
   /** Private person vs company — set at registration */
   accountType?: AccountType
   role?: UserRole
@@ -30,6 +32,7 @@ export async function saveUserProfile(uid: string, data: UserProfile): Promise<v
   if (typeof data.displayName === 'string') clean.displayName = data.displayName.trim()
   if (typeof data.phone === 'string') clean.phone = data.phone.trim()
   if (typeof data.phoneVerified === 'boolean') clean.phoneVerified = data.phoneVerified
+  if (typeof data.emailOtpVerified === 'boolean') clean.emailOtpVerified = data.emailOtpVerified
   if (data.accountType === 'individual' || data.accountType === 'company') {
     clean.accountType = data.accountType
   }

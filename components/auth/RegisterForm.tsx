@@ -9,7 +9,7 @@ import AuthRecaptcha from '@/components/auth/AuthRecaptcha'
 import { AUTH_INPUT_CLASS } from '@/components/auth/AuthLayout'
 import { useAuth } from '@/context/AuthContext'
 import { useLanguage } from '@/context/LanguageContext'
-import { safeAppPath, appendQueryParam } from '@/lib/safe-redirect'
+import { safeAppPath } from '@/lib/safe-redirect'
 import { getAuthErrorMessage, stashRegisterAccountType } from '@/lib/auth'
 import { logAnalyticsEvent } from '@/lib/analytics-firestore'
 import type { AccountType } from '@/lib/user-profile-firestore'
@@ -85,7 +85,8 @@ export default function RegisterForm() {
         email: email.trim().toLowerCase(),
         accountType,
       })
-      router.push(appendQueryParam(safeAppPath(redirectTo), 'verifyEmail', '1'))
+      const verifyPath = `/verify?redirect=${encodeURIComponent(safeAppPath(redirectTo))}`
+      router.push(verifyPath)
     } catch (err) {
       if (err instanceof Error && err.message === 'FIREBASE_NOT_CONFIGURED') {
         setError(t('auth.error.notConfigured'))

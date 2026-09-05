@@ -152,6 +152,12 @@ service cloud.firestore {
       }
     }
 
+    match /emailOtps/{uid} {
+      // Server API routes (cron-style client SDK) read/write OTP hashes.
+      // Clients must not use this collection — codes are verified via /api/auth/*.
+      allow read, write: if true;
+    }
+
     match /admins/{uid} {
       allow read: if request.auth != null && request.auth.uid == uid;
       allow write: if false;

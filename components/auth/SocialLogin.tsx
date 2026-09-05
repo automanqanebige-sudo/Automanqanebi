@@ -104,7 +104,11 @@ export default function SocialLogin({
           user.uid
         )
       }
-      router.replace(safeRedirect)
+      if (mode === 'register' && user && !user.emailVerified) {
+        router.replace(`/verify?redirect=${encodeURIComponent(safeRedirect)}`)
+      } else {
+        router.replace(safeRedirect)
+      }
     } catch (err) {
       clearGoogleRedirectPending()
       clearGoogleRedirectPath()
