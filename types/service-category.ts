@@ -104,6 +104,8 @@ export const WORKSHOP_PAGE_CATEGORY_ENTRIES: WorkshopCategoryEntry[] = [
   { category: 'mechanic' },
   { category: 'electric' },
   { category: 'vulcanization' },
+  { category: 'detailing', labelKey: 'workshops.cat.polish' },
+  { category: 'motorcycle', labelKey: 'workshops.cat.motoService' },
   { category: 'accessories' },
   { category: 'tires' },
   { category: 'discs' },
@@ -114,8 +116,6 @@ export const WORKSHOP_PAGE_CATEGORY_ENTRIES: WorkshopCategoryEntry[] = [
   { category: 'upholstery', labelKey: 'workshops.cat.upholsteryInterior' },
   { category: 'oilChange', labelKey: 'workshops.cat.oilChange' },
   { category: 'freon', labelKey: 'workshops.cat.freon' },
-  { category: 'motorcycle', labelKey: 'workshops.cat.motoService' },
-  { category: 'detailing', labelKey: 'workshops.cat.polish' },
 ]
 
 export const WORKSHOP_PAGE_CATEGORIES: ServiceCategory[] =

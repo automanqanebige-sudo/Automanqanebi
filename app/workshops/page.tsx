@@ -71,7 +71,7 @@ export default function WorkshopsPage() {
     : '/workshops/add'
 
   return (
-    <div className="mx-auto max-w-7xl px-4 py-6 pb-28 sm:px-6 sm:py-10 sm:pb-10 lg:px-8">
+    <div className="mx-auto max-w-7xl px-4 py-6 pb-40 sm:px-6 sm:py-10 sm:pb-10 lg:px-8">
       <Link
         href="/"
         className="mb-4 inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground sm:mb-6"
@@ -87,7 +87,7 @@ export default function WorkshopsPage() {
         </p>
       </div>
 
-      <div className="relative z-20 mb-4 sm:mb-8">
+      <div className="relative z-20 mb-24 sm:mb-8">
         <WorkshopsCategoriesSection
           value={selectedCategory}
           onChange={setSelectedCategory}
