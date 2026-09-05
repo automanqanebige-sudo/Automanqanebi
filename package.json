@@ -1,30 +1,36 @@
 {
-"name": "automanqanebi",
-"version": "0.1.0",
-"private": true,
-"scripts": {
-"dev": "next dev",
-"build": "next build",
-"start": "next start",
-"lint": "next lint"
-},
-"engines": {
-"node": "20.x"
-},
-"dependencies": {
-"next": "14.2.3",
-"react": "18.3.1",
-"react-dom": "18.3.1",
-"firebase": "10.14.1",
-"framer-motion": "10.18.0",
-"undici": "5.28.4"
-},
-"devDependencies": {
-"typescript": "5.4.5",
-"@types/node": "20.12.7",
-"@types/react": "18.3.3",
-"@types/react-dom": "18.3.0",
-"eslint": "8.57.0",
-"eslint-config-next": "14.2.3"
-}
+  "name": "automanqanebi",
+  "version": "0.1.0",
+  "private": true,
+  "homepage": "https://automanqanebi.ge",
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint"
+  },
+  "engines": {
+    "node": "24"
+  },
+  "dependencies": {
+    "firebase": "10.14.1",
+    "leaflet": "^1.9.4",
+    "lucide-react": "^0.344.0",
+    "next": "14.2.3",
+    "react": "18.3.1",
+    "react-dom": "18.3.1"
+  },
+  "devDependencies": {
+    "@types/leaflet": "^1.9.22",
+    "@types/node": "20.12.7",
+    "@types/react": "18.3.3",
+    "@types/react-dom": "18.3.0",
+    "autoprefixer": "^10.4.17",
+    "esbuild": "^0.19.12",
+    "eslint": "8.57.0",
+    "eslint-config-next": "14.2.3",
+    "postcss": "^8.4.35",
+    "tailwindcss": "^3.4.1",
+    "typescript": "5.4.5"
+  }
 }

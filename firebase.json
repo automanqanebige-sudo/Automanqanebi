@@ -1,0 +1,66 @@
+{
+    "hosting": {
+    "source": ".",
+    "ignore": [
+      "firebase.json",
+      "**/.*",
+      "**/node_modules/**",
+      "AUTOGE-CLEAN/**",
+      "**/*.zip"
+    ],
+    "headers": [
+      {
+        "source": "**",
+        "headers": [
+          {
+            "key": "Cross-Origin-Opener-Policy",
+            "value": "same-origin-allow-popups"
+          }
+        ]
+      }
+    ],
+    "frameworksBackend": {
+      "region": "europe-west1",
+      "memory": "16GiB",
+      "cpu": 4,
+      "concurrency": 80,
+      "maxInstances": 8
+    }
+  },
+  "apphosting": {
+    "backendId": "automanqanebi",
+    "rootDir": "/",
+    "ignore": ["node_modules", ".git", ".next", "AUTOGE-CLEAN", "*.zip", "firebase-debug.log"]
+  },
+  "firestore": {
+    "rules": "firestore.rules"
+  },
+  "storage": {
+    "rules": "storage.rules"
+  },
+  "auth": {
+    "providers": {
+      "emailPassword": true,
+      "googleSignIn": {
+        "oAuthBrandDisplayName": "Automanqanebi",
+        "supportEmail": "info@automanqanebi.ge",
+        "authorizedRedirectUris": [
+          "http://localhost/__/auth/handler",
+          "http://127.0.0.1/__/auth/handler",
+          "https://automanqanebi.ge/__/auth/handler",
+          "https://www.automanqanebi.ge/__/auth/handler",
+          "https://automanqanebi1.web.app/__/auth/handler",
+          "https://automanqanebi1.firebaseapp.com/__/auth/handler"
+        ]
+      },
+      "phoneNumber": true
+    },
+    "authorizedDomains": [
+      "localhost",
+      "automanqanebi.ge",
+      "www.automanqanebi.ge",
+      "automanqanebi1.web.app",
+      "automanqanebi1.firebaseapp.com"
+    ]
+  }
+}

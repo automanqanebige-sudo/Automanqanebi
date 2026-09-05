@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 30 20">
+  <rect width="30" height="20" fill="#fff"/>
+  <path fill="#ff0000" d="M13 0h4v20H13zM0 8h30v4H0z"/>
+  <g fill="#ff0000" id="c">
+    <g id="b">
+      <path id="a" d="m5.7968 1.954a5.4 5.4 0 0 0 1.4064 0 10.4 10.4 0 0 0 0 4.092 5.4 5.4 0 0 0-1.4064 0 10.4 10.4 0 0 0 0-4.092z"/>
+      <use href="#a" transform="rotate(90 6.5 4)"/>
+    </g>
+    <use href="#b" x="17"/>
+  </g>
+  <use href="#c" y="12"/>
+</svg>

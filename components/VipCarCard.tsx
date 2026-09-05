@@ -3,8 +3,12 @@
 import { useState } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
-import { Heart, MapPin, Gauge, Fuel, Crown, Sparkles } from 'lucide-react'
+import { Heart, MapPin, Gauge, Fuel, Columns2 } from 'lucide-react'
 import { Car } from './CarCard'
+import { useLanguage } from '@/context/LanguageContext'
+import { useCurrency } from '@/context/CurrencyContext'
+import { useFavorites } from '@/context/FavoritesContext'
+import { useCompare } from '@/context/CompareContext'
 
 interface VipCarCardProps {
   car: Car
@@ -12,23 +16,27 @@ interface VipCarCardProps {
 }
 
 export default function VipCarCard({ car, onFavoriteToggle }: VipCarCardProps) {
-  const [isFavorite, setIsFavorite] = useState(car.isFavorite || false)
+  const { t } = useLanguage()
+  const { formatPrice } = useCurrency()
+  const { isFavorite, toggleFavorite } = useFavorites()
+  const { isComparing, toggleCompare } = useCompare()
+  const favorited = isFavorite(car.id)
+  const comparing = isComparing(car.id)
   const [imageError, setImageError] = useState(false)
+
+  const fuelLabel = t(`fuel.${car.fuelType}`) !== `fuel.${car.fuelType}` ? t(`fuel.${car.fuelType}`) : car.fuelType
 
   const handleFavoriteClick = (e: React.MouseEvent) => {
     e.preventDefault()
     e.stopPropagation()
-    setIsFavorite(!isFavorite)
+    toggleFavorite(car.id)
     onFavoriteToggle?.(car.id)
   }
 
-  const formatPrice = (price: number) => {
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: 'USD',
-      minimumFractionDigits: 0,
-      maximumFractionDigits: 0,
-    }).format(price)
+  const handleCompareClick = (e: React.MouseEvent) => {
+    e.preventDefault()
+    e.stopPropagation()
+    toggleCompare(car.id)
   }
 
   const formatMileage = (mileage: number) => {
@@ -37,89 +45,88 @@ export default function VipCarCard({ car, onFavoriteToggle }: VipCarCardProps) {
 
   return (
     <Link href={`/car/${car.id}`} className="block group flex-shrink-0">
-      <article className="relative w-80 sm:w-96 bg-gradient-to-br from-green-50 via-card to-green-50/50 rounded-2xl overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-500 group-hover:-translate-y-2 group-hover:scale-[1.02] border-2 border-green-200/60">
-        {/* Premium Glow Effect */}
-        <div className="absolute inset-0 bg-gradient-to-br from-green-400/10 via-transparent to-green-400/5 pointer-events-none" />
-        
-        {/* Decorative Corner Accent */}
-        <div className="absolute top-0 right-0 w-24 h-24 bg-gradient-to-bl from-green-400/20 to-transparent pointer-events-none" />
+      <article className="card-premium relative w-80 flex-shrink-0 overflow-hidden border-primary/25 sm:w-96">
+        <div className="pointer-events-none absolute inset-0 bg-gradient-to-br from-primary/8 via-transparent to-transparent" />
 
-        {/* Image Container - Larger aspect ratio for VIP */}
         <div className="relative aspect-[16/10] overflow-hidden bg-muted">
           {!imageError ? (
             <Image
               src={car.image}
               alt={`${car.year} ${car.brand} ${car.model}`}
               fill
-              className="object-cover transition-transform duration-500 group-hover:scale-110"
+              className="object-cover transition-transform duration-500 group-hover:scale-105"
               onError={() => setImageError(true)}
               sizes="(max-width: 640px) 320px, 384px"
             />
           ) : (
             <div className="absolute inset-0 flex items-center justify-center bg-muted">
-              <span className="text-muted-foreground text-sm">No image</span>
+              <span className="text-sm text-muted-foreground">{t('car.noImage')}</span>
             </div>
           )}
 
-          {/* Premium Gradient Overlay */}
-          <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/10 to-transparent" />
+          <div className="absolute inset-0 bg-gradient-to-t from-black/55 via-black/10 to-transparent" />
 
-          {/* VIP Badge - Premium Design */}
-          <div className="absolute top-4 left-4 flex items-center gap-2 bg-gradient-to-r from-green-500 to-green-600 text-white px-4 py-2 rounded-full text-sm font-bold shadow-xl shadow-green-500/30">
-            <Crown className="h-4 w-4" />
-            <span>VIP</span>
-            <Sparkles className="h-3.5 w-3.5" />
+          <div className="badge-premium absolute left-4 top-4 bg-primary px-3 py-1.5 text-primary-foreground shadow-md">
+            VIP
           </div>
 
-          {/* Favorite Button - Larger for VIP */}
-          <button
-            onClick={handleFavoriteClick}
-            className="absolute top-4 right-4 p-3 rounded-full bg-white/95 hover:bg-white shadow-xl transition-all duration-300 hover:scale-110 group/heart"
-            aria-label={isFavorite ? 'Remove from favorites' : 'Add to favorites'}
-          >
-            <Heart
-              className={`h-6 w-6 transition-all duration-300 ${
-                isFavorite
-                  ? 'fill-red-500 text-red-500 scale-110'
-                  : 'text-muted-foreground group-hover/heart:text-red-500'
+          <div className="absolute right-4 top-4 flex flex-col gap-2">
+            <button
+              type="button"
+              onClick={handleFavoriteClick}
+              className="rounded-full bg-card/95 p-3 shadow-xl transition-all duration-300 hover:scale-110 hover:bg-card group/heart"
+              aria-label={favorited ? t('favorites.remove') : t('favorites.add')}
+            >
+              <Heart
+                className={`h-6 w-6 transition-all duration-300 ${
+                  favorited
+                    ? 'scale-110 fill-red-500 text-red-500'
+                    : 'text-muted-foreground group-hover/heart:text-red-500'
+                }`}
+              />
+            </button>
+            <button
+              type="button"
+              onClick={handleCompareClick}
+              className={`rounded-full bg-card/95 p-3 shadow-xl transition-all duration-300 hover:scale-110 hover:bg-card ${
+                comparing ? 'ring-2 ring-primary' : ''
               }`}
-            />
-          </button>
+              aria-label={comparing ? t('compare.remove') : t('compare.add')}
+              title={comparing ? t('compare.remove') : t('compare.add')}
+            >
+              <Columns2 className={`h-5 w-5 ${comparing ? 'text-primary' : 'text-muted-foreground'}`} />
+            </button>
+          </div>
 
-          {/* Price Tag - Premium Styling */}
-          <div className="absolute bottom-4 left-4 right-4 flex items-end justify-between">
-            <div className="bg-gradient-to-r from-primary to-primary/90 text-primary-foreground px-5 py-2.5 rounded-xl shadow-xl shadow-primary/30">
-              <span className="text-2xl font-bold tracking-tight">{formatPrice(car.price)}</span>
-            </div>
+          <div className="absolute bottom-4 left-4 right-4">
+            <p className="price-display inline-block rounded-xl bg-surface-elevated/90 px-4 py-2 text-white shadow-lg backdrop-blur-sm">
+              {formatPrice(car.price)}
+            </p>
           </div>
         </div>
 
-        {/* Content - Enhanced for VIP */}
         <div className="relative p-5">
-          {/* Title - Larger for VIP */}
-          <h3 className="text-xl font-bold text-card-foreground line-clamp-1 group-hover:text-primary transition-colors duration-300">
+          <h3 className="line-clamp-1 text-xl font-bold text-card-foreground transition-colors duration-300 group-hover:text-primary">
             {car.year} {car.brand} {car.model}
           </h3>
 
-          {/* Location */}
-          <div className="flex items-center gap-2 mt-3 text-muted-foreground">
-            <MapPin className="h-4 w-4 flex-shrink-0 text-primary" />
-            <span className="text-sm truncate">{car.location}</span>
+          <div className="mt-3 flex items-center gap-2 text-muted-foreground">
+            <MapPin className="h-4 w-4 shrink-0 text-primary" />
+            <span className="truncate text-sm">{car.location}</span>
           </div>
 
-          {/* Specs Row - Enhanced styling */}
-          <div className="flex items-center gap-5 mt-4 pt-4 border-t border-green-200/60">
+          <div className="mt-4 flex items-center gap-5 border-t border-primary/20 pt-4">
             <div className="flex items-center gap-2 text-muted-foreground">
-              <div className="p-1.5 rounded-lg bg-secondary">
-                <Gauge className="h-4 w-4 flex-shrink-0 text-primary" />
+              <div className="rounded-lg bg-secondary p-1.5">
+                <Gauge className="h-4 w-4 shrink-0 text-primary" />
               </div>
               <span className="text-sm font-medium">{formatMileage(car.mileage)}</span>
             </div>
             <div className="flex items-center gap-2 text-muted-foreground">
-              <div className="p-1.5 rounded-lg bg-secondary">
-                <Fuel className="h-4 w-4 flex-shrink-0 text-primary" />
+              <div className="rounded-lg bg-secondary p-1.5">
+                <Fuel className="h-4 w-4 shrink-0 text-primary" />
               </div>
-              <span className="text-sm font-medium">{car.fuelType}</span>
+              <span className="text-sm font-medium">{fuelLabel}</span>
             </div>
           </div>
         </div>

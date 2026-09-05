@@ -1,38 +1,491 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useMemo } from 'react'
+import Link from 'next/link'
+import {
+  ArrowLeft,
+  Calendar,
+  Columns2,
+  Eye,
+  Heart,
+  MapPin,
+  MessageCircle,
+  Phone,
+} from 'lucide-react'
+import { useRouter } from 'next/navigation'
+import { useAuth } from '@/context/AuthContext'
+import type { Car } from '@/components/CarCard'
+import SimilarCarsSection from '@/components/SimilarCarsSection'
+import MessengerContactButtons from '@/components/MessengerContactButtons'
+import CarImageGallery from '@/components/CarImageGallery'
+import ReportListingButton from '@/components/ReportListingButton'
+import ShareListingButton from '@/components/ShareListingButton'
+import VehicleToolsCalculators from '@/components/calculators/VehicleToolsCalculators'
+import { SITE_URL } from '@/lib/site'
+import { telHref } from '@/lib/contact-links'
+import { appendQueryParam } from '@/lib/safe-redirect'
+import { getCarById } from '@/data/cars'
+import { fetchFirestoreCarById, fetchSimilarCarsFor } from '@/lib/cars-firestore'
+import { incrementCarViews } from '@/lib/cars-lifecycle-actions'
+import { formatListingDate } from '@/lib/listing-lifecycle'
+import { isTestListing, isVerifiedListing } from '@/lib/listing-trust'
+import { getCarImages } from '@/lib/car-images'
+import { carShareDescription, carShareTitle } from '@/lib/car-share-meta'
+import { useLanguage } from '@/context/LanguageContext'
+import { useCurrency } from '@/context/CurrencyContext'
+import { useFavorites } from '@/context/FavoritesContext'
+import { useCompare } from '@/context/CompareContext'
+import { CarDetailSkeleton } from '@/components/ui/Skeleton'
+import EmptyState from '@/components/ui/EmptyState'
+import SellerCard from '@/components/SellerCard'
+import { buildCarListingJsonLd } from '@/lib/car-json-ld'
+import type { CarFeature } from '@/types/filters'
 
-type Car = {
-  id?: string
-  name?: string
-  price?: number
-  image?: string
+type SpecItem = {
+  label: string
+  value: string
+  emoji?: string
 }
 
 export default function CarPage({ params }: { params: { id: string } }) {
+  const { t } = useLanguage()
+  const { formatPrice } = useCurrency()
+  const { isFavorite, toggleFavorite } = useFavorites()
+  const { isComparing, toggleCompare } = useCompare()
+  const { user } = useAuth()
+  const router = useRouter()
   const [car, setCar] = useState<Car | null>(null)
+  const [similarCars, setSimilarCars] = useState<Car[]>([])
+  const [loading, setLoading] = useState(true)
+  const [compareFull, setCompareFull] = useState(false)
+  const [heartAnim, setHeartAnim] = useState(false)
 
-  useEffect(() => {
-    fetch(`/api/cars/${params.id}`)
-      .then(res => res.json())
-      .then(data => setCar(data))
-  }, [params.id])
+  const favorited = car ? isFavorite(car.id) : false
+  const comparing = car ? isComparing(car.id) : false
 
-  if (!car) {
-    return <div>Loading...</div>
+  const handleCompare = () => {
+    if (!car) return
+    const res = toggleCompare(car.id)
+    if (!res.ok && res.reason === 'full') {
+      setCompareFull(true)
+      setTimeout(() => setCompareFull(false), 2000)
+    }
   }
 
+  useEffect(() => {
+    let cancelled = false
+
+    const load = async () => {
+      try {
+        const found = getCarById(params.id)
+        let resolved: Car | null = found ?? null
+
+        if (!resolved) {
+          try {
+            resolved = await fetchFirestoreCarById(params.id)
+          } catch {
+            resolved = null
+          }
+        }
+
+        if (!resolved) {
+          try {
+            const apiRes = await fetch(`/api/cars/${params.id}`)
+            if (apiRes.ok) resolved = (await apiRes.json()) as Car
+          } catch {
+            /* ignore */
+          }
+        }
+
+        if (cancelled) return
+        setCar(resolved)
+
+        if (resolved) {
+          void incrementCarViews(params.id)
+          void fetchSimilarCarsFor(resolved, 4)
+            .then((list) => {
+              if (!cancelled) setSimilarCars(list)
+            })
+            .catch(() => {
+              if (!cancelled) setSimilarCars([])
+            })
+        }
+      } finally {
+        if (!cancelled) setLoading(false)
+      }
+    }
+
+    void load()
+    return () => {
+      cancelled = true
+    }
+  }, [params.id])
+
+  const formatMileage = (mileage: number) =>
+    new Intl.NumberFormat('en-US').format(mileage) + ' km'
+
+  const translate = (candidates: string[], fallback?: string) => {
+    if (!fallback) return '—'
+    for (const key of candidates) {
+      const translated = t(key)
+      if (translated !== key) return translated
+    }
+    return fallback
+  }
+
+  const specValue = (group: string, value?: string) =>
+    translate([`${group}.${value}`, `filter.${group}.${value}`, `filter.body.${value}`, `filter.color.${value}`, `filter.drive.${value}`, `filter.steering.${value}`, `filter.listing.${value}`, `filter.import.${value}`, `filter.customs.${value}`, `filter.category.${value}`, `filter.offer.${value}`], value)
+
+  const phoneHref = useMemo(() => {
+    if (!car?.phone) return null
+    return telHref(car.phone)
+  }, [car?.phone])
+
+  if (loading) {
+    return <CarDetailSkeleton />
+  }
+
+  if (!car) {
+    return (
+      <div className="mx-auto max-w-3xl section-padding">
+        <EmptyState
+          icon={<ArrowLeft className="h-8 w-8 text-muted-foreground" aria-hidden />}
+          title={t('car.notFound')}
+          actionLabel={t('car.back')}
+          actionHref="/"
+        />
+      </div>
+    )
+  }
+
+  const offerBadge =
+    car.offerType === 'rent'
+      ? t('filter.offer.rent')
+      : car.offerType === 'sale'
+        ? t('filter.offer.sale')
+        : null
+
+  const specItems: SpecItem[] = [
+    { label: t('car.year'), value: String(car.year) },
+    { label: t('car.mileage'), value: formatMileage(car.mileage) },
+    { label: t('car.fuel'), value: specValue('fuel', car.fuelType) },
+  ]
+  if (car.transmission) {
+    specItems.push({ label: t('car.transmission'), value: specValue('transmission', car.transmission) })
+  }
+  if (car.bodyType) {
+    specItems.push({ label: t('filter.body'), value: specValue('body', car.bodyType) })
+  }
+  if (car.category) {
+    specItems.push({ label: t('filter.category'), value: specValue('category', car.category) })
+  }
+  if (car.driveType) {
+    specItems.push({ label: t('filter.drive'), value: specValue('drive', car.driveType) })
+  }
+  if (car.steering) {
+    specItems.push({ label: t('filter.steering'), value: specValue('steering', car.steering) })
+  }
+  if (car.color) {
+    specItems.push({
+      label: t('filter.section.colors'),
+      value: specValue('color', car.color),
+    })
+  }
+  if (car.engineVolume) {
+    specItems.push({ label: t('filter.engineVolume'), value: `${car.engineVolume}L` })
+  }
+  if (car.cylinders) {
+    specItems.push({ label: t('filter.cylinders'), value: String(car.cylinders) })
+  }
+  if (car.doors) {
+    specItems.push({ label: t('filter.doors'), value: String(car.doors) })
+  }
+  if (car.offerType) {
+    specItems.push({ label: t('filter.section.offerType'), value: specValue('offer', car.offerType) })
+  }
+  if (car.listingType) {
+    specItems.push({ label: t('filter.section.listingType'), value: specValue('listing', car.listingType) })
+  }
+  if (car.importRegion) {
+    specItems.push({ label: t('filter.section.import'), value: specValue('import', car.importRegion) })
+  }
+  if (car.customsStatus) {
+    specItems.push({ label: t('filter.section.status'), value: specValue('customs', car.customsStatus) })
+  }
+  specItems.push({ label: t('car.location'), value: car.location })
+  if (car.createdAt) {
+    specItems.push({
+      label: t('car.postedDate'),
+      value: formatListingDate(car.createdAt),
+    })
+  }
+
+  const galleryImages = getCarImages(car)
+  const galleryAlt = `${car.year} ${car.brand} ${car.model}`
+
   return (
-    <div>
-      <h1>{car?.name || "უცნობი მანქანა"}</h1>
+    <div className="mx-auto max-w-7xl section-padding pb-28 lg:pb-10">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(buildCarListingJsonLd(car)) }}
+      />
+      <Link
+        href="/"
+        className="mb-6 inline-flex items-center gap-2 text-sm text-muted-foreground transition-colors hover:text-primary"
+      >
+        <ArrowLeft className="h-4 w-4" />
+        {t('car.back')}
+      </Link>
 
-      <h2>
-        ${car?.price ? car.price.toLocaleString() : "ფასი არ არის"}
-      </h2>
+      <div className="grid gap-8 lg:grid-cols-2">
+        <CarImageGallery
+          images={galleryImages}
+          alt={galleryAlt}
+          badges={
+            <>
+              {car.isVip && (
+                <div className="absolute left-4 top-4 rounded-full bg-primary px-3 py-1.5 text-sm font-semibold text-primary-foreground shadow-lg">
+                  VIP
+                </div>
+              )}
+              {isTestListing(car) ? (
+                <div
+                  className={`absolute left-4 rounded-full bg-amber-700/95 px-3 py-1.5 text-sm font-semibold text-white shadow-lg ${
+                    car.isVip ? 'top-14' : 'top-4'
+                  }`}
+                >
+                  {t('car.badge.test')}
+                </div>
+              ) : isVerifiedListing(car) ? (
+                <div
+                  className={`absolute left-4 rounded-full bg-emerald-700/95 px-3 py-1.5 text-sm font-semibold text-white shadow-lg ${
+                    car.isVip ? 'top-14' : 'top-4'
+                  }`}
+                >
+                  {t('car.badge.verified')}
+                </div>
+              ) : null}
+              {offerBadge && (
+                <div
+                  className={`absolute left-4 flex items-center gap-1.5 rounded-full bg-card/95 px-3 py-1.5 text-sm font-semibold text-foreground shadow-lg backdrop-blur-sm ${
+                    car.isVip || isTestListing(car) || isVerifiedListing(car) ? 'top-24' : 'top-4'
+                  }`}
+                >
+                  {offerBadge}
+                </div>
+              )}
+            </>
+          }
+        />
 
-      {car?.image && (
-        <img src={car.image} width={300} />
-      )}
+        <div className="space-y-6 lg:sticky lg:top-20 lg:self-start">
+          <div className="rounded-2xl border border-border bg-card p-5 shadow-card sm:p-6">
+            <div className="flex flex-wrap items-start justify-between gap-4">
+              <div>
+                <p className="text-sm font-medium text-primary">
+                  {car.year} · {specValue('fuel', car.fuelType)}
+                </p>
+                <h1 className="mt-1 text-3xl font-bold text-foreground">
+                  {car.brand} {car.model}
+                </h1>
+                <p className="mt-2 flex items-center gap-2 text-muted-foreground">
+                  <MapPin className="h-4 w-4" />
+                  {car.location}
+                </p>
+                <div className="mt-2 flex flex-wrap items-center gap-3 text-sm text-muted-foreground">
+                  {car.createdAt && (
+                    <span className="inline-flex items-center gap-1.5">
+                      <Calendar className="h-4 w-4" />
+                      {t('car.postedDate')}: {formatListingDate(car.createdAt)}
+                    </span>
+                  )}
+                  <span className="inline-flex items-center gap-1.5">
+                    <Eye className="h-4 w-4" />
+                    {car.views ?? 0} {t('car.views')}
+                  </span>
+                </div>
+              </div>
+              <div className="flex flex-col items-end gap-2">
+                <ShareListingButton
+                  payload={{
+                    url: `${SITE_URL}/car/${car.id}`,
+                    title: carShareTitle(car),
+                    text: carShareDescription(car),
+                    imageUrl: galleryImages[0],
+                  }}
+                />
+                <button
+                  type="button"
+                  onClick={() => {
+                    toggleFavorite(car.id)
+                    setHeartAnim(true)
+                    setTimeout(() => setHeartAnim(false), 350)
+                  }}
+                  className="btn-secondary rounded-xl px-4 py-2.5 text-sm"
+                >
+                  <Heart
+                    className={`h-5 w-5 transition-colors ${
+                      favorited ? 'fill-red-500 text-red-500' : 'text-muted-foreground'
+                    } ${heartAnim ? 'animate-heart-pop' : ''}`}
+                  />
+                  {favorited ? t('car.removeFavorite') : t('car.addFavorite')}
+                </button>
+                <button
+                  type="button"
+                  onClick={handleCompare}
+                  className={`flex items-center gap-2 rounded-xl border px-4 py-2.5 text-sm font-medium transition-colors ${
+                    comparing
+                      ? 'border-primary bg-primary/10 text-primary'
+                      : 'btn-secondary border-border'
+                  }`}
+                >
+                  <Columns2 className="h-5 w-5" />
+                  {compareFull
+                    ? t('compare.full')
+                    : comparing
+                      ? t('compare.remove')
+                      : t('compare.add')}
+                </button>
+                <ReportListingButton listingId={car.id} listingType="car" />
+              </div>
+            </div>
+
+            <p className="mt-6 price-display text-3xl sm:text-4xl">
+              {formatPrice(car.price)}
+              {car.offerType === 'rent' && (
+                <span className="ml-2 text-lg font-medium text-muted-foreground">
+                  / {t('filter.offer.perMonth')}
+                </span>
+              )}
+            </p>
+
+            <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:flex-wrap">
+              {phoneHref ? (
+                <a
+                  href={phoneHref}
+                  className="btn-primary inline-flex flex-1 rounded-xl px-6 py-3.5 sm:min-w-[160px]"
+                >
+                  <Phone className="h-5 w-5" />
+                  {t('car.callSeller')}
+                </a>
+              ) : (
+                <p className="rounded-xl border border-dashed border-border px-4 py-3 text-sm text-muted-foreground">
+                  {t('car.noPhone')}
+                </p>
+              )}
+              {car.phone && (car.contactWhatsApp || car.contactViber) && (
+                <MessengerContactButtons
+                  phone={car.phone}
+                  whatsApp={car.contactWhatsApp}
+                  viber={car.contactViber}
+                  className="w-full sm:w-auto sm:flex-1"
+                />
+              )}
+              {car.userId && user?.uid !== car.userId && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    const chatPath = `/chat?car=${encodeURIComponent(car.id)}&seller=${encodeURIComponent(car.userId!)}`
+                    if (!user) {
+                      router.push(appendQueryParam('/login', 'redirect', chatPath))
+                      return
+                    }
+                    router.push(chatPath)
+                  }}
+                  className="btn-secondary inline-flex flex-1 rounded-xl border-primary/40 bg-primary/10 px-6 py-3.5 text-primary hover:bg-primary/15"
+                >
+                  <MessageCircle className="h-5 w-5" />
+                  {t('car.messageSeller')}
+                </button>
+              )}
+            </div>
+          </div>
+
+          {car.description && (
+            <div className="rounded-2xl border border-border bg-card p-5">
+              <h2 className="mb-2 text-sm font-semibold text-muted-foreground">
+                {t('car.description')}
+              </h2>
+              <p className="whitespace-pre-wrap leading-relaxed text-foreground">{car.description}</p>
+            </div>
+          )}
+
+          <div className="rounded-2xl border border-border bg-card p-6">
+            <h2 className="mb-4 text-lg font-semibold text-foreground">
+              {t('car.specs')}
+            </h2>
+            <dl className="grid grid-cols-2 gap-3 sm:grid-cols-3">
+              {specItems.map((item) => (
+                <div key={item.label} className="rounded-xl bg-secondary/60 p-4">
+                  <dt className="text-xs text-muted-foreground">{item.label}</dt>
+                  <dd className="mt-1 flex items-center gap-1.5 text-base font-semibold text-foreground">
+                    {item.value}
+                  </dd>
+                </div>
+              ))}
+            </dl>
+          </div>
+
+          {car.features && car.features.length > 0 && (
+            <div className="rounded-2xl border border-border bg-card p-6">
+              <h2 className="mb-4 text-lg font-semibold text-foreground">
+                {t('filter.section.features')}
+              </h2>
+              <div className="flex flex-wrap gap-2">
+                {car.features.map((feature) => (
+                  <span
+                    key={feature}
+                    className="rounded-full border border-border bg-secondary/60 px-3 py-1.5 text-sm text-foreground"
+                  >
+                    {translate([`filter.feature.${feature}`], feature)}
+                  </span>
+                ))}
+              </div>
+            </div>
+          )}
+
+          <SellerCard userId={car.userId} fallbackPhone={car.phone} />
+        </div>
+      </div>
+
+      <div className="mt-10">
+        <VehicleToolsCalculators
+          defaultYear={car.year}
+          defaultEngineCc={car.engineVolume ? Math.round(car.engineVolume * 1000) : undefined}
+          defaultPrice={car.price}
+          fuelType={car.fuelType}
+        />
+      </div>
+
+      <SimilarCarsSection cars={similarCars} />
+
+      {/* Mobile sticky contact bar */}
+      <div className="fixed inset-x-0 bottom-[calc(4.25rem+env(safe-area-inset-bottom))] z-30 border-t border-border bg-card/95 p-3 backdrop-blur-md lg:hidden">
+        <div className="mx-auto flex max-w-7xl gap-2">
+          {phoneHref ? (
+            <a href={phoneHref} className="btn-primary flex-1 rounded-xl py-3 text-sm">
+              <Phone className="h-4 w-4" />
+              {t('car.callSeller')}
+            </a>
+          ) : null}
+          <button
+            type="button"
+            onClick={() => {
+              toggleFavorite(car.id)
+              setHeartAnim(true)
+              setTimeout(() => setHeartAnim(false), 350)
+            }}
+            className="btn-secondary rounded-xl px-4 py-3"
+            aria-label={favorited ? t('car.removeFavorite') : t('car.addFavorite')}
+          >
+            <Heart
+              className={`h-5 w-5 ${favorited ? 'fill-red-500 text-red-500' : ''} ${
+                heartAnim ? 'animate-heart-pop' : ''
+              }`}
+            />
+          </button>
+        </div>
+      </div>
     </div>
   )
 }
