@@ -1,13 +1,15 @@
 'use client'
 
-import { FormEvent, useEffect, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { Loader2, Mail, Smartphone } from 'lucide-react'
 import PhoneOtpVerify from '@/components/auth/PhoneOtpVerify'
 import { AUTH_INPUT_CLASS } from '@/components/auth/AuthLayout'
 import { useAuth } from '@/context/AuthContext'
 import { useLanguage } from '@/context/LanguageContext'
+import { getAuthErrorMessage, sendVerificationEmail } from '@/lib/auth'
 import { isContactVerified } from '@/lib/contact-verified'
+import { getFirebaseAuth } from '@/lib/firebase'
 import { fetchUserProfile, saveUserProfile } from '@/lib/user-profile-firestore'
 import { safeAppPath } from '@/lib/safe-redirect'
 
@@ -21,13 +23,11 @@ export default function RegisterVerifyForm() {
   const redirectTo = safeAppPath(searchParams.get('redirect') || '/profile')
 
   const [channel, setChannel] = useState<Channel>('email')
-  const [code, setCode] = useState('')
-  const [sentTo, setSentTo] = useState('')
-  const [devCode, setDevCode] = useState('')
-  const [codeSent, setCodeSent] = useState(false)
+  const [linkSent, setLinkSent] = useState(false)
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState('')
   const [checking, setChecking] = useState(true)
+  const [waitingVerify, setWaitingVerify] = useState(false)
 
   useEffect(() => {
     let cancelled = false
@@ -66,71 +66,70 @@ export default function RegisterVerifyForm() {
     router.replace(redirectTo)
   }
 
-  const sendEmailCode = async () => {
+  const checkEmailVerified = async (): Promise<boolean> => {
+    if (!user) return false
+    await refreshUser().catch(() => undefined)
+    const fresh = getFirebaseAuth().currentUser
+    if (fresh?.emailVerified) {
+      await finishVerified()
+      return true
+    }
+    return false
+  }
+
+  // After the user opens the Firebase link in Gmail, poll until emailVerified flips.
+  useEffect(() => {
+    if (!waitingVerify || channel !== 'email' || !user) return
+    let cancelled = false
+    const tick = async () => {
+      if (cancelled) return
+      try {
+        const ok = await checkEmailVerified()
+        if (ok) cancelled = true
+      } catch {
+        /* keep polling */
+      }
+    }
+    void tick()
+    const id = window.setInterval(() => void tick(), 3500)
+    return () => {
+      cancelled = true
+      window.clearInterval(id)
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- intentional poll while waiting
+  }, [waitingVerify, channel, user?.uid])
+
+  const sendEmailLink = async () => {
     if (!user) return
+    if (!user.email?.trim()) {
+      setError(t('auth.verify.emailMissing'))
+      return
+    }
     setError('')
     setBusy(true)
-    setDevCode('')
     try {
-      const idToken = await user.getIdToken()
-      const res = await fetch('/api/auth/send-otp', {
-        method: 'POST',
-        headers: {
-          Authorization: `Bearer ${idToken}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ channel: 'email' }),
-      })
-      const data = (await res.json().catch(() => null)) as {
-        error?: string
-        destination?: string
-        stub?: boolean
-        devCode?: string
-      } | null
-
-      if (!res.ok) {
-        if (data?.error === 'email_missing') setError(t('auth.verify.emailMissing'))
-        else setError(t('auth.verify.sendError'))
-        return
-      }
-
-      setSentTo(data?.destination || '')
-      setCodeSent(true)
-      if (data?.devCode) setDevCode(data.devCode)
-      if (data?.stub && !data?.devCode) {
-        setError(t('auth.verify.stubHint'))
-      }
-    } catch {
-      setError(t('auth.verify.sendError'))
+      await sendVerificationEmail(
+        user,
+        `/verify?redirect=${encodeURIComponent(redirectTo)}`
+      )
+      setLinkSent(true)
+      setWaitingVerify(true)
+    } catch (err) {
+      setError(getAuthErrorMessage(err, t))
     } finally {
       setBusy(false)
     }
   }
 
-  const verifyEmailCode = async (e: FormEvent) => {
-    e.preventDefault()
+  const confirmEmailClicked = async () => {
     if (!user) return
     setError('')
     setBusy(true)
     try {
-      const idToken = await user.getIdToken()
-      const res = await fetch('/api/auth/verify-otp', {
-        method: 'POST',
-        headers: {
-          Authorization: `Bearer ${idToken}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ code }),
-      })
-      const data = (await res.json().catch(() => null)) as { error?: string } | null
-      if (!res.ok) {
-        if (data?.error === 'code_expired') setError(t('phoneOtp.codeExpired'))
-        else setError(t('phoneOtp.verifyError'))
-        return
-      }
-      await finishVerified()
-    } catch {
-      setError(t('phoneOtp.verifyError'))
+      const ok = await checkEmailVerified()
+      if (!ok) setError(t('auth.verify.emailNotYet'))
+    } catch (err) {
+      setError(getAuthErrorMessage(err, t))
     } finally {
       setBusy(false)
     }
@@ -138,14 +137,22 @@ export default function RegisterVerifyForm() {
 
   if (checking) {
     return (
-      <p className="py-6 text-center text-sm text-muted-foreground">{t('auth.loading')}</p>
+      <div className="flex justify-center py-10">
+        <Loader2 className="h-6 w-6 animate-spin text-primary" />
+      </div>
+    )
+  }
+
+  if (!user) {
+    return (
+      <p className="text-center text-sm text-muted-foreground">{t('auth.verify.sendError')}</p>
     )
   }
 
   return (
     <div className="space-y-5">
       {error && (
-        <p className="rounded-lg border border-destructive/30 bg-destructive/10 px-3 py-2 text-sm text-destructive">
+        <p className="rounded-lg border border-destructive/30 bg-destructive/5 px-3 py-2 text-sm text-destructive">
           {error}
         </p>
       )}
@@ -168,9 +175,8 @@ export default function RegisterVerifyForm() {
               disabled={busy}
               onClick={() => {
                 setChannel(tab.id)
-                setCodeSent(false)
-                setCode('')
-                setDevCode('')
+                setLinkSent(false)
+                setWaitingVerify(false)
                 setError('')
               }}
               className={`inline-flex items-center justify-center gap-2 rounded-xl border-2 px-3 py-3 text-sm font-semibold transition-colors disabled:opacity-60 ${
@@ -196,67 +202,51 @@ export default function RegisterVerifyForm() {
             </label>
             <input
               type="email"
-              value={user?.email || ''}
+              value={user.email || ''}
               readOnly
               className={`${AUTH_INPUT_CLASS} opacity-80`}
             />
           </div>
 
-          {!codeSent ? (
+          {!linkSent ? (
             <button
               type="button"
-              disabled={busy || !user?.email}
-              onClick={() => void sendEmailCode()}
+              disabled={busy || !user.email}
+              onClick={() => void sendEmailLink()}
               className="btn-primary w-full rounded-xl py-3 disabled:opacity-60"
             >
               {busy && <Loader2 className="h-4 w-4 animate-spin" />}
-              {t('auth.verify.sendCode')}
+              {t('auth.verify.sendLink')}
             </button>
           ) : (
-            <form onSubmit={verifyEmailCode} className="space-y-4">
-              {sentTo && (
-                <p className="text-sm text-muted-foreground">
-                  {t('auth.verify.codeSentTo').replace('{dest}', sentTo)}
+            <div className="space-y-4">
+              <p className="rounded-lg border border-primary/25 bg-primary/5 px-3 py-3 text-sm text-foreground">
+                {t('auth.verify.linkSentHint').replace('{email}', user.email || '')}
+              </p>
+              {waitingVerify && (
+                <p className="flex items-center gap-2 text-sm text-muted-foreground">
+                  <Loader2 className="h-4 w-4 animate-spin shrink-0" />
+                  {t('auth.verify.waitingClick')}
                 </p>
               )}
-              {devCode && (
-                <p className="rounded-lg border border-primary/30 bg-primary/5 px-3 py-2 text-sm text-foreground">
-                  {t('auth.verify.devCode')}: <strong className="tracking-widest">{devCode}</strong>
-                </p>
-              )}
-              <div>
-                <label htmlFor="otp" className="mb-1.5 block text-sm font-medium text-foreground">
-                  {t('auth.verify.codeLabel')}
-                </label>
-                <input
-                  id="otp"
-                  inputMode="numeric"
-                  autoComplete="one-time-code"
-                  maxLength={6}
-                  value={code}
-                  onChange={(e) => setCode(e.target.value.replace(/\D/g, '').slice(0, 6))}
-                  className={AUTH_INPUT_CLASS}
-                  placeholder={t('phoneOtp.codePlaceholder')}
-                  disabled={busy}
-                />
-              </div>
               <button
-                type="submit"
-                disabled={busy || code.length < 6}
+                type="button"
+                disabled={busy}
+                onClick={() => void confirmEmailClicked()}
                 className="btn-primary w-full rounded-xl py-3 disabled:opacity-60"
               >
                 {busy && <Loader2 className="h-4 w-4 animate-spin" />}
-                {t('auth.verify.confirm')}
+                {t('auth.verify.confirmLink')}
               </button>
               <button
                 type="button"
                 disabled={busy}
-                onClick={() => void sendEmailCode()}
+                onClick={() => void sendEmailLink()}
                 className="w-full text-sm font-medium text-primary hover:underline disabled:opacity-60"
               >
                 {t('phoneOtp.resend')}
               </button>
-            </form>
+            </div>
           )}
         </div>
       ) : (

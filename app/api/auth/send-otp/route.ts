@@ -49,14 +49,24 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'email_missing' }, { status: 400 })
     }
     const result = await sendEmailOtp(email, code)
+    if (!result.sent) {
+      return NextResponse.json(
+        {
+          error: result.stub ? 'email_not_configured' : 'email_send_failed',
+          stub: result.stub,
+          detail: result.error,
+          // Local/dev only — never expose codes in production without a provider.
+          ...(process.env.NODE_ENV !== 'production' ? { devCode: code } : {}),
+        },
+        { status: result.stub ? 503 : 502 }
+      )
+    }
     return NextResponse.json({
       ok: true,
       channel: 'email',
       destination: maskEmail(email),
-      sent: result.sent,
-      stub: result.stub,
-      // Local/dev only — never expose codes when a real provider is configured.
-      ...(result.stub || process.env.NODE_ENV !== 'production' ? { devCode: code } : {}),
+      sent: true,
+      stub: false,
     })
   }
 

@@ -60,10 +60,24 @@ export async function registerWithEmail(
     /* profile write is best-effort */
   }
   try {
-    await sendEmailVerification(credential.user)
+    await sendVerificationEmail(credential.user)
   } catch {
     /* email templates may be unavailable locally */
   }
+}
+
+/** Firebase Auth email with verification link (arrives in Gmail without Resend). */
+export async function sendVerificationEmail(
+  user: User,
+  continuePath = '/verify'
+): Promise<void> {
+  const origin =
+    typeof window !== 'undefined' ? window.location.origin : 'https://automanqanebi.ge'
+  const path = safeAppPath(continuePath)
+  await sendEmailVerification(user, {
+    url: `${origin}${path}`,
+    handleCodeInApp: false,
+  })
 }
 
 const REGISTER_ACCOUNT_TYPE_KEY = 'am_register_account_type'
