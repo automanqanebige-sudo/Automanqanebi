@@ -97,9 +97,11 @@ export default function ServiceListingForm({
 
   const selectableCategories = categoryOptions ?? SERVICE_CATEGORIES
 
-  const [values, setValues] = useState<ServiceListingFormValues>(
-    initialValues ?? emptyServiceFormValues()
-  )
+  const [values, setValues] = useState<ServiceListingFormValues>(() => {
+    const base = initialValues ?? emptyServiceFormValues()
+    if (selectableCategories.includes(base.category)) return base
+    return { ...base, category: selectableCategories[0] }
+  })
   const [imageSlots, setImageSlots] = useState<ImageSlot[]>(() =>
     initialValues?.imageUrls?.length ? urlsToSlots(initialValues.imageUrls) : []
   )

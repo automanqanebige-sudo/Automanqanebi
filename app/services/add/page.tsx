@@ -57,7 +57,7 @@ function AddServiceForm() {
 
       await createService(serviceFormValuesToPayload(values, imageUrls), user.uid, user.email)
       logAnalyticsEvent('listing_service', { category: values.category, name: values.name }, user.uid)
-      router.push('/services')
+      router.push(`/services?category=${encodeURIComponent(values.category)}`)
     } catch (err) {
       console.error('[AddService]', err)
       const code = (err as { code?: string } | null)?.code

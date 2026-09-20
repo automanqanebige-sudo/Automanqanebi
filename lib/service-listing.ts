@@ -1,5 +1,6 @@
 import type { Service, WorkSchedule } from '@/types/service'
 import { WORK_DAY_KEYS } from '@/types/service'
+import { SERVICE_CATEGORIES } from '@/types/service-category'
 import type { RentalSubService, RentalTransportType } from '@/types/rental-transport'
 import type {
   DiscBoltPattern,
@@ -62,7 +63,7 @@ export function isSchedule24Hours(schedule: WorkSchedule): boolean {
 export function emptyServiceFormValues(): ServiceListingFormValues {
   return {
     name: '',
-    category: 'other',
+    category: SERVICE_CATEGORIES[0],
     location: '',
     phone: '',
     bio: '',
@@ -111,7 +112,8 @@ export function serviceFormValuesToPayload(values: ServiceListingFormValues, ima
 
   return {
     name: values.name.trim(),
-    category: values.category,
+    category:
+      values.category && values.category !== 'other' ? values.category : SERVICE_CATEGORIES[0],
     location: values.location.trim(),
     phone: values.phone.trim(),
     bio: values.bio.trim() || undefined,

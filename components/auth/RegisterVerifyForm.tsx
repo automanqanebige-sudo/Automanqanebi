@@ -28,6 +28,7 @@ export default function RegisterVerifyForm() {
   const [error, setError] = useState('')
   const [checking, setChecking] = useState(true)
   const [waitingVerify, setWaitingVerify] = useState(false)
+  const [autoSendTried, setAutoSendTried] = useState(false)
 
   useEffect(() => {
     let cancelled = false
@@ -98,6 +99,15 @@ export default function RegisterVerifyForm() {
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps -- intentional poll while waiting
   }, [waitingVerify, channel, user?.uid])
+
+  // Fresh send when landing on /verify — registration may have silently failed to email.
+  useEffect(() => {
+    if (checking || autoSendTried || !user?.email || user.emailVerified) return
+    if (channel !== 'email') return
+    setAutoSendTried(true)
+    void sendEmailLink()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [checking, autoSendTried, user?.uid, user?.email, channel])
 
   const sendEmailLink = async () => {
     if (!user) return

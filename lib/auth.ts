@@ -61,8 +61,9 @@ export async function registerWithEmail(
   }
   try {
     await sendVerificationEmail(credential.user)
-  } catch {
-    /* email templates may be unavailable locally */
+  } catch (err) {
+    console.error('[auth] sendVerificationEmail failed', err)
+    /* User can resend from /verify or profile banner */
   }
 }
 
@@ -71,11 +72,23 @@ export async function sendVerificationEmail(
   user: User,
   continuePath = '/verify'
 ): Promise<void> {
+  const auth = requireFirebaseAuth()
+  // Georgian templates when available in Firebase Console
+  auth.languageCode = 'ka'
+
   const origin =
     typeof window !== 'undefined' ? window.location.origin : 'https://automanqanebi.ge'
   const path = safeAppPath(continuePath)
+  // Prefer production continue URL so Gmail links always land on the live site
+  // even when the user registered from a preview/localhost build.
+  const continueUrl =
+    typeof window !== 'undefined' &&
+    (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')
+      ? `${origin}${path}`
+      : `https://automanqanebi.ge${path.startsWith('/') ? path : `/${path}`}`
+
   await sendEmailVerification(user, {
-    url: `${origin}${path}`,
+    url: continueUrl,
     handleCodeInApp: false,
   })
 }

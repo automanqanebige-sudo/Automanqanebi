@@ -39,6 +39,7 @@ import {
   type DealerListingStats,
 } from '@/lib/dealer-listing-stats'
 import ProfileSettings from '@/components/profile/ProfileSettings'
+import ProfileEmailVerifyBanner from '@/components/profile/ProfileEmailVerifyBanner'
 import VipMonetizationPanel from '@/components/VipMonetizationPanel'
 import DealerProfileSettings from '@/components/profile/DealerProfileSettings'
 import DealerStatsPanel from '@/components/profile/DealerStatsPanel'
@@ -193,11 +194,7 @@ export default function ProfilePage() {
             {user.email}
           </p>
         )}
-        {user.email && !user.emailVerified && (
-          <p className="mt-3 rounded-lg border border-amber-500/40 bg-amber-500/10 px-3 py-2 text-sm text-amber-800 dark:text-amber-200">
-            {t('auth.verifyEmailSent')}
-          </p>
-        )}
+        {user.email && !user.emailVerified && <ProfileEmailVerifyBanner />}
 
         <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:justify-center">
           <Link

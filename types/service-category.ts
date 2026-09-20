@@ -235,6 +235,8 @@ const CATEGORY_ALIASES: Record<string, ServiceCategory> = {
 
 export function normalizeServiceCategory(cat: string): ServiceCategory {
   const key = cat.trim().toLowerCase()
+  // Form used to default to "other", which is excluded from /services chips
+  if (!key || key === 'other') return 'accessories'
   if (CATEGORY_ALIASES[key]) return CATEGORY_ALIASES[key]
   if (FILTERABLE_SERVICE_CATEGORIES.includes(cat as ServiceCategory)) {
     return cat as ServiceCategory
@@ -242,5 +244,5 @@ export function normalizeServiceCategory(cat: string): ServiceCategory {
   if (SERVICE_CATEGORIES.includes(cat as ServiceCategory)) return cat as ServiceCategory
   // Legacy categories still in type union but hidden from UI
   if (cat in SERVICE_CATEGORY_ICONS) return cat as ServiceCategory
-  return 'other'
+  return 'accessories'
 }
