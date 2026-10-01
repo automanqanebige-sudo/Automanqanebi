@@ -1,0 +1,38 @@
+﻿name: Daily listing crons
+on:
+  schedule:
+    - cron: '0 5 * * *'
+  workflow_dispatch:
+jobs:
+  cron:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Expire listings
+        env:
+          CRON_SECRET: ${{ secrets.CRON_SECRET }}
+          SITE_URL: ${{ secrets.SITE_URL }}
+        run: |
+          set -euo pipefail
+          if [ -z "${CRON_SECRET:-}" ]; then
+            echo "CRON_SECRET secret is required" >&2
+            exit 1
+          fi
+          URL="${SITE_URL:-https://automanqanebi.ge}"
+          code=$(curl -sS -o /tmp/expire.json -w "%{http_code}" -X POST "$URL/api/cron/expire-listings" \
+            -H "Authorization: Bearer $CRON_SECRET" \
+            -H "Content-Type: application/json")
+          cat /tmp/expire.json
+          test "$code" -ge 200 -a "$code" -lt 300
+      - name: VIP SMS scan
+        env:
+          CRON_SECRET: ${{ secrets.CRON_SECRET }}
+          SITE_URL: ${{ secrets.SITE_URL }}
+        run: |
+          set -euo pipefail
+          URL="${SITE_URL:-https://automanqanebi.ge}"
+          code=$(curl -sS -o /tmp/vip.json -w "%{http_code}" -X POST "$URL/api/cron/vip-sms-reminders" \
+            -H "Authorization: Bearer $CRON_SECRET" \
+            -H "Content-Type: application/json" \
+            -d '{"scan":true}')
+          cat /tmp/vip.json
+          test "$code" -ge 200 -a "$code" -lt 300

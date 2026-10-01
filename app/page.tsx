@@ -1,197 +1,133 @@
 'use client'
 
-import { useState, useMemo } from 'react'
+import { Suspense, useState, useMemo, useEffect, useCallback } from 'react'
+import { useSearchParams } from 'next/navigation'
 import CarCard, { Car } from '@/components/CarCard'
-import SearchFilters, { FilterState } from '@/components/SearchFilters'
+import HomeSearchPanel from '@/components/HomeSearchPanel'
+import { initialFilters } from '@/components/SearchFilters'
 import VipListingsSection from '@/components/VipListingsSection'
-
-// Sample data for demonstration
-const sampleCars: Car[] = [
-  {
-    id: '1',
-    image: 'https://images.unsplash.com/photo-1555215695-3004980ad54e?w=800&q=80',
-    price: 45000,
-    year: 2023,
-    brand: 'BMW',
-    model: 'M4 Competition',
-    location: 'Tbilisi, Georgia',
-    mileage: 12000,
-    fuelType: 'Petrol',
-    transmission: 'Automatic',
-    isVip: true,
-    isFavorite: false,
-  },
-  {
-    id: '2',
-    image: 'https://images.unsplash.com/photo-1617531653332-bd46c24f2068?w=800&q=80',
-    price: 38500,
-    year: 2022,
-    brand: 'Mercedes-Benz',
-    model: 'C300 AMG',
-    location: 'Batumi, Georgia',
-    mileage: 25000,
-    fuelType: 'Petrol',
-    transmission: 'Automatic',
-    isVip: false,
-    isFavorite: true,
-  },
-  {
-    id: '3',
-    image: 'https://images.unsplash.com/photo-1606664515524-ed2f786a0bd6?w=800&q=80',
-    price: 52000,
-    year: 2023,
-    brand: 'Audi',
-    model: 'RS5 Sportback',
-    location: 'Tbilisi, Georgia',
-    mileage: 8000,
-    fuelType: 'Petrol',
-    transmission: 'Automatic',
-    isVip: true,
-    isFavorite: false,
-  },
-  {
-    id: '4',
-    image: 'https://images.unsplash.com/photo-1619682817481-e994891cd1f5?w=800&q=80',
-    price: 28000,
-    year: 2021,
-    brand: 'Toyota',
-    model: 'Camry Hybrid',
-    location: 'Kutaisi, Georgia',
-    mileage: 45000,
-    fuelType: 'Hybrid',
-    transmission: 'Automatic',
-    isVip: false,
-    isFavorite: false,
-  },
-  {
-    id: '5',
-    image: 'https://images.unsplash.com/photo-1580273916550-e323be2ae537?w=800&q=80',
-    price: 67000,
-    year: 2024,
-    brand: 'Porsche',
-    model: 'Cayenne',
-    location: 'Tbilisi, Georgia',
-    mileage: 3000,
-    fuelType: 'Petrol',
-    transmission: 'Automatic',
-    isVip: true,
-    isFavorite: false,
-  },
-  {
-    id: '6',
-    image: 'https://images.unsplash.com/photo-1494976388531-d1058494cdd8?w=800&q=80',
-    price: 22000,
-    year: 2020,
-    brand: 'Honda',
-    model: 'Accord Sport',
-    location: 'Rustavi, Georgia',
-    mileage: 55000,
-    fuelType: 'Petrol',
-    transmission: 'Manual',
-    isVip: false,
-    isFavorite: false,
-  },
-  {
-    id: '7',
-    image: 'https://images.unsplash.com/photo-1552519507-da3b142c6e3d?w=800&q=80',
-    price: 85000,
-    year: 2024,
-    brand: 'Tesla',
-    model: 'Model S Plaid',
-    location: 'Tbilisi, Georgia',
-    mileage: 1500,
-    fuelType: 'Electric',
-    transmission: 'Automatic',
-    isVip: true,
-    isFavorite: false,
-  },
-  {
-    id: '8',
-    image: 'https://images.unsplash.com/photo-1542362567-b07e54358753?w=800&q=80',
-    price: 18500,
-    year: 2019,
-    brand: 'Volkswagen',
-    model: 'Golf GTI',
-    location: 'Batumi, Georgia',
-    mileage: 62000,
-    fuelType: 'Diesel',
-    transmission: 'Manual',
-    isVip: false,
-    isFavorite: false,
-  },
-]
-
-const initialFilters: FilterState = {
-  search: '',
-  priceMin: '',
-  priceMax: '',
-  yearMin: '',
-  yearMax: '',
-  fuelType: '',
-  transmission: '',
-}
+import SiteBannerSlot from '@/components/SiteBannerSlot'
+import VinChecker from '@/components/VinChecker'
+import ActiveFilterChips from '@/components/ActiveFilterChips'
+import PopularBrandsSection from '@/components/PopularBrandsSection'
+import RecentlyAddedSection from '@/components/RecentlyAddedSection'
+import HomeTrustCta from '@/components/HomeTrustCta'
+import { CarCardSkeletonGrid } from '@/components/ui/Skeleton'
+import { loadAllCars } from '@/lib/cars-firestore'
+import { applyCarFilters } from '@/lib/apply-car-filters'
+import {
+  carFiltersToParams,
+  parseCarFiltersFromParams,
+  LISTINGS_PAGE_SIZE,
+  type SortOption,
+} from '@/lib/car-filter-url'
+import Pagination from '@/components/Pagination'
+import { useLanguage } from '@/context/LanguageContext'
+import { useAuth } from '@/context/AuthContext'
+import { useAnalyticsSearchLog } from '@/hooks/useAnalyticsSearchLog'
+import { getWindowQueryString, softReplaceUrl } from '@/lib/soft-url'
+import type { FilterState } from '@/types/filters'
 
 export default function Home() {
-  const [cars, setCars] = useState<Car[]>(sampleCars)
+  return (
+    <Suspense fallback={<HomePageFallback />}>
+      <HomePageContent />
+    </Suspense>
+  )
+}
+
+function HomePageFallback() {
+  return (
+    <section className="px-4 py-8 sm:px-6 lg:px-8">
+      <div className="mx-auto max-w-7xl">
+        <CarCardSkeletonGrid count={8} />
+      </div>
+    </section>
+  )
+}
+
+function HomePageContent() {
+  const { t } = useLanguage()
+  const { user } = useAuth()
+  const searchParams = useSearchParams()
+  const searchParamsString = searchParams.toString()
+
+  const [cars, setCars] = useState<Car[]>([])
+  const [loadingCars, setLoadingCars] = useState(true)
+  const [loadError, setLoadError] = useState(false)
   const [filters, setFilters] = useState<FilterState>(initialFilters)
-  const [sortBy, setSortBy] = useState('newest')
+  const [sortBy, setSortBy] = useState<SortOption>('newest')
+  const [page, setPage] = useState(1)
+  const [urlReady, setUrlReady] = useState(false)
 
-  const handleFavoriteToggle = (id: string) => {
-    setCars(prevCars =>
-      prevCars.map(car =>
-        car.id === id ? { ...car, isFavorite: !car.isFavorite } : car
-      )
-    )
-  }
+  // URL → state only when Next searchParams change (links / back). Soft writes do not.
+  useEffect(() => {
+    const liveQs = getWindowQueryString()
+    const source = new URLSearchParams(liveQs || searchParamsString)
+    const { filters: fromUrl, sort, page: fromPage } = parseCarFiltersFromParams(source)
+    setFilters(fromUrl)
+    setSortBy(sort)
+    setPage(fromPage)
+    setUrlReady(true)
+  }, [searchParamsString])
 
-  const handleSearch = () => {
-    // In a real app, this would trigger an API call
-    // For now, filtering is handled reactively via useMemo
-  }
+  const debouncedSearch = useDebouncedValue(filters.search, 350)
+  useAnalyticsSearchLog(debouncedSearch, 'search_cars', user?.uid)
 
-  const handleReset = () => {
+  // Soft URL update — no Suspense remount, input keeps focus while typing.
+  useEffect(() => {
+    if (!urlReady) return
+    const params = carFiltersToParams({ ...filters, search: debouncedSearch }, sortBy, page)
+    const qs = params.toString()
+    if (qs === getWindowQueryString()) return
+    softReplaceUrl(qs ? `/?${qs}` : '/')
+  }, [debouncedSearch, filters, sortBy, page, urlReady])
+
+  const updateFilters = useCallback((next: FilterState) => {
+    setFilters(next)
+    setPage(1)
+  }, [])
+
+  const updateSort = useCallback((next: SortOption) => {
+    setSortBy(next)
+    setPage(1)
+  }, [])
+
+  const fetchCars = useCallback(() => {
+    setLoadingCars(true)
+    setLoadError(false)
+    loadAllCars()
+      .then((data) => {
+        setCars(data)
+        setLoadError(false)
+      })
+      .catch(() => {
+        setCars([])
+        setLoadError(true)
+      })
+      .finally(() => setLoadingCars(false))
+  }, [])
+
+  useEffect(() => {
+    fetchCars()
+  }, [fetchCars])
+
+  const handleReset = useCallback(() => {
     setFilters(initialFilters)
-  }
+    setSortBy('newest')
+    setPage(1)
+  }, [])
 
-  // Separate VIP cars for the dedicated section
-  const vipCars = useMemo(() => {
-    return cars.filter(car => car.isVip)
-  }, [cars])
+  const vipCars = useMemo(() => cars.filter((car) => car.isVip), [cars])
 
-  // Non-VIP cars for the regular listings (or all if no filters applied)
-  const regularCars = useMemo(() => {
-    return cars.filter(car => !car.isVip)
-  }, [cars])
+  const activeFilters = useMemo(
+    () => ({ ...filters, search: debouncedSearch }),
+    [filters, debouncedSearch]
+  )
 
   const filteredAndSortedCars = useMemo(() => {
-    let result = cars.filter(car => {
-      // Search filter
-      if (filters.search) {
-        const searchLower = filters.search.toLowerCase()
-        const matchesSearch = 
-          car.brand.toLowerCase().includes(searchLower) ||
-          car.model.toLowerCase().includes(searchLower)
-        if (!matchesSearch) return false
-      }
+    let result = applyCarFilters(cars, activeFilters)
 
-      // Price filter
-      if (filters.priceMin && car.price < Number(filters.priceMin)) return false
-      if (filters.priceMax && car.price > Number(filters.priceMax)) return false
-
-      // Year filter
-      if (filters.yearMin && car.year < Number(filters.yearMin)) return false
-      if (filters.yearMax && car.year > Number(filters.yearMax)) return false
-
-      // Fuel type filter
-      if (filters.fuelType && car.fuelType.toLowerCase() !== filters.fuelType.toLowerCase()) return false
-
-      // Transmission filter
-      if (filters.transmission && car.transmission?.toLowerCase() !== filters.transmission.toLowerCase()) return false
-
-      return true
-    })
-
-    // Sort results
     switch (sortBy) {
       case 'price-low':
         result = [...result].sort((a, b) => a.price - b.price)
@@ -207,7 +143,6 @@ export default function Home() {
         break
       case 'newest':
       default:
-        // VIP cars first, then by year
         result = [...result].sort((a, b) => {
           if (a.isVip !== b.isVip) return a.isVip ? -1 : 1
           return b.year - a.year
@@ -216,106 +151,162 @@ export default function Home() {
     }
 
     return result
-  }, [cars, filters, sortBy])
+  }, [cars, activeFilters, sortBy])
+
+  const totalPages = Math.max(1, Math.ceil(filteredAndSortedCars.length / LISTINGS_PAGE_SIZE))
+  const safePage = Math.min(page, totalPages)
+
+  useEffect(() => {
+    if (page > totalPages) setPage(totalPages)
+  }, [page, totalPages])
+  const paginatedCars = filteredAndSortedCars.slice(
+    (safePage - 1) * LISTINGS_PAGE_SIZE,
+    safePage * LISTINGS_PAGE_SIZE
+  )
+
+  const handleSearch = () => {
+    document.getElementById('listings')?.scrollIntoView({ behavior: 'smooth' })
+  }
+
+  const countLabel =
+    filteredAndSortedCars.length === 1 ? t('home.listing') : t('home.listings')
 
   return (
-    <main className="min-h-screen">
-      {/* Hero Section */}
-      <section className="bg-gradient-to-br from-primary/10 via-background to-background py-10 px-4 sm:px-6 lg:px-8">
-        <div className="max-w-7xl mx-auto">
-          <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-foreground text-balance">
-            Find Your Perfect Car
-          </h1>
-          <p className="mt-3 text-lg text-muted-foreground max-w-2xl">
-            Browse thousands of quality vehicles from trusted sellers across Georgia
-          </p>
-
-          {/* Search and Filters */}
-          <div className="mt-8">
-            <SearchFilters
-              filters={filters}
-              onFiltersChange={setFilters}
-              onSearch={handleSearch}
-              onReset={handleReset}
-            />
-          </div>
-        </div>
-      </section>
-
-      {/* VIP Listings Section */}
-      <VipListingsSection 
-        cars={vipCars} 
-        onFavoriteToggle={handleFavoriteToggle} 
+    <>
+      <HomeSearchPanel
+        filters={filters}
+        onFiltersChange={updateFilters}
+        onSearch={handleSearch}
+        onReset={handleReset}
+        resultCount={filteredAndSortedCars.length}
       />
 
-      {/* Results Section */}
-      <section className="py-8 px-4 sm:px-6 lg:px-8">
-        <div className="max-w-7xl mx-auto">
-          {/* Results Header */}
-          <div className="flex items-center gap-3 mb-6">
-            <h2 className="text-2xl font-bold text-foreground">All Listings</h2>
-            <span className="px-3 py-1 text-sm font-medium bg-secondary text-secondary-foreground rounded-full">
-              {filteredAndSortedCars.length} cars
-            </span>
-          </div>
-          
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
-            <p className="text-muted-foreground">
-              <span className="font-semibold text-foreground">{filteredAndSortedCars.length}</span>{' '}
-              {filteredAndSortedCars.length === 1 ? 'car' : 'cars'} found
-            </p>
+      <div id="vin-check" className="mx-auto max-w-5xl px-4 pb-4 sm:px-6 lg:px-8">
+        <VinChecker compact />
+      </div>
+
+      <SiteBannerSlot placement="home_below_hero" className="px-4 pb-4 pt-2 sm:px-6 lg:px-8" />
+
+      <PopularBrandsSection
+        selectedBrand={filters.brand}
+        onBrandSelect={(brand) => {
+          updateFilters({ ...filters, brand, model: '' })
+          document.getElementById('listings')?.scrollIntoView({ behavior: 'smooth' })
+        }}
+      />
+
+      <VipListingsSection cars={vipCars} />
+
+      <RecentlyAddedSection cars={cars} />
+
+      <SiteBannerSlot placement="home_mid" className="px-4 py-6 sm:px-6 lg:px-8" />
+
+      <section id="listings" className="section-padding">
+        <div className="mx-auto max-w-7xl">
+          <SiteBannerSlot placement="listings_top" className="mb-6" />
+          <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+            <div className="flex items-center gap-3">
+              <h2 className="text-2xl font-bold tracking-tight text-foreground sm:text-3xl">
+                {t('home.allListings')}
+              </h2>
+              {!loadingCars && (
+                <span className="rounded-full bg-primary/10 px-3 py-1 text-sm font-semibold text-primary">
+                  {filteredAndSortedCars.length} {countLabel}
+                </span>
+              )}
+            </div>
             <div className="flex items-center gap-2">
-              <label htmlFor="sort" className="text-sm text-muted-foreground">
-                Sort by:
+              <label htmlFor="sort" className="text-sm font-medium text-muted-foreground">
+                {t('home.sortBy')}:
               </label>
               <select
                 id="sort"
                 value={sortBy}
-                onChange={(e) => setSortBy(e.target.value)}
-                className="px-4 py-2 rounded-lg border border-input bg-card text-foreground text-sm focus:outline-none focus:ring-2 focus:ring-primary cursor-pointer"
+                onChange={(e) => updateSort(e.target.value as SortOption)}
+                className="select-premium w-auto min-w-[160px] py-2"
               >
-                <option value="newest">Featured</option>
-                <option value="price-low">Price: Low to High</option>
-                <option value="price-high">Price: High to Low</option>
-                <option value="mileage">Lowest Mileage</option>
-                <option value="year">Newest Year</option>
+                <option value="newest">{t('home.sort.featured')}</option>
+                <option value="price-low">{t('home.sort.priceLow')}</option>
+                <option value="price-high">{t('home.sort.priceHigh')}</option>
+                <option value="mileage">{t('home.sort.mileage')}</option>
+                <option value="year">{t('home.sort.year')}</option>
               </select>
             </div>
           </div>
 
-          {/* Car Grid */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-            {filteredAndSortedCars.map((car) => (
-              <CarCard
-                key={car.id}
-                car={car}
-                onFavoriteToggle={handleFavoriteToggle}
-              />
-            ))}
-          </div>
+          <ActiveFilterChips
+            filters={activeFilters}
+            onChange={updateFilters}
+            onClearAll={handleReset}
+          />
 
-          {/* Empty State */}
-          {filteredAndSortedCars.length === 0 && (
-            <div className="text-center py-16 px-4">
-              <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-secondary flex items-center justify-center">
-                <svg className="w-8 h-8 text-muted-foreground" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+          {loadError && !loadingCars ? (
+            <div className="rounded-xl border border-destructive/30 bg-destructive/5 px-6 py-10 text-center">
+              <p className="mb-4 text-muted-foreground">{t('home.loadError')}</p>
+              <button
+                type="button"
+                onClick={fetchCars}
+                className="btn-primary rounded-xl px-6 py-2.5"
+              >
+                {t('home.loadErrorRetry')}
+              </button>
+            </div>
+          ) : loadingCars ? (
+            <CarCardSkeletonGrid count={8} />
+          ) : (
+            <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 sm:gap-6 lg:grid-cols-3 xl:grid-cols-4">
+              {paginatedCars.map((car) => (
+                <CarCard key={car.id} car={car} />
+              ))}
+            </div>
+          )}
+
+          {!loadingCars && filteredAndSortedCars.length > 0 && (
+            <Pagination
+              page={safePage}
+              totalPages={totalPages}
+              onPageChange={(nextPage) => {
+                setPage(nextPage)
+                document.getElementById('listings')?.scrollIntoView({ behavior: 'smooth' })
+              }}
+            />
+          )}
+
+          {!loadingCars && filteredAndSortedCars.length === 0 && (
+            <div className="rounded-2xl border border-dashed border-border bg-card px-6 py-16 text-center shadow-card">
+              <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-secondary">
+                <svg className="h-8 w-8 text-muted-foreground" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={1.5}
+                    d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+                  />
                 </svg>
               </div>
-              <h3 className="text-lg font-semibold text-foreground mb-2">No cars found</h3>
-              <p className="text-muted-foreground mb-6 max-w-md mx-auto">
-                We couldn&apos;t find any cars matching your criteria. Try adjusting your filters or search term.
-              </p>
+              <h3 className="mb-2 text-lg font-semibold text-foreground">{t('home.empty.title')}</h3>
+              <p className="mx-auto mb-6 max-w-md text-muted-foreground">{t('home.empty.desc')}</p>
               <button
                 onClick={handleReset}
-                className="px-6 py-2.5 bg-primary text-primary-foreground rounded-lg font-medium hover:bg-primary/90 transition-colors"
+                className="btn-primary rounded-xl px-6 py-2.5"
               >
-                Clear all filters
+                {t('home.empty.clear')}
               </button>
             </div>
           )}
         </div>
       </section>
-    </main>
+
+      <HomeTrustCta />
+    </>
   )
+}
+
+function useDebouncedValue<T>(value: T, delayMs: number): T {
+  const [debounced, setDebounced] = useState(value)
+  useEffect(() => {
+    const timer = setTimeout(() => setDebounced(value), delayMs)
+    return () => clearTimeout(timer)
+  }, [value, delayMs])
+  return debounced
 }

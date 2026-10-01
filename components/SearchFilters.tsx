@@ -1,288 +1,151 @@
 'use client'
 
 import { useState } from 'react'
-import { Search, ChevronDown, X, RotateCcw } from 'lucide-react'
+import { ChevronDown } from 'lucide-react'
+import BrandFilter from '@/components/BrandFilter'
+import AdvancedFilterPanel from '@/components/AdvancedFilterPanel'
+import RangeFromTo from '@/components/RangeFromTo'
+import CurrencyToggle from '@/components/CurrencyToggle'
+import { useLanguage } from '@/context/LanguageContext'
+import { useCurrency } from '@/context/CurrencyContext'
+import { countActiveFilters } from '@/lib/apply-car-filters'
+import { PRICE_SLIDER_MAX, type FilterState } from '@/types/filters'
 
-export interface FilterState {
-  search: string
-  priceMin: string
-  priceMax: string
-  yearMin: string
-  yearMax: string
-  fuelType: string
-  transmission: string
-}
+export type { FilterState } from '@/types/filters'
+export { initialFilters } from '@/types/filters'
 
 interface SearchFiltersProps {
   filters: FilterState
   onFiltersChange: (filters: FilterState) => void
   onSearch: () => void
   onReset: () => void
+  resultCount: number
 }
 
-const priceOptions = [
-  { value: '', label: 'Any' },
-  { value: '5000', label: '$5,000' },
-  { value: '10000', label: '$10,000' },
-  { value: '15000', label: '$15,000' },
-  { value: '20000', label: '$20,000' },
-  { value: '30000', label: '$30,000' },
-  { value: '50000', label: '$50,000' },
-  { value: '75000', label: '$75,000' },
-  { value: '100000', label: '$100,000' },
-]
-
-const currentYear = new Date().getFullYear()
-const yearOptions = [
-  { value: '', label: 'Any' },
-  ...Array.from({ length: 30 }, (_, i) => ({
-    value: String(currentYear - i),
-    label: String(currentYear - i),
-  })),
-]
-
-const fuelTypeOptions = [
-  { value: '', label: 'All Fuel Types' },
-  { value: 'petrol', label: 'Petrol' },
-  { value: 'diesel', label: 'Diesel' },
-  { value: 'hybrid', label: 'Hybrid' },
-  { value: 'electric', label: 'Electric' },
-  { value: 'lpg', label: 'LPG' },
-]
-
-const transmissionOptions = [
-  { value: '', label: 'All Transmissions' },
-  { value: 'automatic', label: 'Automatic' },
-  { value: 'manual', label: 'Manual' },
-  { value: 'semi-automatic', label: 'Semi-Automatic' },
-]
-
-interface SelectDropdownProps {
-  label: string
-  value: string
-  options: { value: string; label: string }[]
-  onChange: (value: string) => void
-  className?: string
-}
-
-function SelectDropdown({ label, value, options, onChange, className = '' }: SelectDropdownProps) {
-  return (
-    <div className={`relative ${className}`}>
-      <label className="block text-xs font-medium text-muted-foreground mb-1.5">
-        {label}
-      </label>
-      <div className="relative">
-        <select
-          value={value}
-          onChange={(e) => onChange(e.target.value)}
-          className="w-full appearance-none px-4 py-2.5 pr-10 rounded-lg border border-input bg-card text-foreground text-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all cursor-pointer hover:border-primary/50"
-        >
-          {options.map((option) => (
-            <option key={option.value} value={option.value}>
-              {option.label}
-            </option>
-          ))}
-        </select>
-        <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
-      </div>
-    </div>
-  )
-}
-
-export default function SearchFilters({ filters, onFiltersChange, onSearch, onReset }: SearchFiltersProps) {
+export default function SearchFilters({
+  filters,
+  onFiltersChange,
+  onSearch,
+  onReset,
+  resultCount,
+}: SearchFiltersProps) {
+  const { t } = useLanguage()
+  const { currency, rate, toBasePrice, fromBasePrice } = useCurrency()
   const [isExpanded, setIsExpanded] = useState(false)
+  const currentYear = new Date().getFullYear()
 
-  const updateFilter = (key: keyof FilterState, value: string) => {
-    onFiltersChange({ ...filters, [key]: value })
-  }
-
-  const hasActiveFilters = 
-    filters.priceMin || 
-    filters.priceMax || 
-    filters.yearMin || 
-    filters.yearMax || 
-    filters.fuelType || 
-    filters.transmission
-
-  const activeFilterCount = [
-    filters.priceMin || filters.priceMax,
-    filters.yearMin || filters.yearMax,
-    filters.fuelType,
-    filters.transmission,
-  ].filter(Boolean).length
+  const activeFilterCount = countActiveFilters(filters)
+  const patch = (partial: Partial<FilterState>) => onFiltersChange({ ...filters, ...partial })
 
   return (
-    <div className="bg-card border border-border rounded-2xl shadow-sm overflow-hidden">
-      {/* Main Search Bar */}
+    <div className="overflow-hidden rounded-2xl border border-border/80 bg-card shadow-lg shadow-primary/5">
+      <div className="border-b border-border/60 bg-secondary/40 px-4 py-3 sm:px-6">
+        <div className="text-sm font-semibold text-foreground">
+          {t('search.detailedFilters')}
+        </div>
+      </div>
+
       <div className="p-4 sm:p-6">
-        <div className="flex flex-col lg:flex-row gap-4">
-          {/* Search Input */}
-          <div className="flex-1 relative">
-            <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
-            <input
-              type="text"
-              placeholder="Search by brand or model (e.g., BMW, Mercedes, Camry)..."
-              value={filters.search}
-              onChange={(e) => updateFilter('search', e.target.value)}
-              className="w-full pl-12 pr-4 py-3 rounded-xl border border-input bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all"
-              onKeyDown={(e) => e.key === 'Enter' && onSearch()}
-            />
-            {filters.search && (
-              <button
-                onClick={() => updateFilter('search', '')}
-                className="absolute right-4 top-1/2 -translate-y-1/2 p-1 rounded-full hover:bg-secondary transition-colors"
-                aria-label="Clear search"
-              >
-                <X className="h-4 w-4 text-muted-foreground" />
-              </button>
-            )}
-          </div>
+        <BrandFilter
+          selectedBrand={filters.brand}
+          selectedModel={filters.model}
+          onBrandChange={(brand) => onFiltersChange({ ...filters, brand, model: '' })}
+          onModelChange={(model) => onFiltersChange({ ...filters, model })}
+        />
 
-          {/* Quick Filters - Desktop */}
-          <div className="hidden lg:flex items-end gap-3">
-            <SelectDropdown
-              label="Price Range"
-              value={filters.priceMin}
-              options={priceOptions.map(o => ({ ...o, label: o.value ? `From ${o.label}` : 'Min Price' }))}
-              onChange={(value) => updateFilter('priceMin', value)}
-              className="w-36"
+        <div className="mt-4 space-y-3">
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <p className="text-sm font-medium text-foreground">
+              {t('filter.section.price')} ({currency === 'GEL' ? '₾' : '$'})
+            </p>
+            <div className="flex flex-wrap items-center gap-2">
+              <CurrencyToggle compact />
+              <span className="text-xs text-muted-foreground">
+                1$ ≈ {rate.toFixed(2)}₾
+              </span>
+            </div>
+          </div>
+          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+            <RangeFromTo
+              title={`${t('search.from')} – ${t('search.to')}`}
+              fromLabel={t('search.from')}
+              toLabel={t('search.to')}
+              fromValue={filters.priceMin ? fromBasePrice(filters.priceMin) : ''}
+              toValue={filters.priceMax === PRICE_SLIDER_MAX ? '' : fromBasePrice(filters.priceMax)}
+              onFromChange={(v) => patch({ priceMin: toBasePrice(Number(v) || 0) })}
+              onToChange={(v) =>
+                patch({ priceMax: v ? toBasePrice(Number(v)) : PRICE_SLIDER_MAX })
+              }
+              fromPlaceholder="0"
+              toPlaceholder={String(fromBasePrice(PRICE_SLIDER_MAX))}
+              min={0}
+              step={100}
             />
-            <span className="text-muted-foreground pb-3">-</span>
-            <SelectDropdown
-              label=""
-              value={filters.priceMax}
-              options={priceOptions.map(o => ({ ...o, label: o.value ? `To ${o.label}` : 'Max Price' }))}
-              onChange={(value) => updateFilter('priceMax', value)}
-              className="w-36 mt-5"
+            <RangeFromTo
+              title={t('search.year')}
+              fromLabel={t('search.from')}
+              toLabel={t('search.to')}
+              fromValue={filters.yearMin}
+              toValue={filters.yearMax}
+              onFromChange={(yearMin) => patch({ yearMin })}
+              onToChange={(yearMax) => patch({ yearMax })}
+              fromPlaceholder={String(currentYear - 30)}
+              toPlaceholder={String(currentYear)}
+              min={1980}
+              max={currentYear + 1}
+            />
+            <RangeFromTo
+              title={t('search.mileage')}
+              fromLabel={t('search.from')}
+              toLabel={t('search.to')}
+              fromValue={filters.mileageMin}
+              toValue={filters.mileageMax}
+              onFromChange={(mileageMin) => patch({ mileageMin })}
+              onToChange={(mileageMax) => patch({ mileageMax })}
+              fromPlaceholder="0"
+              toPlaceholder="200000"
+              min={0}
+              step={1000}
+              suffix="km"
+              className="sm:col-span-2 lg:col-span-1"
             />
           </div>
-
-          {/* Search Button */}
-          <button
-            onClick={onSearch}
-            className="flex items-center justify-center gap-2 px-8 py-3 bg-primary text-primary-foreground rounded-xl font-semibold hover:bg-primary/90 transition-all hover:shadow-lg hover:shadow-primary/25 active:scale-[0.98]"
-          >
-            <Search className="h-5 w-5" />
-            <span>Search</span>
-          </button>
+          <p className="text-xs text-muted-foreground">
+            {t('currency.filterAutoConvert').replace('{{rate}}', rate.toFixed(2))}
+          </p>
         </div>
 
-        {/* Expand Filters Toggle */}
         <button
+          type="button"
           onClick={() => setIsExpanded(!isExpanded)}
-          className="mt-4 flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors"
+          className="mt-4 flex items-center gap-2 text-sm text-muted-foreground transition-colors hover:text-foreground"
         >
-          <ChevronDown className={`h-4 w-4 transition-transform duration-200 ${isExpanded ? 'rotate-180' : ''}`} />
-          <span>{isExpanded ? 'Hide filters' : 'Show more filters'}</span>
+          <ChevronDown
+            className={`h-4 w-4 transition-transform duration-200 ${isExpanded ? 'rotate-180' : ''}`}
+          />
+          <span>{isExpanded ? t('search.hideMore') : t('search.showMore')}</span>
           {activeFilterCount > 0 && (
-            <span className="px-2 py-0.5 bg-primary text-primary-foreground text-xs font-medium rounded-full">
+            <span className="rounded-full bg-primary px-2 py-0.5 text-xs font-medium text-primary-foreground">
               {activeFilterCount}
             </span>
           )}
         </button>
       </div>
 
-      {/* Expanded Filters */}
       <div
         className={`grid transition-all duration-300 ease-in-out ${
           isExpanded ? 'grid-rows-[1fr] opacity-100' : 'grid-rows-[0fr] opacity-0'
         }`}
       >
         <div className="overflow-hidden">
-          <div className="px-4 sm:px-6 pb-6 pt-2 border-t border-border">
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mt-4">
-              {/* Price Range - Mobile */}
-              <div className="lg:hidden sm:col-span-2">
-                <label className="block text-xs font-medium text-muted-foreground mb-1.5">
-                  Price Range
-                </label>
-                <div className="flex items-center gap-2">
-                  <select
-                    value={filters.priceMin}
-                    onChange={(e) => updateFilter('priceMin', e.target.value)}
-                    className="flex-1 appearance-none px-4 py-2.5 rounded-lg border border-input bg-background text-foreground text-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all"
-                  >
-                    {priceOptions.map((option) => (
-                      <option key={option.value} value={option.value}>
-                        {option.value ? `From ${option.label}` : 'Min Price'}
-                      </option>
-                    ))}
-                  </select>
-                  <span className="text-muted-foreground">-</span>
-                  <select
-                    value={filters.priceMax}
-                    onChange={(e) => updateFilter('priceMax', e.target.value)}
-                    className="flex-1 appearance-none px-4 py-2.5 rounded-lg border border-input bg-background text-foreground text-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all"
-                  >
-                    {priceOptions.map((option) => (
-                      <option key={option.value} value={option.value}>
-                        {option.value ? `To ${option.label}` : 'Max Price'}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-              </div>
-
-              {/* Year Range */}
-              <div className="sm:col-span-2 lg:col-span-1">
-                <label className="block text-xs font-medium text-muted-foreground mb-1.5">
-                  Year
-                </label>
-                <div className="flex items-center gap-2">
-                  <select
-                    value={filters.yearMin}
-                    onChange={(e) => updateFilter('yearMin', e.target.value)}
-                    className="flex-1 appearance-none px-4 py-2.5 rounded-lg border border-input bg-background text-foreground text-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all"
-                  >
-                    {yearOptions.map((option) => (
-                      <option key={option.value} value={option.value}>
-                        {option.value ? `From ${option.label}` : 'Min Year'}
-                      </option>
-                    ))}
-                  </select>
-                  <span className="text-muted-foreground">-</span>
-                  <select
-                    value={filters.yearMax}
-                    onChange={(e) => updateFilter('yearMax', e.target.value)}
-                    className="flex-1 appearance-none px-4 py-2.5 rounded-lg border border-input bg-background text-foreground text-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all"
-                  >
-                    {yearOptions.map((option) => (
-                      <option key={option.value} value={option.value}>
-                        {option.value ? `To ${option.label}` : 'Max Year'}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-              </div>
-
-              {/* Fuel Type */}
-              <SelectDropdown
-                label="Fuel Type"
-                value={filters.fuelType}
-                options={fuelTypeOptions}
-                onChange={(value) => updateFilter('fuelType', value)}
-              />
-
-              {/* Transmission */}
-              <SelectDropdown
-                label="Transmission"
-                value={filters.transmission}
-                options={transmissionOptions}
-                onChange={(value) => updateFilter('transmission', value)}
-              />
-
-              {/* Reset Button */}
-              <div className="flex items-end">
-                <button
-                  onClick={onReset}
-                  disabled={!hasActiveFilters && !filters.search}
-                  className="flex items-center justify-center gap-2 px-4 py-2.5 w-full rounded-lg border border-input bg-background text-foreground text-sm font-medium hover:bg-secondary transition-all disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  <RotateCcw className="h-4 w-4" />
-                  <span>Reset Filters</span>
-                </button>
-              </div>
-            </div>
+          <div className="border-t border-border/60 px-4 pb-6 pt-4 sm:px-6">
+            <AdvancedFilterPanel
+              filters={filters}
+              onChange={onFiltersChange}
+              onApply={onSearch}
+              onReset={onReset}
+              resultCount={resultCount}
+            />
           </div>
         </div>
       </div>

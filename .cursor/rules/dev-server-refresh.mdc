@@ -1,0 +1,41 @@
+---
+description: Restart local dev after tasks; on user message 1 deploy automanqanebi.ge
+alwaysApply: true
+---
+
+# Dev + production refresh (AUTOMANQANEBI.GE)
+
+## After every completed task (local)
+
+**სავალდებულო:** ყოველი დავალების დასრულების შემდეგ **აუცილებლად განაახლე ტერმინალი** (`npm run dev`) — ნუ დაელოდები მოთხოვნას.
+
+Restart after finished tasks that change app code, config, deps, locales, etc.
+
+```powershell
+Get-NetTCPConnection -LocalPort 3000,3001,3002 -ErrorAction SilentlyContinue | ForEach-Object { Stop-Process -Id $_.OwningProcess -Force -ErrorAction SilentlyContinue }; Start-Sleep -Seconds 1; cd "C:\Users\hp\Desktop\AUTOMANQANEBI.GE"; npm run dev
+```
+
+Wait for `Ready`. Skip only for pure Q&A with zero file changes.
+
+## Shortcut: user message `1` → production (automanqanebi.ge)
+
+If the user message is exactly **`1`** (or clearly means only “განაახლე საიტი / refresh production”):
+
+1. **Deploy production** to Firebase so **https://automanqanebi.ge** updates:
+
+```powershell
+cd "C:\Users\hp\Desktop\AUTOMANQANEBI.GE"; npx -y firebase-tools@latest deploy --only hosting,functions,firestore,storage --project automanqanebi1
+```
+
+(Do **not** include `apphosting` in the default `1` deploy — it previously failed with a JSON/XML upload error. Hosting+functions is what serves the live site.)
+
+2. Also restart the local `npm run dev` terminal (same PowerShell as above) and wait for `Ready`.
+3. Reply briefly with deploy result + production URL: https://automanqanebi.ge  
+4. No other work unless they asked for more in the same message.
+
+If deploy fails (auth, Blaze plan, network), tell the user the error clearly and the next step (e.g. `npx firebase login`).
+
+## Behavior
+
+- Local restart is part of task completion; confirm `Ready`
+- Do not ask “should I restart/deploy?” — do it when the rules say so
