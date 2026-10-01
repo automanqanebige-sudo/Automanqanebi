@@ -99,7 +99,9 @@ export default function ServicesLeafletMap({
           marker.setLatLng(latLng)
         }
 
-        marker.bindPopup(`<strong>${escapeHtml(service.name)}</strong><br/>${escapeHtml(service.location)}`)
+        marker.bindPopup(
+          `<strong>${escapeHtml(service.name)}</strong><br/>${escapeHtml(service.location)}<br/><a href="${directionsHref(service.latitude, service.longitude, service.name)}" target="_blank" rel="noopener noreferrer" style="color:#059669;font-weight:600">→ GPS</a>`
+        )
       }
 
       if (services.length > 0) {
@@ -152,4 +154,11 @@ function escapeHtml(value: string) {
     .replace(/</g, '&lt;')
     .replace(/>/g, '&gt;')
     .replace(/"/g, '&quot;')
+}
+
+function directionsHref(lat: number, lng: number, label: string) {
+  const dest = `${lat},${lng}`
+  const q = encodeURIComponent(label || dest)
+  // Prefer Google Maps dir URL in popup (works cross-platform when opened)
+  return `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(dest)}&travelmode=driving&q=${q}`
 }

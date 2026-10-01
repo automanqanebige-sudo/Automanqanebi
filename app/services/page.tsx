@@ -13,11 +13,14 @@ import ServiceCategoryAdsSection from '@/components/ServiceCategoryAdsSection'
 import SiteBannerSlot from '@/components/SiteBannerSlot'
 import MobileServicesCategoriesSection from '@/components/MobileServicesCategoriesSection'
 import MarketplaceServicesCategoriesSection from '@/components/MarketplaceServicesCategoriesSection'
+import WorkshopsMapSection from '@/components/WorkshopsMapSection'
 import {
+  ACCESSORY_MARKETPLACE_CHIPS,
   FILTERABLE_SERVICE_CATEGORIES,
   type Service,
   type ServiceCategory,
 } from '@/types/service'
+import { isPhysicalAutoService } from '@/lib/service-map-eligibility'
 import { useServiceCatalogT } from '@/hooks/useServiceCatalogT'
 import { useLanguage } from '@/context/LanguageContext'
 import { sampleServices } from '@/data/services'
@@ -64,6 +67,7 @@ function ServicesPageContent() {
   const cachedAds = getCachedServiceCategoryAds()
 
   const [selectedCategory, setSelectedCategory] = useState<ServiceCategory | null>(null)
+  const [selectedAccessoryId, setSelectedAccessoryId] = useState<string | null>(null)
   const [searchQuery, setSearchQuery] = useState('')
   const [discFilters, setDiscFilters] = useState<ServiceDiscFilterState>(initialDiscFilters)
   const [services, setServices] = useState<Service[]>(cachedServices ?? sampleServices)
@@ -76,6 +80,7 @@ function ServicesPageContent() {
     const params = new URLSearchParams(liveQs || searchParamsString)
     const q = params.get('q') ?? ''
     const cat = params.get('category')
+    const acc = params.get('acc')
     const diameter = params.get('diameter') ?? ''
     const bolt = params.get('bolt') ?? ''
     const material = params.get('material') ?? ''
@@ -83,8 +88,14 @@ function ServicesPageContent() {
 
     setSearchQuery(q)
 
+    const validAcc =
+      acc && ACCESSORY_MARKETPLACE_CHIPS.some((chip) => chip.id === acc) ? acc : null
+    setSelectedAccessoryId(validAcc)
+
     if (diameter || bolt || material || condition) {
       setSelectedCategory('discs')
+    } else if (validAcc) {
+      setSelectedCategory('accessories')
     } else if (cat && FILTERABLE_SERVICE_CATEGORIES.includes(cat as ServiceCategory)) {
       setSelectedCategory(cat as ServiceCategory)
     } else {
@@ -141,6 +152,7 @@ function ServicesPageContent() {
     const params = new URLSearchParams()
     if (debouncedSearch.trim()) params.set('q', debouncedSearch.trim())
     if (selectedCategory) params.set('category', selectedCategory)
+    if (selectedAccessoryId) params.set('acc', selectedAccessoryId)
     if (discFilters.diameter) params.set('diameter', discFilters.diameter)
     if (discFilters.boltPattern) params.set('bolt', discFilters.boltPattern)
     if (discFilters.material) params.set('material', discFilters.material)
@@ -148,7 +160,7 @@ function ServicesPageContent() {
     const qs = params.toString()
     if (qs === getWindowQueryString()) return
     softReplaceUrl(qs ? `/services?${qs}` : '/services')
-  }, [debouncedSearch, selectedCategory, discFilters, urlReady])
+  }, [debouncedSearch, selectedCategory, selectedAccessoryId, discFilters, urlReady])
 
   const categoryLabel = useCallback(
     (cat: ServiceCategory) => baseT(`services.cat.${cat}`),
@@ -202,6 +214,7 @@ function ServicesPageContent() {
   )
 
   const selectCategory = (cat: ServiceCategory | null) => {
+    setSelectedAccessoryId(null)
     setSelectedCategory(cat)
     if (cat !== 'discs') {
       setDiscFilters(initialDiscFilters)
@@ -209,14 +222,44 @@ function ServicesPageContent() {
     if (searchQuery) setSearchQuery('')
   }
 
+  const selectAccessory = (accessoryId: string | null, searchLabel: string) => {
+    setSelectedAccessoryId(accessoryId)
+    setDiscFilters(initialDiscFilters)
+    if (accessoryId) {
+      setSelectedCategory('accessories')
+      setSearchQuery(searchLabel)
+    } else {
+      setSelectedCategory(null)
+      setSearchQuery('')
+    }
+  }
+
   const showListings = Boolean(selectedCategory || hasSearch)
+
+  const mapServices = useMemo(
+    () =>
+      services.filter(
+        (service) =>
+          FILTERABLE_SERVICE_CATEGORIES.includes(service.category) &&
+          isPhysicalAutoService(service)
+      ),
+    [services]
+  )
+
+  const mapListServices = useMemo(() => {
+    if (!selectedCategory) return mapServices
+    return mapServices.filter((service) => service.category === selectedCategory)
+  }, [mapServices, selectedCategory])
 
   return (
     <div className="min-h-screen bg-background">
-      <div className="sticky top-[6.5rem] z-30 border-b border-border/60 bg-surface/90 backdrop-blur-xl md:top-[7rem]">
+      <div className="border-b border-border/60 bg-surface">
         <ServicesTopSearch
           value={searchQuery}
-          onChange={setSearchQuery}
+          onChange={(next) => {
+            setSelectedAccessoryId(null)
+            setSearchQuery(next)
+          }}
           suggestions={searchSuggestions}
         />
       </div>
@@ -267,9 +310,19 @@ function ServicesPageContent() {
 
         <MarketplaceServicesCategoriesSection
           className="mb-8"
-          value={selectedCategory}
-          onChange={selectCategory}
+          value={selectedAccessoryId}
+          onChange={selectAccessory}
         />
+
+        <section className="mb-10">
+          <h2 className="mb-4 text-xl font-bold text-foreground">{baseT('services.mapTitle')}</h2>
+          <WorkshopsMapSection
+            key={selectedCategory ?? 'all'}
+            mapServices={mapServices}
+            listServices={mapListServices}
+            i18nPrefix="services"
+          />
+        </section>
 
         {selectedCategory === 'discs' && (
           <ServiceDiscFilters filters={discFilters} onChange={setDiscFilters} />

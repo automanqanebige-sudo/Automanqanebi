@@ -3,10 +3,11 @@
 import { useEffect, useMemo, useState } from 'react'
 import dynamic from 'next/dynamic'
 import Link from 'next/link'
-import { MapPin, Navigation, Star } from 'lucide-react'
+import { MapPin, Navigation, Route, Star } from 'lucide-react'
 import SearchInputWithSuggestions from '@/components/SearchInputWithSuggestions'
 import { useLanguage } from '@/context/LanguageContext'
 import { geocodeAddress } from '@/lib/geocode'
+import { openDirections } from '@/lib/maps-directions'
 import { isPhysicalAutoService } from '@/lib/service-map-eligibility'
 import {
   resolveMissingServiceCoordinates,
@@ -30,6 +31,8 @@ type WorkshopsMapSectionProps = {
   mapServices: Service[]
   /** Optional subset for the sidebar list (e.g. category filter) */
   listServices?: Service[]
+  /** Locale key prefix for map copy (default: workshops) */
+  i18nPrefix?: 'workshops' | 'services'
 }
 
 type MapPin = {
@@ -59,8 +62,13 @@ function findWorkshopByQuery(services: Service[], query: string): Service | unde
   )
 }
 
-export default function WorkshopsMapSection({ mapServices, listServices }: WorkshopsMapSectionProps) {
+export default function WorkshopsMapSection({
+  mapServices,
+  listServices,
+  i18nPrefix = 'workshops',
+}: WorkshopsMapSectionProps) {
   const { t } = useLanguage()
+  const label = (key: string) => t(`${i18nPrefix}.${key}`)
   const [userPos, setUserPos] = useState<{ latitude: number; longitude: number } | null>(null)
   const [geoError, setGeoError] = useState('')
   const [searchError, setSearchError] = useState('')
@@ -194,7 +202,7 @@ export default function WorkshopsMapSection({ mapServices, listServices }: Works
             }
           }}
           onSubmit={handleMapSearch}
-          placeholder={t('workshops.mapSearchPlaceholder')}
+          placeholder={label('mapSearchPlaceholder')}
           suggestions={searchSuggestions}
           showHistory={false}
           inputClassName="input-premium w-full py-3 pl-12 pr-11 text-sm disabled:opacity-60"
@@ -211,21 +219,21 @@ export default function WorkshopsMapSection({ mapServices, listServices }: Works
             className="btn-primary inline-flex rounded-xl px-4 py-2 text-sm"
           >
             <Navigation className="h-4 w-4" />
-            {t('workshops.nearMe')}
+            {label('nearMe')}
           </button>
           {userPos ? (
-            <span className="text-xs text-muted-foreground">{t('workshops.sortedByDistance')}</span>
+            <span className="text-xs text-muted-foreground">{label('sortedByDistance')}</span>
           ) : null}
           <span className="text-xs text-muted-foreground">
-            {t('workshops.mapPinCount').replace('{n}', String(mappedServices.length))}
-            {geocoding ? ` · ${t('workshops.mapGeocoding')}` : ''}
+            {label('mapPinCount').replace('{n}', String(mappedServices.length))}
+            {geocoding ? ` · ${label('mapGeocoding')}` : ''}
           </span>
         </div>
         {geoError ? <p className="text-sm text-destructive">{geoError}</p> : null}
 
         <ul className="max-h-[420px] space-y-2 overflow-y-auto rounded-xl border border-border bg-card p-2">
           {filteredList.length === 0 ? (
-            <li className="p-4 text-sm text-muted-foreground">{t('workshops.noMapped')}</li>
+            <li className="p-4 text-sm text-muted-foreground">{label('noMapped')}</li>
           ) : (
             filteredList.map((s) => (
               <li key={s.id}>
@@ -274,21 +282,42 @@ export default function WorkshopsMapSection({ mapServices, listServices }: Works
               <p className="mt-2 text-sm text-foreground">{selected.description}</p>
             ) : null}
             <p className="mt-2 text-sm text-muted-foreground">{selected.phone}</p>
-            <Link
-              href={`/services/${selected.id}`}
-              className="mt-3 inline-flex items-center gap-1 text-sm font-medium text-primary hover:underline"
-            >
-              <Star className="h-4 w-4" />
-              {t('workshops.viewDetails')}
-            </Link>
+            <div className="mt-3 flex flex-col gap-2 sm:flex-row sm:flex-wrap">
+              <button
+                type="button"
+                onClick={() =>
+                  openDirections(selected.latitude, selected.longitude, selected.name)
+                }
+                className="btn-primary inline-flex w-full items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm sm:w-auto"
+              >
+                <Route className="h-4 w-4" />
+                {label('navigateHere')}
+              </button>
+              <Link
+                href={`/services/${selected.id}`}
+                className="btn-secondary inline-flex w-full items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm sm:w-auto"
+              >
+                <Star className="h-4 w-4" />
+                {label('viewDetails')}
+              </Link>
+            </div>
+            <p className="mt-2 text-xs text-muted-foreground">{label('navigateHint')}</p>
           </div>
         ) : mapPin ? (
           <div className="rounded-xl border border-border bg-card p-4">
-            <h3 className="font-bold text-foreground">{t('workshops.mapPinTitle')}</h3>
+            <h3 className="font-bold text-foreground">{label('mapPinTitle')}</h3>
             <p className="mt-1 text-sm text-muted-foreground">{mapPin.label}</p>
             <p className="mt-2 text-xs text-muted-foreground">
               {mapPin.lat.toFixed(5)}, {mapPin.lng.toFixed(5)}
             </p>
+            <button
+              type="button"
+              onClick={() => openDirections(mapPin.lat, mapPin.lng, mapPin.label)}
+              className="btn-primary mt-3 inline-flex w-full items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm sm:w-auto"
+            >
+              <Route className="h-4 w-4" />
+              {label('navigateHere')}
+            </button>
           </div>
         ) : null}
       </div>

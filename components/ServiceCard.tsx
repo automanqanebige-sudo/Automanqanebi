@@ -2,11 +2,12 @@
 
 import Image from 'next/image'
 import Link from 'next/link'
-import { MapPin, Phone } from 'lucide-react'
+import { MapPin, Phone, Route } from 'lucide-react'
 import { useLanguage } from '@/context/LanguageContext'
 import { useCurrency } from '@/context/CurrencyContext'
 import type { Service, ServiceCategory } from '@/types/service'
 import { getServiceImages, primaryServiceImage } from '@/lib/service-images'
+import { getDirectionsUrl, hasCoordinates } from '@/lib/maps-directions'
 
 type ServiceCardProps = {
   service: Service
@@ -25,6 +26,9 @@ export default function ServiceCard({ service, categoryLabel }: ServiceCardProps
     service.latitude != null && service.longitude != null
       ? `https://www.openstreetmap.org/?mlat=${service.latitude}&mlon=${service.longitude}#map=16/${service.latitude}/${service.longitude}`
       : null
+  const directionsUrl = hasCoordinates(service)
+    ? getDirectionsUrl(service.latitude, service.longitude, service.name)
+    : null
 
   return (
     <Link href={`/services/${service.id}`} className="group block">
@@ -140,6 +144,23 @@ export default function ServiceCard({ service, categoryLabel }: ServiceCardProps
             <MapPin className="h-4 w-4 shrink-0" />
             {service.location}
           </div>
+          {directionsUrl && (
+            <span
+              role="presentation"
+              onClick={(e) => e.stopPropagation()}
+              className="inline-block"
+            >
+              <a
+                href={directionsUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-1.5 text-xs font-medium text-primary hover:underline"
+              >
+                <Route className="h-3.5 w-3.5" />
+                {t('services.navigateHere')}
+              </a>
+            </span>
+          )}
           {mapUrl && (
             <span
               role="presentation"
@@ -150,7 +171,7 @@ export default function ServiceCard({ service, categoryLabel }: ServiceCardProps
                 href={mapUrl}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex items-center gap-1.5 text-xs font-medium text-primary hover:underline"
+                className="inline-flex items-center gap-1.5 text-xs font-medium text-muted-foreground hover:text-primary hover:underline"
               >
                 <MapPin className="h-3.5 w-3.5" />
                 {t('services.viewOnMap')}

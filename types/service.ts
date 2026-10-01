@@ -6,9 +6,11 @@ export {
   WORKSHOP_PAGE_CATEGORY_ENTRIES,
   LEGACY_WORKSHOP_CATEGORIES,
   MOBILE_SERVICE_CATEGORIES,
+  ACCESSORY_MARKETPLACE_CHIPS,
   SERVICE_CATEGORY_ICONS,
   normalizeServiceCategory,
 } from '@/types/service-category'
+export type { AccessoryMarketplaceChip } from '@/types/service-category'
 
 export type DayKey = 'mon' | 'tue' | 'wed' | 'thu' | 'fri' | 'sat' | 'sun'
 

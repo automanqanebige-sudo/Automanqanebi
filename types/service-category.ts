@@ -92,6 +92,31 @@ export const FILTERABLE_SERVICE_CATEGORIES: ServiceCategory[] = [
   ),
 ]
 
+/** Chips under /services “აქსესუარები” section (product names, not service trades) */
+export type AccessoryMarketplaceChip = {
+  id: string
+  labelKey: string
+}
+
+export const ACCESSORY_MARKETPLACE_CHIPS: AccessoryMarketplaceChip[] = [
+  { id: 'floorMats', labelKey: 'services.acc.floorMats' },
+  { id: 'seatCovers', labelKey: 'services.acc.seatCovers' },
+  { id: 'steeringCover', labelKey: 'services.acc.steeringCover' },
+  { id: 'dashcam', labelKey: 'services.acc.dashcam' },
+  { id: 'phoneHolder', labelKey: 'services.acc.phoneHolder' },
+  { id: 'carCharger', labelKey: 'services.acc.carCharger' },
+  { id: 'organizer', labelKey: 'services.acc.organizer' },
+  { id: 'roofRack', labelKey: 'services.acc.roofRack' },
+  { id: 'mudFlaps', labelKey: 'services.acc.mudFlaps' },
+  { id: 'sunShade', labelKey: 'services.acc.sunShade' },
+  { id: 'trunkOrganizer', labelKey: 'services.acc.trunkOrganizer' },
+  { id: 'ledLights', labelKey: 'services.acc.ledLights' },
+  { id: 'parkingSensors', labelKey: 'services.acc.parkingSensors' },
+  { id: 'reverseCam', labelKey: 'services.acc.reverseCam' },
+  { id: 'airFreshener', labelKey: 'services.acc.airFreshener' },
+  { id: 'hubcaps', labelKey: 'services.acc.hubcaps' },
+]
+
 /** Categories shown on /workshops */
 export type WorkshopCategoryEntry = {
   category: ServiceCategory

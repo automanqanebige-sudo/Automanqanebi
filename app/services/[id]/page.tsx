@@ -9,6 +9,7 @@ import {
   Clock,
   MapPin,
   Phone,
+  Route,
   Wrench,
 } from 'lucide-react'
 import ServiceCard from '@/components/ServiceCard'
@@ -18,6 +19,7 @@ import ReportListingButton from '@/components/ReportListingButton'
 import ShareListingButton from '@/components/ShareListingButton'
 import CarImageGallery from '@/components/CarImageGallery'
 import { SITE_URL } from '@/lib/site'
+import { getDirectionsUrl } from '@/lib/maps-directions'
 import { useServiceCatalogT } from '@/hooks/useServiceCatalogT'
 import { useLanguage } from '@/context/LanguageContext'
 import { useCurrency } from '@/context/CurrencyContext'
@@ -143,6 +145,13 @@ function ServiceDetailContent({ id }: { id: string }) {
     service.latitude != null && service.longitude != null
       ? `https://www.openstreetmap.org/?mlat=${service.latitude}&mlon=${service.longitude}#map=16/${service.latitude}/${service.longitude}`
       : null
+  const directionsUrl =
+    service.latitude != null &&
+    service.longitude != null &&
+    Number.isFinite(service.latitude) &&
+    Number.isFinite(service.longitude)
+      ? getDirectionsUrl(service.latitude, service.longitude, service.name)
+      : null
   const hasSearch = Boolean(searchQuery.trim())
 
   return (
@@ -232,6 +241,17 @@ function ServiceDetailContent({ id }: { id: string }) {
                   <Phone className="h-4 w-4" />
                   {service.phone}
                 </a>
+                {directionsUrl && (
+                  <a
+                    href={directionsUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="btn-secondary inline-flex items-center gap-2 rounded-xl border-primary/40 bg-primary/10 px-5 py-2.5 text-sm text-primary hover:bg-primary/15"
+                  >
+                    <Route className="h-4 w-4" />
+                    {t('services.navigateHere')}
+                  </a>
+                )}
                 {mapUrl && (
                   <a
                     href={mapUrl}
